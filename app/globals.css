@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+:root {
+  --font-geist-sans: Geist, system-ui, sans-serif;
+  --font-geist-mono: Geist_Mono, monospace;
+}
+
+body {
+  font-family: var(--font-geist-sans);
+}
+
+@theme {
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+}
