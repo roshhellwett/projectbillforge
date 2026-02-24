@@ -143,8 +143,9 @@ export async function createInvoice(data: InvoiceInput) {
           throw new Error("Customer does not belong to your business");
         }
         const newBalance = (customer.current_balance ?? 0) + total;
+        const availableCredit = (customer.credit_limit ?? 0) - (customer.current_balance ?? 0);
         if ((customer.credit_limit ?? 0) > 0 && newBalance > customer.credit_limit!) {
-          throw new Error(`Credit limit exceeded. Limit: ₹${customer.credit_limit}, Current: ₹${customer.current_balance}, New: ₹${newBalance}`);
+          throw new Error(`Transaction exceeds customer credit limit. Credit Limit: ₹${customer.credit_limit}, Available: ₹${availableCredit}, Invoice Total: ₹${total}`);
         }
         await tx.update(customers)
           .set({

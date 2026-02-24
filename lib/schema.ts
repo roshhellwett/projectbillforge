@@ -31,6 +31,9 @@ export const businesses = pgTable('businesses', {
   pincode: text('pincode'),
   logo: text('logo'),
   termsAndConditions: text('terms_and_conditions'),
+  redemptionPeriodDays: integer('redemption_period_days').default(30),
+  finePercentage: numeric5('fine_percentage').default(2),
+  fineFrequencyDays: integer('fine_frequency_days').default(7),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

@@ -38,6 +38,8 @@ export default function KhataPage() {
   const [saving, setSaving] = useState(false);
   const [customerSearch, setCustomerSearch] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [accruedFines, setAccruedFines] = useState(0);
+  const [totalBalanceDue, setTotalBalanceDue] = useState(0);
 
   useEffect(() => {
     loadCustomers();
@@ -60,11 +62,15 @@ export default function KhataPage() {
         ...t,
         createdAt: new Date(t.createdAt)
       })));
+      setAccruedFines(result.accruedFines || 0);
+      setTotalBalanceDue(result.totalBalanceDue || 0);
     }
   };
 
   const handleCustomerSelect = (customerId: string) => {
     setSelectedCustomer(customerId);
+    setAccruedFines(0);
+    setTotalBalanceDue(0);
     if (customerId) {
       loadStatement(customerId);
     } else {
@@ -182,6 +188,20 @@ export default function KhataPage() {
               <p className="text-sm text-slate-500">Current Balance</p>
               <p className={`text-xl font-bold ${(customer.currentBalance ?? 0) > 0 ? 'text-orange-600' : 'text-green-600'}`}>
                 ₹{(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+            {accruedFines > 0 && (
+              <div className="bg-white p-6 rounded-2xl border border-red-200 shadow-sm">
+                <p className="text-sm text-red-500">Accrued Fines</p>
+                <p className="text-xl font-bold text-red-600">
+                  ₹{accruedFines.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            )}
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <p className="text-sm text-slate-500">Total Balance Due</p>
+              <p className="text-xl font-bold text-red-600">
+                ₹{totalBalanceDue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </p>
             </div>
           </div>

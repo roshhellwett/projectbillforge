@@ -31,6 +31,9 @@ export async function updateBusinessProfile(data: {
   state?: string;
   pincode?: string | undefined;
   termsAndConditions?: string | undefined;
+  redemptionPeriodDays?: number;
+  finePercentage?: number;
+  fineFrequencyDays?: number;
 }) {
   try {
     const session = await requireBusinessSession();
@@ -43,6 +46,9 @@ export async function updateBusinessProfile(data: {
     if (data.state !== undefined) updateData.state = data.state || '';
     if (data.pincode !== undefined) updateData.pincode = data.pincode || null;
     if (data.termsAndConditions !== undefined) updateData.termsAndConditions = data.termsAndConditions || null;
+    if (data.redemptionPeriodDays !== undefined) updateData.redemptionPeriodDays = data.redemptionPeriodDays;
+    if (data.finePercentage !== undefined) updateData.finePercentage = data.finePercentage;
+    if (data.fineFrequencyDays !== undefined) updateData.fineFrequencyDays = data.fineFrequencyDays;
 
     await db.update(businesses)
       .set(updateData)

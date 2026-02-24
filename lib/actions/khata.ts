@@ -1,10 +1,50 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { khataTransactions, customers } from "@/lib/schema";
+import { khataTransactions, customers, businesses, invoices } from "@/lib/schema";
 import { khataTransactionSchema, type KhataTransactionInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and, gte } from "drizzle-orm";
+
+export async function calculateLateFees(
+  invoiceId: string,
+  businessId: string
+): Promise<number> {
+  const business = await db.query.businesses.findFirst({
+    where: eq(businesses.id, businessId),
+  });
+  
+  if (!business || !business.redemptionPeriodDays || !business.finePercentage || !business.fineFrequencyDays) {
+    return 0;
+  }
+  
+  const invoice = await db.query.invoices.findFirst({
+    where: eq(invoices.id, invoiceId),
+  });
+  
+  if (!invoice || invoice.paymentStatus !== 'unpaid') {
+    return 0;
+  }
+  
+  const invoiceDate = new Date(invoice.invoiceDate);
+  const today = new Date();
+  
+  const dueDate = new Date(invoiceDate);
+  dueDate.setDate(dueDate.getDate() + (business.redemptionPeriodDays || 30));
+  
+  if (today <= dueDate) {
+    return 0;
+  }
+  
+  const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+  const fineFrequencyDays = business.fineFrequencyDays || 7;
+  const finePercentage = Number(business.finePercentage) || 2;
+  
+  const finePeriods = Math.floor(daysOverdue / fineFrequencyDays);
+  const invoiceTotal = Number(invoice.total) || 0;
+  
+  return Math.round(invoiceTotal * (finePercentage / 100) * finePeriods * 100) / 100;
+}
 
 export async function createKhataTransaction(data: KhataTransactionInput) {
   try {
@@ -101,27 +141,64 @@ export async function getKhataStatement(customerId: string) {
       return { error: "Customer not found" };
     }
 
+    const business = await db.query.businesses.findFirst({
+      where: eq(businesses.id, session.id),
+    });
+
     const transactions = await db.query.khataTransactions.findMany({
       where: eq(khataTransactions.customerId, customerId),
       orderBy: (khataTransactions, { desc }) => [desc(khataTransactions.createdAt)],
     });
 
+    const invoicesList = await db.query.invoices.findMany({
+      where: and(
+        eq(invoices.customerId, customerId),
+        eq(invoices.paymentStatus, 'unpaid')
+      ),
+    });
+
+    let totalAccruedFines = 0;
+    const invoiceFines: Record<string, number> = {};
+    
+    if (business && invoicesList.length > 0) {
+      for (const inv of invoicesList) {
+        const fine = await calculateLateFees(inv.id, session.id);
+        if (fine > 0) {
+          invoiceFines[inv.id] = fine;
+          totalAccruedFines += fine;
+        }
+      }
+    }
+
     let runningBalance = customer.currentBalance ?? 0;
     const statement = transactions.map(t => {
       const prevBalance = runningBalance;
-      runningBalance += t.type === 'credit' ? -t.amount : t.amount;
+      if (t.type === 'credit') {
+        runningBalance += t.amount;
+      } else {
+        runningBalance -= t.amount;
+      }
+      let accruedFine = 0;
+      if (t.referenceInvoiceId && invoiceFines[t.referenceInvoiceId]) {
+        accruedFine = invoiceFines[t.referenceInvoiceId];
+      }
       return {
         ...t,
         prevBalance,
         runningBalance,
+        accruedFine,
       };
     });
+
+    const totalBalanceWithFines = (customer.currentBalance ?? 0) + totalAccruedFines;
 
     return {
       success: true,
       customer,
       statement,
       currentBalance: customer.currentBalance,
+      accruedFines: totalAccruedFines,
+      totalBalanceDue: totalBalanceWithFines,
     };
   } catch (error: any) {
     return { error: error.message || "Failed to fetch khata statement" };

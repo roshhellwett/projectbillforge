@@ -24,6 +24,9 @@ export default function SettingsPage() {
     state: "",
     pincode: "",
     termsAndConditions: "",
+    redemptionPeriodDays: 30,
+    finePercentage: 2,
+    fineFrequencyDays: 7,
   });
 
   useEffect(() => {
@@ -42,6 +45,9 @@ export default function SettingsPage() {
         state: result.business.state || "",
         pincode: result.business.pincode || "",
         termsAndConditions: result.business.termsAndConditions || defaultTerms,
+        redemptionPeriodDays: result.business.redemptionPeriodDays || 30,
+        finePercentage: Number(result.business.finePercentage) || 2,
+        fineFrequencyDays: result.business.fineFrequencyDays || 7,
       });
     }
     setLoading(false);
@@ -60,6 +66,9 @@ export default function SettingsPage() {
       state: formData.state || undefined,
       pincode: formData.pincode || undefined,
       termsAndConditions: formData.termsAndConditions || undefined,
+      redemptionPeriodDays: formData.redemptionPeriodDays,
+      finePercentage: formData.finePercentage,
+      fineFrequencyDays: formData.fineFrequencyDays,
     });
 
     if (result.error) {
@@ -190,6 +199,57 @@ export default function SettingsPage() {
             className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             placeholder="Enter terms and conditions..."
           />
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-2">Late Payment Fine Settings</h2>
+          <p className="text-sm text-slate-500 mb-4">Configure automatic fine calculation for overdue Khata payments.</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Redemption Period (Days)</label>
+              <input
+                type="number"
+                min="0"
+                value={formData.redemptionPeriodDays}
+                onChange={(e) => setFormData({ ...formData, redemptionPeriodDays: parseInt(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-slate-500 mt-1">Days before fines apply</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Fine Percentage (%)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.1"
+                value={formData.finePercentage}
+                onChange={(e) => setFormData({ ...formData, finePercentage: parseFloat(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-slate-500 mt-1">% of invoice value per period</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Fine Frequency (Days)</label>
+              <input
+                type="number"
+                min="1"
+                value={formData.fineFrequencyDays}
+                onChange={(e) => setFormData({ ...formData, fineFrequencyDays: parseInt(e.target.value) || 1 })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-slate-500 mt-1">How often to charge fine</p>
+            </div>
+          </div>
+
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-700">
+              <strong>Example:</strong> With {formData.redemptionPeriodDays} days grace, {formData.finePercentage}% per {formData.fineFrequencyDays} days - 
+              A ₹10,000 invoice overdue by 44 days would incur: ₹{Math.round(10000 * (formData.finePercentage / 100) * Math.floor((44 - formData.redemptionPeriodDays) / formData.fineFrequencyDays) * 100) / 100} in fines.
+            </p>
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-6">

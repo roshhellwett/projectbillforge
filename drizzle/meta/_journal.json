@@ -36,6 +36,13 @@
       "when": 1771934032245,
       "tag": "0004_light_ravenous",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1771935495585,
+      "tag": "0005_freezing_black_bolt",
+      "breakpoints": true
     }
   ]
 }
