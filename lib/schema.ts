@@ -110,6 +110,7 @@ export const khataTransactions = pgTable('khata_transactions', {
   type: text('type', { enum: ['credit', 'debit'] }).notNull(),
   amount: numeric2('amount').notNull(),
   note: text('note'),
+  status: text('status', { enum: ['active', 'cancelled'] }).default('active'),
   referenceInvoiceId: text('reference_invoice_id').references(() => invoices.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => ({

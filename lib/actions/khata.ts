@@ -145,9 +145,22 @@ export async function getKhataStatement(customerId: string) {
       where: eq(businesses.id, session.id),
     });
 
-    const transactions = await db.query.khataTransactions.findMany({
+    const allTransactions = await db.query.khataTransactions.findMany({
       where: eq(khataTransactions.customerId, customerId),
       orderBy: (khataTransactions, { asc }) => [asc(khataTransactions.createdAt)],
+    });
+    
+    const transactions = allTransactions.filter(t => t.status !== 'cancelled');
+    const statementWithAll = allTransactions.map(t => {
+      let accruedFine = 0;
+      if (t.referenceInvoiceId && invoiceFines[t.referenceInvoiceId]) {
+        accruedFine = invoiceFines[t.referenceInvoiceId];
+      }
+      return {
+        ...t,
+        runningBalance: 0,
+        accruedFine,
+      };
     });
 
     const invoicesList = await db.query.invoices.findMany({
@@ -170,7 +183,7 @@ export async function getKhataStatement(customerId: string) {
       }
     }
 
-    let runningBalance = customer.currentBalance ?? 0;
+    let runningBalance = 0;
     
     const sortedTransactions = [...transactions].sort((a, b) => 
       new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
@@ -187,15 +200,13 @@ export async function getKhataStatement(customerId: string) {
       transactionBalances[t.id] = runningBalance;
     }
 
-    const statement = transactions.map(t => {
-      let accruedFine = 0;
-      if (t.referenceInvoiceId && invoiceFines[t.referenceInvoiceId]) {
-        accruedFine = invoiceFines[t.referenceInvoiceId];
+    const statement = statementWithAll.map(t => {
+      if (t.status === 'cancelled') {
+        return { ...t };
       }
       return {
         ...t,
-        runningBalance: transactionBalances[t.id] ?? customer.currentBalance ?? 0,
-        accruedFine,
+        runningBalance: transactionBalances[t.id] ?? 0,
       };
     }).reverse();
 
@@ -226,14 +237,18 @@ export async function deleteKhataTransaction(id: string) {
       return { error: "Transaction not found" };
     }
 
+    if (transaction.status === 'cancelled') {
+      return { error: "Transaction already cancelled" };
+    }
+
     if (transaction.referenceInvoiceId) {
-      return { error: "Cannot delete invoice-linked transactions" };
+      return { error: "Cannot cancel invoice-linked transactions" };
     }
 
     await db.transaction(async (tx) => {
-      const balanceAdjustment = transaction.type === 'credit'
-        ? -transaction.amount
-        : transaction.amount;
+      const balanceAdjustment = transaction.type === 'debit'
+        ? transaction.amount
+        : -transaction.amount;
 
       const customerRows = await tx.execute(
         sql`SELECT id, current_balance FROM customers WHERE id = ${transaction.customerId} FOR UPDATE`
@@ -241,21 +256,23 @@ export async function deleteKhataTransaction(id: string) {
       const customer = customerRows[0];
       
       if (customer) {
+        const newBalance = (customer.current_balance ?? 0) + balanceAdjustment;
         await tx.update(customers)
           .set({
-            currentBalance: (customer.current_balance ?? 0) + balanceAdjustment,
+            currentBalance: Math.max(0, newBalance),
             updatedAt: new Date(),
           })
           .where(eq(customers.id, transaction.customerId));
       }
 
-      await tx.delete(khataTransactions)
+      await tx.update(khataTransactions)
+        .set({ status: 'cancelled' })
         .where(eq(khataTransactions.id, id));
     });
 
     return { success: true };
   } catch (error: any) {
-    return { error: error.message || "Failed to delete transaction" };
+    return { error: error.message || "Failed to cancel transaction" };
   }
 }
 
@@ -271,9 +288,11 @@ export async function recalculateCustomerBalance(customerId: string) {
       return { error: "Customer not found" };
     }
 
-    const transactions = await db.query.khataTransactions.findMany({
+    const allTransactions = await db.query.khataTransactions.findMany({
       where: eq(khataTransactions.customerId, customerId),
     });
+
+    const transactions = allTransactions.filter(t => t.status !== 'cancelled');
 
     let calculatedBalance = 0;
     for (const t of transactions) {

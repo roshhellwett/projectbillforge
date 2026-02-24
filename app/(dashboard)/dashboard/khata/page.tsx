@@ -223,7 +223,7 @@ export default function KhataPage() {
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-slate-500">Current Balance</p>
+                  <p className="text-sm text-slate-500">Total Owed (Due)</p>
                   <p className={`text-xl font-bold ${(customer.currentBalance ?? 0) > 0 ? 'text-orange-600' : 'text-green-600'}`}>
                     ₹{Math.abs(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </p>
@@ -238,6 +238,22 @@ export default function KhataPage() {
                 )}
               </div>
             </div>
+            {(customer.creditLimit ?? 0) > 0 && (
+              <>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-sm text-slate-500">Credit Limit</p>
+                  <p className="text-xl font-bold text-slate-900">
+                    ₹{(customer.creditLimit ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-green-200 shadow-sm">
+                  <p className="text-sm text-green-600">Available Credit</p>
+                  <p className="text-xl font-bold text-green-600">
+                    ₹{Math.max(0, (customer.creditLimit ?? 0) - (customer.currentBalance ?? 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              </>
+            )}
             {accruedFines > 0 && (
               <div className="bg-white p-6 rounded-2xl border border-red-200 shadow-sm">
                 <p className="text-sm text-red-500">Accrued Fines</p>
@@ -246,12 +262,6 @@ export default function KhataPage() {
                 </p>
               </div>
             )}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              <p className="text-sm text-slate-500">Total Balance Due</p>
-              <p className="text-xl font-bold text-red-600">
-                ₹{totalBalanceDue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </p>
-            </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -278,27 +288,44 @@ export default function KhataPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     {statement.map((t) => (
-                      <tr key={t.id} className="hover:bg-slate-50">
+                      <tr key={t.id} className={`hover:bg-slate-50 ${(t as any).status === 'cancelled' ? 'bg-slate-100 opacity-60' : ''}`}>
                         <td className="px-4 py-3 text-sm text-slate-600">
                           {t.createdAt.toLocaleDateString('en-IN')}
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`flex items-center gap-1 text-sm font-medium ${t.type === 'credit' ? 'text-orange-600' : 'text-green-600'}`}>
-                            {t.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
-                            {t.type === 'credit' ? 'Sale (Added to Khata)' : 'Payment Received'}
-                          </span>
+                          {(t as any).status === 'cancelled' ? (
+                            <span className="flex items-center gap-1 text-sm font-medium text-slate-400 line-through">
+                              {t.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
+                              Cancelled / Refunded
+                            </span>
+                          ) : (
+                            <span className={`flex items-center gap-1 text-sm font-medium ${t.type === 'credit' ? 'text-orange-600' : 'text-green-600'}`}>
+                              {t.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
+                              {t.type === 'credit' ? 'Sale (Added to Khata)' : 'Payment Received'}
+                            </span>
+                          )}
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{t.note || "-"}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{(t as any).status === 'cancelled' ? <span className="line-through">{t.note || "-"}</span> : t.note || "-"}</td>
                         <td className="px-4 py-3 text-right font-medium text-slate-900">
-                          ₹{t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          {(t as any).status === 'cancelled' ? (
+                            <span className="line-through text-slate-400">₹{t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                          ) : (
+                            <span>₹{t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-right font-semibold">
-                          <span className={(t as any).runningBalance >= 0 ? 'text-orange-600' : 'text-green-600'}>
-                            ₹{Math.abs((t as any).runningBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                          </span>
+                          {(t as any).status === 'cancelled' ? (
+                            <span className="text-slate-400">-</span>
+                          ) : (
+                            <span className={(t as any).runningBalance >= 0 ? 'text-orange-600' : 'text-green-600'}>
+                              ₹{Math.abs((t as any).runningBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-3">
-                          {t.referenceInvoiceId ? (
+                          {(t as any).status === 'cancelled' ? (
+                            <span className="text-xs text-slate-400">Cancelled</span>
+                          ) : t.referenceInvoiceId ? (
                             <div className="relative group">
                               <button
                                 className="p-1 text-slate-300 cursor-not-allowed"

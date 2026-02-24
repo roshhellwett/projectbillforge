@@ -50,6 +50,13 @@
       "when": 1771938148804,
       "tag": "0006_useful_roughhouse",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1771943414098,
+      "tag": "0007_true_roughhouse",
+      "breakpoints": true
     }
   ]
 }

@@ -211,7 +211,7 @@ export default function CustomersPage() {
                 </div>
                 <div className="pt-3 border-t border-slate-100">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500">Balance</span>
+                    <span className="text-slate-500">Total Owed (Due)</span>
                     <div className="flex items-center gap-1">
                       <span className={(customer.currentBalance ?? 0) > 0 ? "font-semibold text-orange-600" : "font-medium text-slate-700"}>
                         ₹{(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
@@ -230,6 +230,14 @@ export default function CustomersPage() {
                     <span className="text-slate-500">Credit Limit</span>
                     <span className="text-slate-700">₹{(customer.creditLimit ?? 0).toLocaleString('en-IN')}</span>
                   </div>
+                  {(customer.creditLimit ?? 0) > 0 && (
+                    <div className="flex justify-between text-sm mt-1">
+                      <span className="text-slate-500">Available Credit</span>
+                      <span className="font-medium text-green-600">
+                        ₹{Math.max(0, (customer.creditLimit ?? 0) - (customer.currentBalance ?? 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
