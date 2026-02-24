@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { products } from "@/lib/schema";
 import { productSchema, type ProductInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export async function createProduct(data: ProductInput) {
   try {
@@ -114,13 +114,12 @@ export async function getLowStockProducts() {
   try {
     const session = await requireBusinessSession();
 
-    const allProducts = await db.query.products.findMany({
-      where: eq(products.businessId, session.id),
-    });
-
-    const lowStock = allProducts.filter(
-      p => (p.stockQuantity ?? 0) <= (p.lowStockThreshold ?? 0) && p.isActive
-    );
+    const lowStock = await db
+      .select()
+      .from(products)
+      .where(
+        sql`${products.businessId} = ${session.id} AND ${products.isActive} = true AND ${products.stockQuantity} <= ${products.lowStockThreshold}`
+      );
 
     return { success: true, products: lowStock };
   } catch (error: any) {

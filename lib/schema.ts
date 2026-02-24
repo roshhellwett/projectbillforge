@@ -1,4 +1,22 @@
-import { pgTable, text, integer, real, boolean, timestamp, index, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, real, boolean, timestamp, index, jsonb, numeric, date, customType } from 'drizzle-orm/pg-core';
+
+const numeric2 = customType<{ data: number }>({
+  dataType() {
+    return 'numeric(10, 2)';
+  },
+  fromDriver(value: unknown): number {
+    return Number(value);
+  },
+});
+
+const numeric5 = customType<{ data: number }>({
+  dataType() {
+    return 'numeric(5, 2)';
+  },
+  fromDriver(value: unknown): number {
+    return Number(value);
+  },
+});
 import { relations } from 'drizzle-orm';
 
 export const businesses = pgTable('businesses', {
@@ -24,8 +42,8 @@ export const customers = pgTable('customers', {
   email: text('email'),
   gstin: text('gstin'),
   address: text('address'),
-  creditLimit: real('credit_limit').default(0),
-  currentBalance: real('current_balance').default(0),
+  creditLimit: numeric2('credit_limit').default(0),
+  currentBalance: numeric2('current_balance').default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
@@ -39,10 +57,10 @@ export const products = pgTable('products', {
   sku: text('sku'),
   hsnCode: text('hsn_code'),
   unit: text('unit').default('piece'),
-  rate: real('rate').notNull().default(0),
-  gstRate: real('gst_rate').default(0),
-  stockQuantity: real('stock_quantity').default(0),
-  lowStockThreshold: real('low_stock_threshold').default(0),
+  rate: numeric2('rate').notNull().default(0),
+  gstRate: numeric5('gst_rate').default(0),
+  stockQuantity: numeric2('stock_quantity').default(0),
+  lowStockThreshold: numeric2('low_stock_threshold').default(0),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -58,12 +76,12 @@ export const invoices = pgTable('invoices', {
   customerName: text('customer_name').notNull(),
   customerGstin: text('customer_gstin'),
   customerAddress: text('customer_address'),
-  invoiceDate: timestamp('invoice_date').notNull(),
-  subtotal: real('subtotal').notNull().default(0),
-  cgst: real('cgst').default(0),
-  sgst: real('sgst').default(0),
-  igst: real('igst').default(0),
-  total: real('total').notNull().default(0),
+  invoiceDate: date('invoice_date').notNull(),
+  subtotal: numeric2('subtotal').notNull().default(0),
+  cgst: numeric2('cgst').default(0),
+  sgst: numeric2('sgst').default(0),
+  igst: numeric2('igst').default(0),
+  total: numeric2('total').notNull().default(0),
   items: jsonb('items').$type<InvoiceItem[]>(),
   notes: text('notes'),
   status: text('status', { enum: ['active', 'cancelled'] }).default('active'),
@@ -72,6 +90,7 @@ export const invoices = pgTable('invoices', {
 }, (table) => ({
   businessIdIdx: index('idx_invoices_business').on(table.businessId),
   customerIdIdx: index('idx_invoices_customer').on(table.customerId),
+  statusIdx: index('idx_invoices_status').on(table.status),
 }));
 
 export const khataTransactions = pgTable('khata_transactions', {
@@ -79,7 +98,7 @@ export const khataTransactions = pgTable('khata_transactions', {
   businessId: text('business_id').notNull().references(() => businesses.id, { onDelete: 'cascade' }),
   customerId: text('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
   type: text('type', { enum: ['credit', 'debit'] }).notNull(),
-  amount: real('amount').notNull(),
+  amount: numeric2('amount').notNull(),
   note: text('note'),
   referenceInvoiceId: text('reference_invoice_id').references(() => invoices.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow(),

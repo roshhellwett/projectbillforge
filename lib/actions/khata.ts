@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { khataTransactions, customers } from "@/lib/schema";
 import { khataTransactionSchema, type KhataTransactionInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export async function createKhataTransaction(data: KhataTransactionInput) {
   try {
@@ -15,15 +15,24 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
       return { error: validation.error.errors[0].message };
     }
 
-    const customer = await db.query.customers.findFirst({
+    const customerCheck = await db.query.customers.findFirst({
       where: eq(customers.id, data.customerId),
     });
 
-    if (!customer || customer.businessId !== session.id) {
+    if (!customerCheck || customerCheck.businessId !== session.id) {
       return { error: "Customer not found" };
     }
 
     const transaction = await db.transaction(async (tx) => {
+      const customerRows = await tx.execute(
+        sql`SELECT id, current_balance, credit_limit FROM customers WHERE id = ${data.customerId} FOR UPDATE`
+      ) as unknown as { id: string; current_balance: number | null; credit_limit: number | null }[];
+      const lockedCustomer = customerRows[0];
+      
+      if (!lockedCustomer) {
+        throw new Error("Customer not found");
+      }
+
       const [newTransaction] = await tx.insert(khataTransactions).values({
         id: crypto.randomUUID(),
         businessId: session.id,
@@ -34,15 +43,15 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
       }).returning();
 
       const newBalance = data.type === 'credit'
-        ? (customer.currentBalance ?? 0) + data.amount
-        : (customer.currentBalance ?? 0) - data.amount;
+        ? (lockedCustomer.current_balance ?? 0) + data.amount
+        : (lockedCustomer.current_balance ?? 0) - data.amount;
 
       if (newBalance < 0) {
         throw new Error("Payment exceeds current balance");
       }
 
-      if ((customer.creditLimit ?? 0) > 0 && newBalance > customer.creditLimit!) {
-        throw new Error(`Credit limit exceeded. Limit: ₹${customer.creditLimit}, Current: ₹${customer.currentBalance}, New: ₹${newBalance}`);
+      if ((lockedCustomer.credit_limit ?? 0) > 0 && newBalance > lockedCustomer.credit_limit!) {
+        throw new Error(`Credit limit exceeded. Limit: ₹${lockedCustomer.credit_limit}, Current: ₹${lockedCustomer.current_balance}, New: ₹${newBalance}`);
       }
 
       await tx.update(customers)
@@ -140,14 +149,15 @@ export async function deleteKhataTransaction(id: string) {
         ? -transaction.amount
         : transaction.amount;
 
-      const customer = await tx.query.customers.findFirst({
-        where: eq(customers.id, transaction.customerId),
-      });
+      const customerRows = await tx.execute(
+        sql`SELECT id, current_balance FROM customers WHERE id = ${transaction.customerId} FOR UPDATE`
+      ) as unknown as { id: string; current_balance: number | null }[];
+      const customer = customerRows[0];
       
       if (customer) {
         await tx.update(customers)
           .set({
-            currentBalance: (customer.currentBalance ?? 0) + balanceAdjustment,
+            currentBalance: (customer.current_balance ?? 0) + balanceAdjustment,
             updatedAt: new Date(),
           })
           .where(eq(customers.id, transaction.customerId));

@@ -4,14 +4,14 @@ import { db } from "@/lib/db";
 import { invoices, customers, products, khataTransactions } from "@/lib/schema";
 import { invoiceSchema, type InvoiceInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, sql } from "drizzle-orm";
 
 function generateInvoiceNumber(): string {
   const date = new Date();
   const year = date.getFullYear().toString().slice(-2);
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `INV/${year}${month}/${random}`;
+  const unique = crypto.randomUUID().split('-')[0];
+  return `INV/${year}${month}/${unique}`;
 }
 
 function calculateGST(itemRate: number, quantity: number, gstRate: number, isInterState: boolean) {
@@ -48,7 +48,7 @@ export async function createInvoice(data: InvoiceInput) {
     }
 
     const invoiceNumber = generateInvoiceNumber();
-    const invoiceDate = new Date(data.invoiceDate);
+    const invoiceDate = data.invoiceDate;
 
     let subtotal = 0;
     let totalCgst = 0;
@@ -98,9 +98,10 @@ export async function createInvoice(data: InvoiceInput) {
       }).returning();
 
       for (const item of processedItems) {
-        const product = await tx.query.products.findFirst({
-          where: eq(products.id, item.productId),
-        });
+        const productRows = await tx.execute(
+          sql`SELECT id, name, stock_quantity FROM products WHERE id = ${item.productId} FOR UPDATE`
+        ) as unknown as { id: string; name: string; stockQuantity: number | null }[];
+        const product = productRows[0];
         if (!product) {
           throw new Error(`Product not found: ${item.productName}`);
         }
@@ -116,18 +117,19 @@ export async function createInvoice(data: InvoiceInput) {
       }
 
       if (data.customerId) {
-        const customer = await tx.query.customers.findFirst({
-          where: eq(customers.id, data.customerId),
-        });
+        const customerRows = await tx.execute(
+          sql`SELECT id, business_id, current_balance, credit_limit FROM customers WHERE id = ${data.customerId} FOR UPDATE`
+        ) as unknown as { id: string; business_id: string; current_balance: number | null; credit_limit: number | null }[];
+        const customer = customerRows[0];
         if (!customer) {
           throw new Error("Customer not found");
         }
-        if (customer.businessId !== session.id) {
+        if (customer.business_id !== session.id) {
           throw new Error("Customer does not belong to your business");
         }
-        const newBalance = (customer.currentBalance ?? 0) + total;
-        if ((customer.creditLimit ?? 0) > 0 && newBalance > customer.creditLimit!) {
-          throw new Error(`Credit limit exceeded. Limit: ₹${customer.creditLimit}, Current: ₹${customer.currentBalance}, New: ₹${newBalance}`);
+        const newBalance = (customer.current_balance ?? 0) + total;
+        if ((customer.credit_limit ?? 0) > 0 && newBalance > customer.credit_limit!) {
+          throw new Error(`Credit limit exceeded. Limit: ₹${customer.credit_limit}, Current: ₹${customer.current_balance}, New: ₹${newBalance}`);
         }
         await tx.update(customers)
           .set({
@@ -212,13 +214,14 @@ export async function cancelInvoice(id: string) {
 
       if (invoice.items) {
         for (const item of invoice.items) {
-          const product = await tx.query.products.findFirst({
-            where: eq(products.id, item.productId),
-          });
+          const productRows = await tx.execute(
+            sql`SELECT id, stock_quantity FROM products WHERE id = ${item.productId} FOR UPDATE`
+          ) as unknown as { id: string; stock_quantity: number | null }[];
+          const product = productRows[0];
           if (product) {
             await tx.update(products)
               .set({
-                stockQuantity: (product.stockQuantity ?? 0) + item.quantity,
+                stockQuantity: (product.stock_quantity ?? 0) + item.quantity,
                 updatedAt: new Date(),
               })
               .where(eq(products.id, item.productId));
@@ -227,13 +230,14 @@ export async function cancelInvoice(id: string) {
       }
 
       if (invoice.customerId) {
-        const customer = await tx.query.customers.findFirst({
-          where: eq(customers.id, invoice.customerId),
-        });
+        const customerRows = await tx.execute(
+          sql`SELECT id, current_balance FROM customers WHERE id = ${invoice.customerId} FOR UPDATE`
+        ) as unknown as { id: string; current_balance: number | null }[];
+        const customer = customerRows[0];
         if (customer) {
           await tx.update(customers)
             .set({
-              currentBalance: (customer.currentBalance ?? 0) - (invoice.total ?? 0),
+              currentBalance: (customer.current_balance ?? 0) - (invoice.total ?? 0),
               updatedAt: new Date(),
             })
             .where(eq(customers.id, invoice.customerId));
@@ -253,37 +257,61 @@ export async function cancelInvoice(id: string) {
 export async function getSalesSummary() {
   try {
     const session = await requireBusinessSession();
+    const businessId = session.id;
 
-    const allInvoices = await db.query.invoices.findMany({
-      where: eq(invoices.businessId, session.id),
-    });
-
-    const activeInvoices = allInvoices.filter(inv => inv.status === 'active');
-    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
-    const todaySales = activeInvoices
-      .filter(inv => new Date(inv.invoiceDate) >= today)
-      .reduce((sum, inv) => sum + inv.total, 0);
+    const todayStr = today.toISOString().split('T')[0];
 
-    const totalSales = activeInvoices.reduce((sum, inv) => sum + inv.total, 0);
-    const totalInvoices = activeInvoices.length;
+    const [todaySalesResult] = await db
+      .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
+      .from(invoices)
+      .where(
+        and(
+          eq(invoices.businessId, businessId),
+          eq(invoices.status, 'active'),
+          sql`${invoices.invoiceDate} >= ${todayStr}`
+        )
+      );
 
-    const allCustomers = await db.query.customers.findMany({
-      where: eq(customers.businessId, session.id),
-    });
+    const [totalSalesResult] = await db
+      .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
+      .from(invoices)
+      .where(
+        and(
+          eq(invoices.businessId, businessId),
+          eq(invoices.status, 'active')
+        )
+      );
 
-    const totalReceivable = allCustomers.reduce((sum, c) => sum + (c.currentBalance ?? 0), 0);
+    const [invoicesCountResult] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(invoices)
+      .where(
+        and(
+          eq(invoices.businessId, businessId),
+          eq(invoices.status, 'active')
+        )
+      );
+
+    const [customersCountResult] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(customers)
+      .where(eq(customers.businessId, businessId));
+
+    const [receivableResult] = await db
+      .select({ total: sql<number>`COALESCE(SUM(${customers.currentBalance}), 0)` })
+      .from(customers)
+      .where(eq(customers.businessId, businessId));
 
     return {
       success: true,
       summary: {
-        todaySales,
-        totalSales,
-        totalInvoices,
-        totalCustomers: allCustomers.length,
-        totalReceivable,
+        todaySales: Number(todaySalesResult.total),
+        totalSales: Number(totalSalesResult.total),
+        totalInvoices: Number(invoicesCountResult.count),
+        totalCustomers: Number(customersCountResult.count),
+        totalReceivable: Number(receivableResult.total),
       }
     };
   } catch (error: any) {
