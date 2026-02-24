@@ -5,6 +5,7 @@ import { products } from "@/lib/schema";
 import { productSchema, type ProductInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq, sql } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 export async function createProduct(data: ProductInput) {
   try {
@@ -29,6 +30,7 @@ export async function createProduct(data: ProductInput) {
       isActive: true,
     }).returning();
 
+    revalidatePath('/dashboard/products');
     return { success: true, product };
   } catch (error: any) {
     return { error: error.message || "Failed to create product" };
@@ -53,6 +55,7 @@ export async function updateProduct(id: string, data: Partial<ProductInput>) {
       return { error: "Product not found" };
     }
 
+    revalidatePath('/dashboard/products');
     return { success: true, product };
   } catch (error: any) {
     return { error: error.message || "Failed to update product" };
@@ -71,6 +74,7 @@ export async function deleteProduct(id: string) {
       return { error: "Product not found" };
     }
 
+    revalidatePath('/dashboard/products');
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Failed to delete product" };

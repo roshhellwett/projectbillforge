@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { getCustomers } from "@/lib/actions/customers";
 import { getKhataStatement, createKhataTransaction, deleteKhataTransaction } from "@/lib/actions/khata";
 import { ConfirmDialog } from "@/lib/components/ui";
@@ -23,6 +24,7 @@ interface Transaction {
 }
 
 export default function KhataPage() {
+  const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
   const [customer, setCustomer] = useState<any>(null);
@@ -105,6 +107,7 @@ export default function KhataPage() {
       setFormData({ type: "credit", amount: "", note: "" });
       loadStatement(selectedCustomer);
       loadCustomers();
+      router.refresh();
     }
     setSaving(false);
   };
@@ -115,6 +118,7 @@ export default function KhataPage() {
     if (result.success && selectedCustomer) {
       loadStatement(selectedCustomer);
       loadCustomers();
+      router.refresh();
     }
     setDeleteId(null);
   };
@@ -146,6 +150,7 @@ export default function KhataPage() {
       setPaymentData({ amount: "", note: "" });
       loadStatement(selectedCustomer);
       loadCustomers();
+      router.refresh();
     }
     setSaving(false);
   };
@@ -157,15 +162,6 @@ export default function KhataPage() {
           <h1 className="text-2xl font-bold text-slate-900">Khata Ledger</h1>
           <p className="text-slate-500">Track customer credit and payments</p>
         </div>
-        {selectedCustomer && (
-          <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
-          >
-            <Plus size={20} />
-            Add Transaction
-          </button>
-        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
@@ -195,13 +191,23 @@ export default function KhataPage() {
                   key={c.id}
                   type="button"
                   onClick={() => handleCustomerSelect(c.id)}
-                  className={`w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-0 ${
-                    selectedCustomer === c.id ? 'bg-blue-50' : ''
+                  className={`w-full text-left px-4 py-3 border-b border-slate-100 last:border-0 cursor-pointer transition-all hover:bg-blue-50 hover:shadow-sm ${
+                    selectedCustomer === c.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                   }`}
                 >
-                  <div className="font-medium text-slate-900">{c.name}</div>
-                  <div className="text-sm text-slate-500">
-                    {c.phone || 'No phone'} • Balance: ₹{Math.abs(c.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-slate-900">{c.name}</div>
+                      <div className="text-sm text-slate-500">
+                        {c.phone || 'No phone'}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`text-sm font-semibold ${(c.currentBalance ?? 0) > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                        ₹{Math.abs(c.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </div>
+                      <div className="text-xs text-slate-400">Balance</div>
+                    </div>
                   </div>
                 </button>
               ))
@@ -211,6 +217,22 @@ export default function KhataPage() {
 
       {customer && (
         <>
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => handleCustomerSelect("")}
+              className="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
+            >
+              ← Back to customer list
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
+            >
+              <Plus size={20} />
+              Add Transaction
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
               <p className="text-sm text-slate-500">Customer Name</p>

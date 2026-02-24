@@ -232,6 +232,7 @@ export default function InvoicesPage() {
       setShowNewInvoice(false);
       resetForm();
       loadData();
+      router.refresh();
     }
     setSaving(false);
   };
@@ -241,6 +242,7 @@ export default function InvoicesPage() {
     const result = await cancelInvoice(cancelId);
     if (result.success) {
       loadData();
+      router.refresh();
     }
     setCancelId(null);
   };

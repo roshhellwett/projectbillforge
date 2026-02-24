@@ -1,10 +1,11 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { customers } from "@/lib/schema";
+import { customers, khataTransactions } from "@/lib/schema";
 import { customerSchema, type CustomerInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 export async function createCustomer(data: CustomerInput) {
   try {
@@ -27,6 +28,8 @@ export async function createCustomer(data: CustomerInput) {
       currentBalance: 0,
     }).returning();
 
+    revalidatePath('/dashboard/customers');
+    revalidatePath('/dashboard/khata');
     return { success: true, customer };
   } catch (error: any) {
     return { error: error.message || "Failed to create customer" };
@@ -51,6 +54,8 @@ export async function updateCustomer(id: string, data: Partial<CustomerInput>) {
       return { error: "Customer not found" };
     }
 
+    revalidatePath('/dashboard/customers');
+    revalidatePath('/dashboard/khata');
     return { success: true, customer };
   } catch (error: any) {
     return { error: error.message || "Failed to update customer" };
@@ -61,14 +66,28 @@ export async function deleteCustomer(id: string) {
   try {
     const session = await requireBusinessSession();
 
-    const [customer] = await db.delete(customers)
+    const [customer] = await db.select()
+      .from(customers)
       .where(eq(customers.id, id))
-      .returning();
+      .limit(1);
 
     if (!customer || customer.businessId !== session.id) {
       return { error: "Customer not found" };
     }
 
+    if ((customer.currentBalance ?? 0) > 0) {
+      return { error: "Action blocked: Cannot delete customer with an outstanding Khata balance. Please settle dues first." };
+    }
+
+    await db.update(khataTransactions)
+      .set({ status: 'cancelled' })
+      .where(eq(khataTransactions.customerId, id));
+
+    await db.delete(customers)
+      .where(eq(customers.id, id));
+
+    revalidatePath('/dashboard/customers');
+    revalidatePath('/dashboard/khata');
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Failed to delete customer" };

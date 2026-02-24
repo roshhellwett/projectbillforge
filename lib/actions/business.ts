@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { businesses, customers, invoices, khataTransactions } from "@/lib/schema";
 import { requireBusinessSession } from "@/lib/session";
 import { eq } from "drizzle-orm";
+import { compare } from "bcryptjs";
+import { revalidatePath } from "next/cache";
 
 export async function getBusinessProfile() {
   try {
@@ -56,6 +58,7 @@ export async function updateBusinessProfile(data: {
       .set(updateData)
       .where(eq(businesses.id, session.id));
 
+    revalidatePath('/dashboard/settings');
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Failed to update business profile" };
@@ -82,10 +85,23 @@ export async function checkBusinessProfileComplete() {
   }
 }
 
-export async function resetAllKhataData() {
+export async function resetAllKhataData(password: string) {
   try {
     const session = await requireBusinessSession();
     const businessId = session.id;
+
+    const business = await db.query.businesses.findFirst({
+      where: eq(businesses.id, businessId),
+    });
+
+    if (!business || !business.passwordHash) {
+      return { error: "Unable to verify credentials" };
+    }
+
+    const isValidPassword = await compare(password, business.passwordHash);
+    if (!isValidPassword) {
+      return { error: "Incorrect password" };
+    }
 
     await db.transaction(async (tx) => {
       await tx.delete(khataTransactions)
@@ -99,6 +115,10 @@ export async function resetAllKhataData() {
         .where(eq(customers.businessId, businessId));
     });
 
+    revalidatePath('/dashboard');
+    revalidatePath('/dashboard/khata');
+    revalidatePath('/dashboard/invoices');
+    revalidatePath('/dashboard/customers');
     return { success: true, message: "All Khata data has been reset. All invoices and transactions deleted." };
   } catch (error: any) {
     return { error: error.message || "Failed to reset Khata data" };

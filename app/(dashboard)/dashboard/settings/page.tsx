@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { getBusinessProfile, updateBusinessProfile, resetAllKhataData } from "@/lib/actions/business";
 import { ConfirmDialog } from "@/lib/components/ui";
 
@@ -11,11 +12,14 @@ const defaultTerms = `1. Goods once sold cannot be returned or exchanged unless 
 5. E. & O.E.`;
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetError, setResetError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     gstin: "",
@@ -87,6 +91,7 @@ export default function SettingsPage() {
       setMessage(result.error);
     } else {
       setMessage("Business profile updated successfully!");
+      router.refresh();
     }
     setSaving(false);
   };
@@ -293,24 +298,72 @@ export default function SettingsPage() {
         </div>
       </form>
 
-      <ConfirmDialog
-        open={showResetConfirm}
-        title="Reset All Khata Data"
-        message="This will permanently delete ALL invoices and transactions, and reset ALL customer balances to zero. Your business profile will be preserved. This cannot be undone. Are you sure?"
-        confirmLabel={resetting ? "Resetting..." : "Yes, Reset Everything"}
-        onConfirm={async () => {
-          setResetting(true);
-          const result = await resetAllKhataData();
-          if (result.error) {
-            setMessage(result.error);
-          } else {
-            setMessage(result.message || "Data reset successfully!");
-          }
-          setResetting(false);
-          setShowResetConfirm(false);
-        }}
-        onCancel={() => setShowResetConfirm(false)}
-      />
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+            <h2 className="text-lg font-semibold text-red-600 mb-2">Reset All Khata Data</h2>
+            <p className="text-sm text-slate-600 mb-4">
+              This will permanently delete ALL invoices and transactions, and reset ALL customer balances to zero. 
+              Your business profile will be preserved. This cannot be undone.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Enter your password to confirm
+              </label>
+              <input
+                type="password"
+                value={resetPassword}
+                onChange={(e) => {
+                  setResetPassword(e.target.value);
+                  setResetError("");
+                }}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="Your login password"
+              />
+              {resetError && <p className="text-sm text-red-600 mt-1">{resetError}</p>}
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowResetConfirm(false);
+                  setResetPassword("");
+                  setResetError("");
+                }}
+                className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!resetPassword) {
+                    setResetError("Please enter your password");
+                    return;
+                  }
+                  setResetting(true);
+                  setResetError("");
+                  const result = await resetAllKhataData(resetPassword);
+                  if (result.error) {
+                    setResetError(result.error);
+                    setResetting(false);
+                  } else {
+                    setMessage(result.message || "Data reset successfully!");
+                    setResetting(false);
+                    setShowResetConfirm(false);
+                    setResetPassword("");
+                    router.refresh();
+                  }
+                }}
+                disabled={resetting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50"
+              >
+                {resetting ? "Resetting..." : "Yes, Reset Everything"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

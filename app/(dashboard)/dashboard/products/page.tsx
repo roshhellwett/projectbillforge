@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "@/lib/actions/products";
 import { getBusinessProfile } from "@/lib/actions/business";
 import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
@@ -35,6 +36,7 @@ const getDefaultUnits = (industry: IndustryType) => {
 };
 
 export default function ProductsPage() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -115,6 +117,7 @@ export default function ProductsPage() {
       setEditingProduct(null);
       resetForm();
       loadData();
+      router.refresh();
     }
     setSaving(false);
   };
@@ -140,6 +143,7 @@ export default function ProductsPage() {
     const result = await deleteProduct(deleteId);
     if (result.success) {
       loadData();
+      router.refresh();
     }
     setDeleteId(null);
   };

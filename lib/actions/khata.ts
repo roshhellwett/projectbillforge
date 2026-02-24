@@ -5,6 +5,7 @@ import { khataTransactions, customers, businesses, invoices } from "@/lib/schema
 import { khataTransactionSchema, type KhataTransactionInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq, sql, and, gte } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 export async function calculateLateFees(
   invoiceId: string,
@@ -104,6 +105,8 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
       return newTransaction;
     });
 
+    revalidatePath('/dashboard/khata');
+    revalidatePath('/dashboard');
     return { success: true, transaction };
   } catch (error: any) {
     return { error: error.message || "Failed to create transaction" };
@@ -151,17 +154,6 @@ export async function getKhataStatement(customerId: string) {
     });
     
     const transactions = allTransactions.filter(t => t.status !== 'cancelled');
-    const statementWithAll = allTransactions.map(t => {
-      let accruedFine = 0;
-      if (t.referenceInvoiceId && invoiceFines[t.referenceInvoiceId]) {
-        accruedFine = invoiceFines[t.referenceInvoiceId];
-      }
-      return {
-        ...t,
-        runningBalance: 0,
-        accruedFine,
-      };
-    });
 
     const invoicesList = await db.query.invoices.findMany({
       where: and(
@@ -182,6 +174,18 @@ export async function getKhataStatement(customerId: string) {
         }
       }
     }
+
+    const statementWithAll = allTransactions.map(t => {
+      let accruedFine = 0;
+      if (t.referenceInvoiceId && invoiceFines[t.referenceInvoiceId]) {
+        accruedFine = invoiceFines[t.referenceInvoiceId];
+      }
+      return {
+        ...t,
+        runningBalance: 0,
+        accruedFine,
+      };
+    });
 
     let runningBalance = 0;
     
@@ -270,6 +274,8 @@ export async function deleteKhataTransaction(id: string) {
         .where(eq(khataTransactions.id, id));
     });
 
+    revalidatePath('/dashboard/khata');
+    revalidatePath('/dashboard');
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Failed to cancel transaction" };
@@ -309,6 +315,9 @@ export async function recalculateCustomerBalance(customerId: string) {
       .set({ currentBalance: calculatedBalance, updatedAt: new Date() })
       .where(eq(customers.id, customerId));
 
+    revalidatePath('/dashboard/khata');
+    revalidatePath('/dashboard/customers');
+    revalidatePath('/dashboard');
     return { success: true, newBalance: calculatedBalance };
   } catch (error: any) {
     return { error: error.message || "Failed to recalculate balance" };

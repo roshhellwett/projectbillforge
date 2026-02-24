@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "@/lib/actions/customers";
 import { recalculateCustomerBalance } from "@/lib/actions/khata";
 import { ConfirmDialog, SkeletonCard } from "@/lib/components/ui";
@@ -18,6 +19,7 @@ interface Customer {
 }
 
 export default function CustomersPage() {
+  const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -41,6 +43,7 @@ export default function CustomersPage() {
     const result = await recalculateCustomerBalance(customerId);
     if (result.success) {
       loadCustomers();
+      router.refresh();
     } else {
       setError(result.error || "Failed to sync balance");
     }
@@ -88,6 +91,7 @@ export default function CustomersPage() {
       setEditingCustomer(null);
       resetForm();
       loadCustomers();
+      router.refresh();
     }
     setSaving(false);
   };
@@ -110,6 +114,9 @@ export default function CustomersPage() {
     const result = await deleteCustomer(deleteId);
     if (result.success) {
       loadCustomers();
+      router.refresh();
+    } else {
+      setError(result.error || "Failed to delete customer");
     }
     setDeleteId(null);
   };
@@ -151,6 +158,15 @@ export default function CustomersPage() {
           Add Customer
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+          {error}
+          <button onClick={() => setError("")} className="float-right text-red-500 hover:text-red-700">
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
         <div className="p-4 border-b border-slate-200">
@@ -202,8 +218,10 @@ export default function CustomersPage() {
                     </button>
                     <button
                       onClick={() => setDeleteId(customer.id)}
-                      className="p-1 text-slate-400 hover:text-red-600"
+                      className={`p-1 ${(customer.currentBalance ?? 0) > 0 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-400 hover:text-red-600'}`}
                       aria-label="Delete customer"
+                      disabled={(customer.currentBalance ?? 0) > 0}
+                      title={(customer.currentBalance ?? 0) > 0 ? "Cannot delete customer with outstanding balance" : "Delete customer"}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -346,7 +364,13 @@ export default function CustomersPage() {
       <ConfirmDialog
         open={!!deleteId}
         title="Delete Customer"
-        message="Are you sure you want to delete this customer? This action cannot be undone and will also delete all their transactions."
+        message={(() => {
+          const customer = customers.find(c => c.id === deleteId);
+          if (customer && (customer.currentBalance ?? 0) > 0) {
+            return `Cannot delete this customer. They have an outstanding balance of ₹${(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}. Please settle the dues first.`;
+          }
+          return "Are you sure you want to delete this customer? This action cannot be undone and will also delete all their transactions.";
+        })()}
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
       />

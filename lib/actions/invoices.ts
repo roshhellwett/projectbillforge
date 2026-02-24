@@ -5,6 +5,7 @@ import { invoices, customers, products, khataTransactions, businesses } from "@/
 import { invoiceSchema, type InvoiceInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq, and, gt, sql } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 function generateInvoiceNumber(): string {
   const date = new Date();
@@ -168,6 +169,9 @@ export async function createInvoice(data: InvoiceInput) {
       return newInvoice;
     });
 
+    revalidatePath('/dashboard/invoices');
+    revalidatePath('/dashboard/khata');
+    revalidatePath('/dashboard');
     return { success: true, invoice };
   } catch (error: any) {
     return { error: error.message || "Failed to create invoice" };
@@ -272,6 +276,9 @@ export async function cancelInvoice(id: string) {
       }
     });
 
+    revalidatePath('/dashboard/invoices');
+    revalidatePath('/dashboard/khata');
+    revalidatePath('/dashboard');
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Failed to cancel invoice" };
