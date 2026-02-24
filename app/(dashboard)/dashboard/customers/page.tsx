@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "@/lib/actions/customers";
+import { recalculateCustomerBalance } from "@/lib/actions/khata";
 import { ConfirmDialog, SkeletonCard } from "@/lib/components/ui";
-import { Plus, Search, Edit2, Trash2, X, Phone, Mail, MapPin } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, X, Phone, Mail, MapPin, RefreshCw } from "lucide-react";
 
 interface Customer {
   id: string;
@@ -33,6 +34,18 @@ export default function CustomersPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+
+  const handleSyncBalance = async (customerId: string) => {
+    setSyncingId(customerId);
+    const result = await recalculateCustomerBalance(customerId);
+    if (result.success) {
+      loadCustomers();
+    } else {
+      setError(result.error || "Failed to sync balance");
+    }
+    setSyncingId(null);
+  };
 
   useEffect(() => {
     loadCustomers();
@@ -197,11 +210,21 @@ export default function CustomersPage() {
                   </div>
                 </div>
                 <div className="pt-3 border-t border-slate-100">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between items-center text-sm">
                     <span className="text-slate-500">Balance</span>
-                    <span className={(customer.currentBalance ?? 0) > 0 ? "font-semibold text-orange-600" : "font-medium text-slate-700"}>
-                      ₹{(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className={(customer.currentBalance ?? 0) > 0 ? "font-semibold text-orange-600" : "font-medium text-slate-700"}>
+                        ₹{(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </span>
+                      <button
+                        onClick={() => handleSyncBalance(customer.id)}
+                        disabled={syncingId === customer.id}
+                        className="p-1 text-slate-400 hover:text-blue-600 disabled:opacity-50"
+                        title="Recalculate balance from transactions"
+                      >
+                        <RefreshCw size={14} className={syncingId === customer.id ? "animate-spin" : ""} />
+                      </button>
+                    </div>
                   </div>
                   <div className="flex justify-between text-sm mt-1">
                     <span className="text-slate-500">Credit Limit</span>

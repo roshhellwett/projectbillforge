@@ -258,3 +258,40 @@ export async function deleteKhataTransaction(id: string) {
     return { error: error.message || "Failed to delete transaction" };
   }
 }
+
+export async function recalculateCustomerBalance(customerId: string) {
+  try {
+    const session = await requireBusinessSession();
+
+    const customer = await db.query.customers.findFirst({
+      where: eq(customers.id, customerId),
+    });
+
+    if (!customer || customer.businessId !== session.id) {
+      return { error: "Customer not found" };
+    }
+
+    const transactions = await db.query.khataTransactions.findMany({
+      where: eq(khataTransactions.customerId, customerId),
+    });
+
+    let calculatedBalance = 0;
+    for (const t of transactions) {
+      if (t.type === 'credit') {
+        calculatedBalance += t.amount;
+      } else {
+        calculatedBalance -= t.amount;
+      }
+    }
+
+    calculatedBalance = Math.max(0, calculatedBalance);
+
+    await db.update(customers)
+      .set({ currentBalance: calculatedBalance, updatedAt: new Date() })
+      .where(eq(customers.id, customerId));
+
+    return { success: true, newBalance: calculatedBalance };
+  } catch (error: any) {
+    return { error: error.message || "Failed to recalculate balance" };
+  }
+}

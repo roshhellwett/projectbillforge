@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { getCustomers } from "@/lib/actions/customers";
 import { getKhataStatement, createKhataTransaction, deleteKhataTransaction } from "@/lib/actions/khata";
 import { ConfirmDialog } from "@/lib/components/ui";
-import { Plus, Search, X, ArrowUpCircle, ArrowDownCircle, Trash2 } from "lucide-react";
+import { Plus, Search, X, ArrowUpCircle, ArrowDownCircle, Trash2, Lock } from "lucide-react";
 
 interface Customer {
   id: string;
@@ -298,7 +298,19 @@ export default function KhataPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          {!t.referenceInvoiceId && (
+                          {t.referenceInvoiceId ? (
+                            <div className="relative group">
+                              <button
+                                className="p-1 text-slate-300 cursor-not-allowed"
+                                title="Cannot delete - cancel the associated invoice to reverse this transaction"
+                              >
+                                <Lock size={16} />
+                              </button>
+                              <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-xs rounded-lg z-10">
+                                Cannot delete. Cancel the associated invoice to reverse this transaction.
+                              </div>
+                            </div>
+                          ) : (
                             <button
                               onClick={() => setDeleteId(t.id)}
                               className="p-1 text-slate-400 hover:text-red-600"
