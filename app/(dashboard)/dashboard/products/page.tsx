@@ -57,6 +57,7 @@ export default function ProductsPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -124,6 +125,7 @@ export default function ProductsPage() {
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
+    setError("");
     setFormData({
       name: product.name,
       sku: product.sku || "",
@@ -140,11 +142,13 @@ export default function ProductsPage() {
 
   const handleDelete = async () => {
     if (!deleteId) return;
+    setDeleting(true);
     const result = await deleteProduct(deleteId);
     if (result.success) {
       loadData();
       router.refresh();
     }
+    setDeleting(false);
     setDeleteId(null);
   };
 
@@ -165,6 +169,7 @@ export default function ProductsPage() {
   const openModal = () => {
     resetForm();
     setEditingProduct(null);
+    setError("");
     setShowModal(true);
   };
 

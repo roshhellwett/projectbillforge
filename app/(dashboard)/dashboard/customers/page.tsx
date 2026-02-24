@@ -47,6 +47,7 @@ export default function CustomersPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [syncingId, setSyncingId] = useState<string | null>(null);
 
   const handleSyncBalance = async (customerId: string) => {
@@ -109,6 +110,7 @@ export default function CustomersPage() {
 
   const handleEdit = (customer: Customer) => {
     setEditingCustomer(customer);
+    setError("");
     setFormData({
       name: customer.name,
       phone: customer.phone || "",
@@ -122,6 +124,7 @@ export default function CustomersPage() {
 
   const handleDelete = async () => {
     if (!deleteId) return;
+    setDeleting(true);
     const result = await deleteCustomer(deleteId);
     if (result.success) {
       loadCustomers();
@@ -129,6 +132,7 @@ export default function CustomersPage() {
     } else {
       setError(result.error || "Failed to delete customer");
     }
+    setDeleting(false);
     setDeleteId(null);
   };
 
@@ -146,6 +150,7 @@ export default function CustomersPage() {
   const openModal = () => {
     resetForm();
     setEditingCustomer(null);
+    setError("");
     setShowModal(true);
   };
 

@@ -48,6 +48,19 @@ export async function createInvoice(data: InvoiceInput) {
       return { error: validation.error.errors[0].message };
     }
 
+    // Prevent khata invoices without a linked customer
+    if (data.paymentMode === 'khata' && !data.customerId) {
+      return { error: "A customer must be selected for Khata (credit) invoices." };
+    }
+
+    // Prevent future-dated invoices (allow up to 1 day ahead for timezone variance)
+    const invoiceDateObj = new Date(data.invoiceDate);
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 1);
+    if (invoiceDateObj > maxDate) {
+      return { error: "Invoice date cannot be in the future." };
+    }
+
     const business = await db.query.businesses.findFirst({
       where: eq(businesses.id, session.id),
     });
@@ -148,7 +161,7 @@ export async function createInvoice(data: InvoiceInput) {
         const newBalance = currentBalance + total;
         const availableCredit = Math.max(0, creditLimit - currentBalance);
         if (creditLimit > 0 && newBalance > creditLimit) {
-          throw new Error(`Transaction exceeds customer credit limit. Credit Limit: ₹${creditLimit.toLocaleString('en-IN')}, Available: ₹${availableCredit.toLocaleString('en-IN')}, Invoice Total: ₹${total.toLocaleString('en-IN')}`);
+          throw new Error(`Transaction exceeds customer credit limit. Credit Limit: ${creditLimit.toFixed(2)}, Available: ${availableCredit.toFixed(2)}, Invoice Total: ${total.toFixed(2)}`);
         }
         await tx.update(customers)
           .set({

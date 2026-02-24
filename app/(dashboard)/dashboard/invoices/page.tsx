@@ -73,7 +73,7 @@ export default function InvoicesPage() {
   const [search, setSearch] = useState("");
   const [showNewInvoice, setShowNewInvoice] = useState(false);
   const [isInterState, setIsInterState] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     customerId: "",
     customerName: "",
@@ -90,6 +90,7 @@ export default function InvoicesPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [cancelId, setCancelId] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
   const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
 
@@ -162,6 +163,19 @@ export default function InvoicesPage() {
 
   const removeItem = (index: number) => {
     setItems(items.filter((_, i) => i !== index));
+  };
+
+  // Recalculate GST for all items when inter-state toggle changes
+  const handleInterStateToggle = (checked: boolean) => {
+    setIsInterState(checked);
+    setItems(prevItems => prevItems.map(item => {
+      const gstAmount = item.amount * (item.gstRate / 100);
+      if (checked) {
+        return { ...item, cgst: 0, sgst: 0, igst: gstAmount };
+      } else {
+        return { ...item, cgst: gstAmount / 2, sgst: gstAmount / 2, igst: 0 };
+      }
+    }));
   };
 
   const totals = useMemo(() => {
@@ -239,11 +253,13 @@ export default function InvoicesPage() {
 
   const handleCancelInvoice = async () => {
     if (!cancelId) return;
+    setCancelling(true);
     const result = await cancelInvoice(cancelId);
     if (result.success) {
       loadData();
       router.refresh();
     }
+    setCancelling(false);
     setCancelId(null);
   };
 
@@ -274,7 +290,7 @@ export default function InvoicesPage() {
           <p className="text-slate-500">Create and manage invoices</p>
         </div>
         <button
-          onClick={() => setShowNewInvoice(true)}
+          onClick={() => { setError(""); setShowNewInvoice(true); }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
         >
           <Plus size={20} />
@@ -372,7 +388,7 @@ export default function InvoicesPage() {
                 <X size={20} />
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-4 space-y-6">
               {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
 
@@ -426,7 +442,7 @@ export default function InvoicesPage() {
                   type="checkbox"
                   id="isInterState"
                   checked={isInterState}
-                  onChange={(e) => setIsInterState(e.target.checked)}
+                  onChange={(e) => handleInterStateToggle(e.target.checked)}
                   className="w-4 h-4"
                 />
                 <label htmlFor="isInterState" className="text-sm text-slate-700">Inter-State (IGST instead of CGST+SGST)</label>
@@ -473,7 +489,7 @@ export default function InvoicesPage() {
 
               <div className="border border-slate-200 rounded-xl p-4">
                 <h3 className="font-semibold text-slate-900 mb-4">Items</h3>
-                
+
                 <div className="flex gap-2 mb-4">
                   <select
                     value={selectedProduct}
@@ -487,7 +503,7 @@ export default function InvoicesPage() {
                   </select>
                   <button
                     type="button"
-                    onClick={() => window.location.href = '/dashboard/products'}
+                    onClick={() => router.push('/dashboard/products')}
                     className="px-3 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 text-sm"
                     title="Add new product"
                   >
@@ -540,7 +556,7 @@ export default function InvoicesPage() {
                             <td className="px-3 py-2 text-right">₹{item.rate.toFixed(2)}</td>
                             <td className="px-3 py-2 text-right">₹{item.amount.toFixed(2)}</td>
                             <td className="px-3 py-2 text-right">
-                              {isInterState 
+                              {isInterState
                                 ? `IGST ₹${item.igst.toFixed(2)}`
                                 : `C ₹${item.cgst.toFixed(2)} S ₹${item.sgst.toFixed(2)}`
                               }
@@ -635,7 +651,37 @@ export default function InvoicesPage() {
               <h2 className="text-lg font-semibold">Invoice</h2>
               <div className="flex gap-2">
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => {
+                    const printContent = document.getElementById('invoice-print');
+                    if (printContent) {
+                      const printWindow = window.open('', '_blank');
+                      if (printWindow) {
+                        printWindow.document.write(`
+                          <html><head><title>Invoice ${viewInvoice.invoiceNumber}</title>
+                          <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            table { width: 100%; border-collapse: collapse; }
+                            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                            th { background: #333; color: white; }
+                            .text-right { text-align: right; }
+                            .text-center { text-align: center; }
+                            .font-bold { font-weight: bold; }
+                            .font-medium { font-weight: 500; }
+                            .mb-6 { margin-bottom: 24px; }
+                            .mt-4 { margin-top: 16px; }
+                            .pt-4 { padding-top: 16px; }
+                            .pb-4 { padding-bottom: 16px; }
+                            .border-b { border-bottom: 2px solid #333; }
+                            .border-t { border-top: 1px solid #ccc; }
+                          </style></head><body>
+                          ${printContent.innerHTML}
+                          </body></html>
+                        `);
+                        printWindow.document.close();
+                        printWindow.print();
+                      }
+                    }
+                  }}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
                 >
                   <Printer size={18} />
@@ -646,7 +692,7 @@ export default function InvoicesPage() {
                 </button>
               </div>
             </div>
-            
+
             <div className="p-8" id="invoice-print" style={{ fontFamily: 'Arial, sans-serif' }}>
               {/* Header */}
               <div className="border-b-2 border-slate-800 pb-4 mb-6">

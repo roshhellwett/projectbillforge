@@ -5,7 +5,11 @@ const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1
 export const businessRegisterSchema = z.object({
   name: z.string().min(1, "Business name is required").max(100).trim(),
   email: z.string().email("Invalid email address").trim().toLowerCase(),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
   confirmPassword: z.string(),
   gstin: z.string().regex(gstinRegex, "Invalid GSTIN format").optional().or(z.literal('')),
   phone: z.string().optional().transform(s => s?.trim() || undefined),
@@ -73,9 +77,24 @@ export const khataTransactionSchema = z.object({
   note: z.string().optional().transform(s => s?.trim() || undefined),
 });
 
+export const businessProfileSchema = z.object({
+  name: z.string().min(1, "Business name is required").max(200).trim().optional(),
+  gstin: z.string().regex(gstinRegex, "Invalid GSTIN format").optional().or(z.literal('')),
+  address: z.string().max(500).optional().transform(s => s?.trim() || undefined),
+  phone: z.string().max(20).optional().transform(s => s?.trim() || undefined),
+  state: z.string().max(50).optional().transform(s => s?.trim() || undefined),
+  pincode: z.string().max(10).optional().transform(s => s?.trim() || undefined),
+  termsAndConditions: z.string().max(2000).optional().transform(s => s?.trim() || undefined),
+  redemptionPeriodDays: z.number().int().min(0).max(365).optional(),
+  finePercentage: z.number().min(0).max(100).optional(),
+  fineFrequencyDays: z.number().int().min(1).max(365).optional(),
+  industryType: z.enum(["mobile", "pharmacy", "kirana", "garments", "electronics", "custom"]).optional(),
+});
+
 export type BusinessRegisterInput = z.infer<typeof businessRegisterSchema>;
 export type BusinessLoginInput = z.infer<typeof businessLoginSchema>;
 export type CustomerInput = z.infer<typeof customerSchema>;
 export type ProductInput = z.infer<typeof productSchema>;
 export type InvoiceInput = z.infer<typeof invoiceSchema>;
 export type KhataTransactionInput = z.infer<typeof khataTransactionSchema>;
+export type BusinessProfileInput = z.infer<typeof businessProfileSchema>;

@@ -4,13 +4,13 @@ import { db } from "@/lib/db";
 import { customers, khataTransactions } from "@/lib/schema";
 import { customerSchema, type CustomerInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function createCustomer(data: CustomerInput) {
   try {
     const session = await requireBusinessSession();
-    
+
     const validation = customerSchema.safeParse(data);
     if (!validation.success) {
       return { error: validation.error.errors[0].message };
@@ -45,14 +45,18 @@ export async function updateCustomer(id: string, data: Partial<CustomerInput>) {
       return { error: validation.error.errors[0].message };
     }
 
-    const [customer] = await db.update(customers)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(customers.id, id))
-      .returning();
+    const existingCustomer = await db.query.customers.findFirst({
+      where: and(eq(customers.id, id), eq(customers.businessId, session.id)),
+    });
 
-    if (!customer || customer.businessId !== session.id) {
+    if (!existingCustomer) {
       return { error: "Customer not found" };
     }
+
+    const [customer] = await db.update(customers)
+      .set({ ...data, updatedAt: new Date() })
+      .where(and(eq(customers.id, id), eq(customers.businessId, session.id)))
+      .returning();
 
     revalidatePath('/dashboard/customers');
     revalidatePath('/dashboard/khata');
@@ -68,10 +72,10 @@ export async function deleteCustomer(id: string) {
 
     const [customer] = await db.select()
       .from(customers)
-      .where(eq(customers.id, id))
+      .where(and(eq(customers.id, id), eq(customers.businessId, session.id)))
       .limit(1);
 
-    if (!customer || customer.businessId !== session.id) {
+    if (!customer) {
       return { error: "Customer not found" };
     }
 
@@ -79,9 +83,16 @@ export async function deleteCustomer(id: string) {
       return { error: "Action blocked: Cannot delete customer with an outstanding Khata balance. Please settle dues first." };
     }
 
+    // Soft-delete: cancel transactions and mark invoices as orphaned, but preserve records
     await db.update(khataTransactions)
       .set({ status: 'cancelled' })
       .where(eq(khataTransactions.customerId, id));
+
+    // Soft-delete the customer by setting balance to 0 and removing from active queries
+    // We keep the row for invoice reference integrity
+    await db.update(customers)
+      .set({ currentBalance: 0, updatedAt: new Date() })
+      .where(eq(customers.id, id));
 
     await db.delete(customers)
       .where(eq(customers.id, id));

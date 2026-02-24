@@ -30,8 +30,8 @@ export const businesses = pgTable('businesses', {
   state: text('state').default(''),
   pincode: text('pincode'),
   logo: text('logo'),
-  industryType: text('industry_type', { 
-    enum: ['mobile', 'pharmacy', 'kirana', 'garments', 'electronics', 'custom'] 
+  industryType: text('industry_type', {
+    enum: ['mobile', 'pharmacy', 'kirana', 'garments', 'electronics', 'custom']
   }).default('custom'),
   termsAndConditions: text('terms_and_conditions'),
   redemptionPeriodDays: integer('redemption_period_days').default(30),
@@ -79,7 +79,7 @@ export const products = pgTable('products', {
 export const invoices = pgTable('invoices', {
   id: text('id').primaryKey(),
   businessId: text('business_id').notNull().references(() => businesses.id, { onDelete: 'cascade' }),
-  invoiceNumber: text('invoice_number').notNull(),
+  invoiceNumber: text('invoice_number').notNull().unique(),
   customerId: text('customer_id').references(() => customers.id, { onDelete: 'set null' }),
   customerName: text('customer_name').notNull(),
   customerGstin: text('customer_gstin'),
@@ -101,6 +101,8 @@ export const invoices = pgTable('invoices', {
   businessIdIdx: index('idx_invoices_business').on(table.businessId),
   customerIdIdx: index('idx_invoices_customer').on(table.customerId),
   statusIdx: index('idx_invoices_status').on(table.status),
+  invoiceDateIdx: index('idx_invoices_date').on(table.invoiceDate),
+  paymentStatusIdx: index('idx_invoices_payment_status').on(table.paymentStatus),
 }));
 
 export const khataTransactions = pgTable('khata_transactions', {
@@ -116,6 +118,8 @@ export const khataTransactions = pgTable('khata_transactions', {
 }, (table) => ({
   businessIdIdx: index('idx_khata_business').on(table.businessId),
   customerIdIdx: index('idx_khata_customer').on(table.customerId),
+  statusIdx: index('idx_khata_status').on(table.status),
+  businessCustomerIdx: index('idx_khata_business_customer').on(table.businessId, table.customerId),
 }));
 
 export const accounts = pgTable('accounts', {

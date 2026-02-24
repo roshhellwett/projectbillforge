@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { businesses, customers, invoices, khataTransactions } from "@/lib/schema";
+import { businessProfileSchema } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq } from "drizzle-orm";
 import { compare } from "bcryptjs";
@@ -40,6 +41,11 @@ export async function updateBusinessProfile(data: {
 }) {
   try {
     const session = await requireBusinessSession();
+
+    const validation = businessProfileSchema.safeParse(data);
+    if (!validation.success) {
+      return { error: validation.error.errors[0].message };
+    }
 
     const updateData: any = { updatedAt: new Date() };
     if (data.name !== undefined) updateData.name = data.name;

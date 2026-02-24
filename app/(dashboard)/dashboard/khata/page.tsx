@@ -51,6 +51,7 @@ export default function KhataPage() {
   const [saving, setSaving] = useState(false);
   const [customerSearch, setCustomerSearch] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [accruedFines, setAccruedFines] = useState(0);
   const [totalBalanceDue, setTotalBalanceDue] = useState(0);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -126,12 +127,14 @@ export default function KhataPage() {
 
   const handleDeleteTransaction = async () => {
     if (!deleteId) return;
+    setDeleting(true);
     const result = await deleteKhataTransaction(deleteId);
     if (result.success && selectedCustomer) {
       loadStatement(selectedCustomer);
       loadCustomers();
       router.refresh();
     }
+    setDeleting(false);
     setDeleteId(null);
   };
 
@@ -239,7 +242,7 @@ export default function KhataPage() {
               ← Back to customer list
             </button>
             <button
-              onClick={() => setShowModal(true)}
+              onClick={() => { setError(""); setShowModal(true); }}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
             >
               <Plus size={20} />
@@ -266,7 +269,7 @@ export default function KhataPage() {
                 </div>
                 {safeNum(customer.currentBalance) > 0 && (
                   <button
-                    onClick={() => setShowPaymentModal(true)}
+                    onClick={() => { setError(""); setShowPaymentModal(true); }}
                     className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700"
                   >
                     Record Payment
