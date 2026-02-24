@@ -1,7 +1,7 @@
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+import { pgTable, text, integer, real, boolean, timestamp, index, jsonb } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-export const businesses = sqliteTable('businesses', {
+export const businesses = pgTable('businesses', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
@@ -12,11 +12,11 @@ export const businesses = sqliteTable('businesses', {
   state: text('state').default(''),
   pincode: text('pincode'),
   logo: text('logo'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-export const customers = sqliteTable('customers', {
+export const customers = pgTable('customers', {
   id: text('id').primaryKey(),
   businessId: text('business_id').notNull().references(() => businesses.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
@@ -26,11 +26,13 @@ export const customers = sqliteTable('customers', {
   address: text('address'),
   creditLimit: real('credit_limit').default(0),
   currentBalance: real('current_balance').default(0),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-});
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  businessIdIdx: index('idx_customers_business').on(table.businessId),
+}));
 
-export const products = sqliteTable('products', {
+export const products = pgTable('products', {
   id: text('id').primaryKey(),
   businessId: text('business_id').notNull().references(() => businesses.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
@@ -41,12 +43,14 @@ export const products = sqliteTable('products', {
   gstRate: real('gst_rate').default(0),
   stockQuantity: real('stock_quantity').default(0),
   lowStockThreshold: real('low_stock_threshold').default(0),
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-});
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  businessIdIdx: index('idx_products_business').on(table.businessId),
+}));
 
-export const invoices = sqliteTable('invoices', {
+export const invoices = pgTable('invoices', {
   id: text('id').primaryKey(),
   businessId: text('business_id').notNull().references(() => businesses.id, { onDelete: 'cascade' }),
   invoiceNumber: text('invoice_number').notNull(),
@@ -54,20 +58,23 @@ export const invoices = sqliteTable('invoices', {
   customerName: text('customer_name').notNull(),
   customerGstin: text('customer_gstin'),
   customerAddress: text('customer_address'),
-  invoiceDate: integer('invoice_date', { mode: 'timestamp' }).notNull(),
+  invoiceDate: timestamp('invoice_date').notNull(),
   subtotal: real('subtotal').notNull().default(0),
   cgst: real('cgst').default(0),
   sgst: real('sgst').default(0),
   igst: real('igst').default(0),
   total: real('total').notNull().default(0),
-  items: text('items', { mode: 'json' }).$type<InvoiceItem[]>(),
+  items: jsonb('items').$type<InvoiceItem[]>(),
   notes: text('notes'),
   status: text('status', { enum: ['active', 'cancelled'] }).default('active'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-});
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  businessIdIdx: index('idx_invoices_business').on(table.businessId),
+  customerIdIdx: index('idx_invoices_customer').on(table.customerId),
+}));
 
-export const khataTransactions = sqliteTable('khata_transactions', {
+export const khataTransactions = pgTable('khata_transactions', {
   id: text('id').primaryKey(),
   businessId: text('business_id').notNull().references(() => businesses.id, { onDelete: 'cascade' }),
   customerId: text('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
@@ -75,10 +82,13 @@ export const khataTransactions = sqliteTable('khata_transactions', {
   amount: real('amount').notNull(),
   note: text('note'),
   referenceInvoiceId: text('reference_invoice_id').references(() => invoices.id, { onDelete: 'set null' }),
-  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-});
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  businessIdIdx: index('idx_khata_business').on(table.businessId),
+  customerIdIdx: index('idx_khata_customer').on(table.customerId),
+}));
 
-export const accounts = sqliteTable('accounts', {
+export const accounts = pgTable('accounts', {
   id: text('id').primaryKey(),
   userId: text('user_id').notNull(),
   type: text('type').notNull(),
@@ -94,18 +104,10 @@ export const accounts = sqliteTable('accounts', {
   businessId: text('business_id').references(() => businesses.id, { onDelete: 'cascade' }),
 });
 
-export const sessions = sqliteTable('sessions', {
-  id: text('id').primaryKey(),
-  sessionToken: text('session_token').notNull(),
-  userId: text('user_id').notNull(),
-  expires: integer('expires', { mode: 'timestamp' }).notNull(),
-  businessId: text('business_id').notNull(),
-});
-
-export const verificationTokens = sqliteTable('verification_tokens', {
+export const verificationTokens = pgTable('verification_tokens', {
   identifier: text('identifier').notNull(),
   token: text('token').notNull(),
-  expires: integer('expires', { mode: 'timestamp' }).notNull(),
+  expires: timestamp('expires').notNull(),
 });
 
 export type InvoiceItem = {

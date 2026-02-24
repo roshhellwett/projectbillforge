@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getCustomers } from "@/lib/actions/customers";
 import { getKhataStatement, createKhataTransaction, deleteKhataTransaction } from "@/lib/actions/khata";
+import { ConfirmDialog } from "@/lib/components/ui";
 import { Plus, Search, X, ArrowUpCircle, ArrowDownCircle, Trash2 } from "lucide-react";
 
 interface Customer {
@@ -35,6 +36,8 @@ export default function KhataPage() {
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     loadCustomers();
@@ -95,13 +98,14 @@ export default function KhataPage() {
     setSaving(false);
   };
 
-  const handleDeleteTransaction = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this transaction?")) return;
-    const result = await deleteKhataTransaction(id);
+  const handleDeleteTransaction = async () => {
+    if (!deleteId) return;
+    const result = await deleteKhataTransaction(deleteId);
     if (result.success && selectedCustomer) {
       loadStatement(selectedCustomer);
       loadCustomers();
     }
+    setDeleteId(null);
   };
 
   return (
@@ -124,18 +128,43 @@ export default function KhataPage() {
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
         <label className="block text-sm font-medium text-slate-700 mb-2">Select Customer</label>
-        <select
-          value={selectedCustomer}
-          onChange={(e) => handleCustomerSelect(e.target.value)}
-          className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Select a customer</option>
-          {customers.map(c => (
-            <option key={c.id} value={c.id}>
-              {c.name} {c.phone ? `(${c.phone})` : ''} - Balance: ₹{(c.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input
+            type="text"
+            placeholder="Search customers..."
+            value={customerSearch}
+            onChange={(e) => setCustomerSearch(e.target.value)}
+            className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="mt-2 max-h-60 overflow-y-auto border border-slate-200 rounded-xl">
+          {customers
+            .filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()) || 
+              (c.phone && c.phone.includes(customerSearch)))
+            .length === 0 ? (
+            <div className="p-3 text-sm text-slate-500 text-center">No customers found</div>
+          ) : (
+            customers
+              .filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()) || 
+                (c.phone && c.phone.includes(customerSearch)))
+              .map(c => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => handleCustomerSelect(c.id)}
+                  className={`w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-0 ${
+                    selectedCustomer === c.id ? 'bg-blue-50' : ''
+                  }`}
+                >
+                  <div className="font-medium text-slate-900">{c.name}</div>
+                  <div className="text-sm text-slate-500">
+                    {c.phone || 'No phone'} • Balance: ₹{(c.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </div>
+                </button>
+              ))
+          )}
+        </div>
       </div>
 
       {customer && (
@@ -173,7 +202,9 @@ export default function KhataPage() {
                       <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Type</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Note</th>
                       <th className="px-4 py-3 text-right text-sm font-semibold text-slate-600">Amount</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-slate-600">Balance</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-slate-600" title="Running balance after this transaction">
+                        Balance <span className="text-xs font-normal text-slate-400">(Running)</span>
+                      </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Actions</th>
                     </tr>
                   </thead>
@@ -201,8 +232,9 @@ export default function KhataPage() {
                         <td className="px-4 py-3">
                           {!t.referenceInvoiceId && (
                             <button
-                              onClick={() => handleDeleteTransaction(t.id)}
+                              onClick={() => setDeleteId(t.id)}
                               className="p-1 text-slate-400 hover:text-red-600"
+                              aria-label="Delete transaction"
                             >
                               <Trash2 size={16} />
                             </button>
@@ -229,7 +261,7 @@ export default function KhataPage() {
           <div className="bg-white rounded-2xl w-full max-w-md">
             <div className="flex items-center justify-between p-4 border-b border-slate-200">
               <h2 className="text-lg font-semibold">Add Transaction</h2>
-              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded-lg">
+              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="Close">
                 <X size={20} />
               </button>
             </div>
@@ -300,6 +332,14 @@ export default function KhataPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteId}
+        title="Delete Transaction"
+        message="Are you sure you want to delete this transaction? This will adjust the customer's balance."
+        onConfirm={handleDeleteTransaction}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }

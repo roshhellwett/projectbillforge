@@ -101,33 +101,45 @@ export async function createInvoice(data: InvoiceInput) {
         const product = await tx.query.products.findFirst({
           where: eq(products.id, item.productId),
         });
-        if (product) {
-          await tx.update(products)
-            .set({
-              stockQuantity: (product.stockQuantity ?? 0) - item.quantity,
-              updatedAt: new Date(),
-            })
-            .where(eq(products.id, item.productId));
+        if (!product) {
+          throw new Error(`Product not found: ${item.productName}`);
         }
+        if ((product.stockQuantity ?? 0) < item.quantity) {
+          throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stockQuantity}, Required: ${item.quantity}`);
+        }
+        await tx.update(products)
+          .set({
+            stockQuantity: (product.stockQuantity ?? 0) - item.quantity,
+            updatedAt: new Date(),
+          })
+          .where(eq(products.id, item.productId));
       }
 
       if (data.customerId) {
         const customer = await tx.query.customers.findFirst({
           where: eq(customers.id, data.customerId),
         });
-        if (customer) {
-          await tx.update(customers)
-            .set({
-              currentBalance: (customer.currentBalance ?? 0) + total,
-              updatedAt: new Date(),
-            })
-            .where(eq(customers.id, data.customerId));
+        if (!customer) {
+          throw new Error("Customer not found");
         }
+        if (customer.businessId !== session.id) {
+          throw new Error("Customer does not belong to your business");
+        }
+        const newBalance = (customer.currentBalance ?? 0) + total;
+        if ((customer.creditLimit ?? 0) > 0 && newBalance > customer.creditLimit!) {
+          throw new Error(`Credit limit exceeded. Limit: ₹${customer.creditLimit}, Current: ₹${customer.currentBalance}, New: ₹${newBalance}`);
+        }
+        await tx.update(customers)
+          .set({
+            currentBalance: newBalance,
+            updatedAt: new Date(),
+          })
+          .where(eq(customers.id, data.customerId));
 
         await tx.insert(khataTransactions).values({
           id: crypto.randomUUID(),
           businessId: session.id,
-          customerId: data.customerId,
+          customerId: data.customerId!,
           type: 'credit',
           amount: total,
           note: `Invoice ${invoiceNumber}`,
@@ -226,6 +238,9 @@ export async function cancelInvoice(id: string) {
             })
             .where(eq(customers.id, invoice.customerId));
         }
+
+        await tx.delete(khataTransactions)
+          .where(eq(khataTransactions.referenceInvoiceId, id));
       }
     });
 

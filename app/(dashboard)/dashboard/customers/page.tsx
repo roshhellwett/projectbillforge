@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "@/lib/actions/customers";
+import { ConfirmDialog, SkeletonCard } from "@/lib/components/ui";
 import { Plus, Search, Edit2, Trash2, X, Phone, Mail, MapPin } from "lucide-react";
 
 interface Customer {
@@ -31,6 +32,7 @@ export default function CustomersPage() {
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     loadCustomers();
@@ -86,12 +88,13 @@ export default function CustomersPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this customer?")) return;
-    const result = await deleteCustomer(id);
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    const result = await deleteCustomer(deleteId);
     if (result.success) {
       loadCustomers();
     }
+    setDeleteId(null);
   };
 
   const resetForm = () => {
@@ -147,7 +150,11 @@ export default function CustomersPage() {
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-slate-500">Loading...</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
         ) : filteredCustomers.length === 0 ? (
           <div className="p-8 text-center text-slate-500">No customers found</div>
         ) : (
@@ -172,12 +179,14 @@ export default function CustomersPage() {
                     <button
                       onClick={() => handleEdit(customer)}
                       className="p-1 text-slate-400 hover:text-blue-600"
+                      aria-label="Edit customer"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
-                      onClick={() => handleDelete(customer.id)}
+                      onClick={() => setDeleteId(customer.id)}
                       className="p-1 text-slate-400 hover:text-red-600"
+                      aria-label="Delete customer"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -206,7 +215,7 @@ export default function CustomersPage() {
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-slate-200">
               <h2 className="text-lg font-semibold">{editingCustomer ? "Edit Customer" : "Add Customer"}</h2>
-              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded-lg">
+              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="Close">
                 <X size={20} />
               </button>
             </div>
@@ -297,6 +306,14 @@ export default function CustomersPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteId}
+        title="Delete Customer"
+        message="Are you sure you want to delete this customer? This action cannot be undone and will also delete all their transactions."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }

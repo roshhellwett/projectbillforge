@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "@/lib/actions/products";
+import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
 import { Plus, Search, Edit2, Trash2, X } from "lucide-react";
 
 interface Product {
@@ -38,6 +39,7 @@ export default function ProductsPage() {
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     loadProducts();
@@ -98,12 +100,13 @@ export default function ProductsPage() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
-    const result = await deleteProduct(id);
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    const result = await deleteProduct(deleteId);
     if (result.success) {
       loadProducts();
     }
+    setDeleteId(null);
   };
 
   const resetForm = () => {
@@ -161,7 +164,7 @@ export default function ProductsPage() {
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-slate-500">Loading...</div>
+          <SkeletonTable rows={5} />
         ) : filteredProducts.length === 0 ? (
           <div className="p-8 text-center text-slate-500">No products found</div>
         ) : (
@@ -196,12 +199,14 @@ export default function ProductsPage() {
                         <button
                           onClick={() => handleEdit(product)}
                           className="p-1 text-slate-400 hover:text-blue-600 transition-colors"
+                          aria-label="Edit product"
                         >
                           <Edit2 size={18} />
                         </button>
                         <button
-                          onClick={() => handleDelete(product.id)}
+                          onClick={() => setDeleteId(product.id)}
                           className="p-1 text-slate-400 hover:text-red-600 transition-colors"
+                          aria-label="Delete product"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -220,7 +225,7 @@ export default function ProductsPage() {
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-slate-200">
               <h2 className="text-lg font-semibold">{editingProduct ? "Edit Product" : "Add Product"}</h2>
-              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded-lg">
+              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="Close">
                 <X size={20} />
               </button>
             </div>
@@ -338,6 +343,14 @@ export default function ProductsPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteId}
+        title="Delete Product"
+        message="Are you sure you want to delete this product? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteId(null)}
+      />
     </div>
   );
 }

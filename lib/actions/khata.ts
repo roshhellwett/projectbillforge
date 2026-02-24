@@ -41,6 +41,10 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
         throw new Error("Payment exceeds current balance");
       }
 
+      if ((customer.creditLimit ?? 0) > 0 && newBalance > customer.creditLimit!) {
+        throw new Error(`Credit limit exceeded. Limit: ₹${customer.creditLimit}, Current: ₹${customer.currentBalance}, New: ₹${newBalance}`);
+      }
+
       await tx.update(customers)
         .set({
           currentBalance: newBalance,
@@ -132,9 +136,9 @@ export async function deleteKhataTransaction(id: string) {
     }
 
     await db.transaction(async (tx) => {
-      const newBalance = transaction.type === 'credit'
-        ? transaction.amount
-        : -transaction.amount;
+      const balanceAdjustment = transaction.type === 'credit'
+        ? -transaction.amount
+        : transaction.amount;
 
       const customer = await tx.query.customers.findFirst({
         where: eq(customers.id, transaction.customerId),
@@ -143,7 +147,7 @@ export async function deleteKhataTransaction(id: string) {
       if (customer) {
         await tx.update(customers)
           .set({
-            currentBalance: (customer.currentBalance ?? 0) - newBalance,
+            currentBalance: (customer.currentBalance ?? 0) + balanceAdjustment,
             updatedAt: new Date(),
           })
           .where(eq(customers.id, transaction.customerId));

@@ -2,7 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { db } from "./db";
-import { businesses, sessions } from "./schema";
+import { businesses } from "./schema";
 import { eq } from "drizzle-orm";
 
 export const authOptions: NextAuthOptions = {

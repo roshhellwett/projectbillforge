@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { getProducts } from "@/lib/actions/products";
 import { getCustomers } from "@/lib/actions/customers";
 import { getInvoices, createInvoice, cancelInvoice } from "@/lib/actions/invoices";
+import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
 import { Plus, Search, X, Trash2, FileText, Printer, Download } from "lucide-react";
 
 interface Product {
@@ -68,6 +69,7 @@ export default function InvoicesPage() {
   const [itemQuantity, setItemQuantity] = useState(1);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [cancelId, setCancelId] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -191,12 +193,13 @@ export default function InvoicesPage() {
     setSaving(false);
   };
 
-  const handleCancelInvoice = async (id: string) => {
-    if (!confirm("Are you sure you want to cancel this invoice?")) return;
-    const result = await cancelInvoice(id);
+  const handleCancelInvoice = async () => {
+    if (!cancelId) return;
+    const result = await cancelInvoice(cancelId);
     if (result.success) {
       loadData();
     }
+    setCancelId(null);
   };
 
   const resetForm = () => {
@@ -248,7 +251,7 @@ export default function InvoicesPage() {
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-slate-500">Loading...</div>
+          <SkeletonTable rows={5} />
         ) : filteredInvoices.length === 0 ? (
           <div className="p-8 text-center text-slate-500">No invoices found</div>
         ) : (
@@ -279,8 +282,9 @@ export default function InvoicesPage() {
                     <td className="px-4 py-3">
                       {invoice.status === 'active' && (
                         <button
-                          onClick={() => handleCancelInvoice(invoice.id)}
+                          onClick={() => setCancelId(invoice.id)}
                           className="p-1 text-slate-400 hover:text-red-600"
+                          aria-label="Cancel invoice"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -299,7 +303,7 @@ export default function InvoicesPage() {
           <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-slate-200 sticky top-0 bg-white">
               <h2 className="text-lg font-semibold">New Invoice</h2>
-              <button onClick={() => setShowNewInvoice(false)} className="p-1 hover:bg-slate-100 rounded-lg">
+              <button onClick={() => setShowNewInvoice(false)} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="Close">
                 <X size={20} />
               </button>
             </div>
@@ -495,6 +499,14 @@ export default function InvoicesPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!cancelId}
+        title="Cancel Invoice"
+        message="Are you sure you want to cancel this invoice? This will restore the stock and adjust the customer's balance."
+        onConfirm={handleCancelInvoice}
+        onCancel={() => setCancelId(null)}
+      />
     </div>
   );
 }
