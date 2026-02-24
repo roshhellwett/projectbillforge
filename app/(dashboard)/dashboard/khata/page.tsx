@@ -40,6 +40,11 @@ export default function KhataPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [accruedFines, setAccruedFines] = useState(0);
   const [totalBalanceDue, setTotalBalanceDue] = useState(0);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentData, setPaymentData] = useState({
+    amount: "",
+    note: "",
+  });
 
   useEffect(() => {
     loadCustomers();
@@ -114,6 +119,37 @@ export default function KhataPage() {
     setDeleteId(null);
   };
 
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCustomer) return;
+    
+    const amount = Number(paymentData.amount);
+    if (!amount || amount <= 0) {
+      setError("Please enter a valid payment amount");
+      return;
+    }
+
+    setError("");
+    setSaving(true);
+
+    const result = await createKhataTransaction({
+      customerId: selectedCustomer,
+      type: "debit",
+      amount: amount,
+      note: paymentData.note || "Payment received",
+    });
+
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setShowPaymentModal(false);
+      setPaymentData({ amount: "", note: "" });
+      loadStatement(selectedCustomer);
+      loadCustomers();
+    }
+    setSaving(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -165,7 +201,7 @@ export default function KhataPage() {
                 >
                   <div className="font-medium text-slate-900">{c.name}</div>
                   <div className="text-sm text-slate-500">
-                    {c.phone || 'No phone'} • Balance: ₹{(c.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    {c.phone || 'No phone'} • Balance: ₹{Math.abs(c.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </div>
                 </button>
               ))
@@ -185,10 +221,22 @@ export default function KhataPage() {
               <p className="text-xl font-bold text-slate-900">{customer.phone || "-"}</p>
             </div>
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              <p className="text-sm text-slate-500">Current Balance</p>
-              <p className={`text-xl font-bold ${(customer.currentBalance ?? 0) > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                ₹{(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-500">Current Balance</p>
+                  <p className={`text-xl font-bold ${(customer.currentBalance ?? 0) > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                    ₹{Math.abs(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                {(customer.currentBalance ?? 0) > 0 && (
+                  <button
+                    onClick={() => setShowPaymentModal(true)}
+                    className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700"
+                  >
+                    Record Payment
+                  </button>
+                )}
+              </div>
             </div>
             {accruedFines > 0 && (
               <div className="bg-white p-6 rounded-2xl border border-red-200 shadow-sm">
@@ -245,8 +293,8 @@ export default function KhataPage() {
                           ₹{t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="px-4 py-3 text-right font-semibold">
-                          <span className={(t as any).runningBalance > 0 ? 'text-orange-600' : 'text-green-600'}>
-                            ₹{(t as any).runningBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          <span className={(t as any).runningBalance >= 0 ? 'text-orange-600' : 'text-green-600'}>
+                            ₹{Math.abs((t as any).runningBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                           </span>
                         </td>
                         <td className="px-4 py-3">
@@ -360,6 +408,101 @@ export default function KhataPage() {
         onConfirm={handleDeleteTransaction}
         onCancel={() => setDeleteId(null)}
       />
+
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl w-full max-w-md">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200">
+              <h2 className="text-lg font-semibold">Record Payment</h2>
+              <button onClick={() => setShowPaymentModal(false)} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="Close">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handlePaymentSubmit} className="p-4 space-y-4">
+              {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
+              
+              <div className="bg-green-50 p-4 rounded-xl">
+                <p className="text-sm text-green-700">
+                  Recording payment for <strong>{customer?.name}</strong>
+                </p>
+                <p className="text-lg font-bold text-green-800 mt-1">
+                  Current Due: ₹{(customer?.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Payment Amount (₹)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  required
+                  value={paymentData.amount}
+                  onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="0.00"
+                />
+                <div className="flex gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentData({ ...paymentData, amount: String(customer?.currentBalance ?? 0) })}
+                    className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded"
+                  >
+                    Pay Full
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentData({ ...paymentData, amount: String(Math.round((customer?.currentBalance ?? 0) / 2)) })}
+                    className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded"
+                  >
+                    Pay Half
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Payment Method</label>
+                <select
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="cash">Cash</option>
+                  <option value="upi">UPI</option>
+                  <option value="bank">Bank Transfer</option>
+                  <option value="cheque">Cheque</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Note (Optional)</label>
+                <input
+                  type="text"
+                  value={paymentData.note}
+                  onChange={(e) => setPaymentData({ ...paymentData, note: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="e.g., Cash received, UPI payment"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentModal(false)}
+                  className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50"
+                >
+                  {saving ? "Processing..." : "Record Payment"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

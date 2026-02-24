@@ -147,7 +147,7 @@ export async function getKhataStatement(customerId: string) {
 
     const transactions = await db.query.khataTransactions.findMany({
       where: eq(khataTransactions.customerId, customerId),
-      orderBy: (khataTransactions, { desc }) => [desc(khataTransactions.createdAt)],
+      orderBy: (khataTransactions, { asc }) => [asc(khataTransactions.createdAt)],
     });
 
     const invoicesList = await db.query.invoices.findMany({
@@ -170,8 +170,8 @@ export async function getKhataStatement(customerId: string) {
       }
     }
 
-    let runningBalance = customer.currentBalance ?? 0;
-    const statement = transactions.map(t => {
+    let runningBalance = 0;
+    const statementWithBalance = transactions.map(t => {
       const prevBalance = runningBalance;
       if (t.type === 'credit') {
         runningBalance += t.amount;
@@ -189,6 +189,8 @@ export async function getKhataStatement(customerId: string) {
         accruedFine,
       };
     });
+
+    const statement = statementWithBalance.reverse();
 
     const totalBalanceWithFines = (customer.currentBalance ?? 0) + totalAccruedFines;
 
