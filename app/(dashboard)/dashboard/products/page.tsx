@@ -6,6 +6,7 @@ import { getProducts, createProduct, updateProduct, deleteProduct } from "@/lib/
 import { getBusinessProfile } from "@/lib/actions/business";
 import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
 import { Plus, Search, Edit2, Trash2, X } from "lucide-react";
+import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
 interface Product {
   id: string;
@@ -179,81 +180,81 @@ export default function ProductsPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <StaggerContainer className="space-y-6">
+      <FadeIn className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Products</h1>
-          <p className="text-slate-500">Manage your product inventory</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">Products</h1>
+          <p className="text-[var(--foreground)]/60 mt-1">Manage your product inventory</p>
         </div>
         <button
           onClick={openModal}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-full hover:-translate-y-1 transition-all neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
         >
           <Plus size={20} />
           Add Product
         </button>
-      </div>
+      </FadeIn>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-        <div className="p-4 border-b border-slate-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+      <StaggerItem className="neo-clay overflow-hidden">
+        <div className="p-4 md:p-6 border-b border-[var(--border)]/50">
+          <div className="relative max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" size={20} />
             <input
               type="text"
               placeholder="Search products..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-12 pr-4 py-3 neo-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
             />
           </div>
         </div>
 
         {loading ? (
-          <SkeletonTable rows={5} />
+          <div className="p-4"><SkeletonTable rows={5} /></div>
         ) : filteredProducts.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">No products found</div>
+          <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">No products found</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50">
+              <thead className="bg-[var(--foreground)]/5 border-b border-[var(--border)]/30">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Name</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">SKU</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">HSN</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Rate</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">GST %</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Stock</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Actions</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Name</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">SKU</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">HSN</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Rate</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">GST %</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Stock</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-[var(--border)]/30">
                 {filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900">{product.name}</td>
-                    <td className="px-4 py-3 text-slate-600">{product.sku || "-"}</td>
-                    <td className="px-4 py-3 text-slate-600">{product.hsnCode || "-"}</td>
-                    <td className="px-4 py-3 text-slate-900">₹{product.rate.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-slate-600">{product.gstRate ?? 0}%</td>
-                    <td className="px-4 py-3">
-                      <span className={(product.stockQuantity ?? 0) <= (product.lowStockThreshold ?? 0) ? "text-red-600 font-medium" : "text-slate-900"}>
-                        {product.stockQuantity ?? 0} {product.unit ?? 'piece'}
+                  <tr key={product.id} className="hover:bg-[var(--foreground)]/[0.02] transition-colors">
+                    <td className="px-5 py-4 font-medium text-[var(--foreground)]">{product.name}</td>
+                    <td className="px-5 py-4 text-[var(--foreground)]/70 text-sm">{product.sku || "-"}</td>
+                    <td className="px-5 py-4 text-[var(--foreground)]/70 text-sm">{product.hsnCode || "-"}</td>
+                    <td className="px-5 py-4 text-[var(--foreground)] font-medium">₹{product.rate.toFixed(2)}</td>
+                    <td className="px-5 py-4 text-[var(--foreground)]/70 text-sm">{product.gstRate ?? 0}%</td>
+                    <td className="px-5 py-4 text-sm">
+                      <span className={(product.stockQuantity ?? 0) <= (product.lowStockThreshold ?? 0) ? "text-[var(--color-danger)] font-semibold" : "text-[var(--foreground)]"}>
+                        {product.stockQuantity ?? 0} <span className="text-[var(--foreground)]/50">{product.unit ?? 'piece'}</span>
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-1 opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-100" style={{ opacity: 1 }}> {/* simplified for touch */}
                         <button
                           onClick={() => handleEdit(product)}
-                          className="p-1 text-slate-400 hover:text-blue-600 transition-colors"
+                          className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-colors"
                           aria-label="Edit product"
                         >
-                          <Edit2 size={18} />
+                          <Edit2 size={16} />
                         </button>
                         <button
                           onClick={() => setDeleteId(product.id)}
-                          className="p-1 text-slate-400 hover:text-red-600 transition-colors"
+                          className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-colors"
                           aria-label="Delete product"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </td>
@@ -263,7 +264,7 @@ export default function ProductsPage() {
             </table>
           </div>
         )}
-      </div>
+      </StaggerItem>
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -433,20 +434,20 @@ export default function ProductsPage() {
                 </div>
               )}
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-4 pt-6">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50"
+                  className="flex-1 px-4 py-3 bg-[var(--foreground)]/5 text-[var(--foreground)] rounded-full font-medium hover:bg-[var(--foreground)]/10 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 px-4 py-3 bg-[var(--color-primary)] text-white rounded-full font-bold hover:bg-blue-600 hover:-translate-y-1 neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)] disabled:opacity-50 transition-all"
                 >
-                  {saving ? "Saving..." : editingProduct ? "Update" : "Create"}
+                  {saving ? "Saving..." : editingProduct ? "Update Product" : "Create Product"}
                 </button>
               </div>
             </form>
@@ -461,6 +462,6 @@ export default function ProductsPage() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
       />
-    </div>
+    </StaggerContainer>
   );
 }

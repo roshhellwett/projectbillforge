@@ -6,6 +6,7 @@ import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "@/
 import { recalculateCustomerBalance } from "@/lib/actions/khata";
 import { ConfirmDialog, SkeletonCard } from "@/lib/components/ui";
 import { Plus, Search, X, RefreshCw, Trash2, Edit2, Phone, Mail, MapPin, Pencil } from "lucide-react";
+import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
 // NaN-safe currency formatter
 const fmt = (v: any): string => {
@@ -160,20 +161,20 @@ export default function CustomersPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <StaggerContainer className="space-y-6">
+      <FadeIn className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Customers (Khata)</h1>
-          <p className="text-slate-500">Manage your khata customers</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">Customers (Khata)</h1>
+          <p className="text-[var(--foreground)]/60 mt-1">Manage your khata customers</p>
         </div>
         <button
           onClick={openModal}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-full hover:-translate-y-1 transition-all neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
         >
           <Plus size={20} />
           Add Customer
         </button>
-      </div>
+      </FadeIn>
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
@@ -184,57 +185,57 @@ export default function CustomersPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-        <div className="p-4 border-b border-slate-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+      <StaggerItem className="neo-clay overflow-hidden">
+        <div className="p-4 md:p-6 border-b border-[var(--border)]/50">
+          <div className="relative max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" size={20} />
             <input
               type="text"
               placeholder="Search customers..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-12 pr-4 py-3 neo-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
             />
           </div>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
             {[...Array(6)].map((_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
         ) : filteredCustomers.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">No customers found</div>
+          <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">No customers found</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4 md:p-6">
             {filteredCustomers.map((customer) => (
-              <div key={customer.id} className="p-4 border border-slate-200 rounded-xl hover:border-blue-200 hover:shadow-md transition-all">
-                <div className="flex items-start justify-between mb-3">
+              <div key={customer.id} className="p-6 bg-[var(--card)] rounded-3xl shadow-[0_5px_15px_rgba(0,0,0,0.02)] border border-[var(--border)]/30 hover:-translate-y-1 hover:shadow-lg transition-all group">
+                <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="font-semibold text-slate-900">{customer.name}</h3>
+                    <h3 className="font-semibold text-[var(--foreground)]">{customer.name}</h3>
                     {customer.phone && (
-                      <p className="text-sm text-slate-500 flex items-center gap-1">
+                      <p className="text-sm text-[var(--foreground)]/60 flex items-center gap-1.5 mt-1">
                         <Phone size={12} /> {customer.phone}
                       </p>
                     )}
                     {customer.email && (
-                      <p className="text-sm text-slate-500 flex items-center gap-1">
+                      <p className="text-sm text-[var(--foreground)]/60 flex items-center gap-1.5 mt-0.5">
                         <Mail size={12} /> {customer.email}
                       </p>
                     )}
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleEdit(customer)}
-                      className="p-1 text-slate-400 hover:text-blue-600"
+                      className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-colors"
                       aria-label="Edit customer"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
                       onClick={() => setDeleteId(customer.id)}
-                      className={`p-1 ${(customer.currentBalance ?? 0) > 0 ? 'text-slate-300 cursor-not-allowed' : 'text-slate-400 hover:text-red-600'}`}
+                      className={`p-1.5 rounded-lg transition-colors ${(customer.currentBalance ?? 0) > 0 ? 'text-[var(--foreground)]/20 cursor-not-allowed' : 'text-[var(--foreground)]/40 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10'}`}
                       aria-label="Delete customer"
                       disabled={(customer.currentBalance ?? 0) > 0}
                       title={(customer.currentBalance ?? 0) > 0 ? "Cannot delete customer with outstanding balance" : "Delete customer"}
@@ -243,31 +244,31 @@ export default function CustomersPage() {
                     </button>
                   </div>
                 </div>
-                <div className="pt-3 border-t border-slate-100">
+                <div className="pt-3 border-t border-[var(--border)]/30">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500">Total Owed (Due)</span>
+                    <span className="text-[var(--foreground)]/60">Total Owed (Due)</span>
                     <div className="flex items-center gap-1">
-                      <span className={safeNum(customer.currentBalance) > 0 ? "font-semibold text-orange-600" : safeNum(customer.currentBalance) < 0 ? "font-semibold text-blue-600" : "font-medium text-slate-700"}>
+                      <span className={safeNum(customer.currentBalance) > 0 ? "font-semibold text-[var(--color-warning)]" : safeNum(customer.currentBalance) < 0 ? "font-semibold text-[var(--color-primary)]" : "font-medium text-[var(--foreground)]"}>
                         {safeNum(customer.currentBalance) < 0 ? '-' : ''}₹{fmt(customer.currentBalance)}
                       </span>
                       <button
                         onClick={() => handleSyncBalance(customer.id)}
                         disabled={syncingId === customer.id}
-                        className="p-1 text-slate-400 hover:text-blue-600 disabled:opacity-50"
+                        className="p-1 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] disabled:opacity-50"
                         title="Recalculate balance from transactions"
                       >
                         <RefreshCw size={14} className={syncingId === customer.id ? "animate-spin" : ""} />
                       </button>
                     </div>
                   </div>
-                  <div className="flex justify-between text-sm mt-1">
-                    <span className="text-slate-500">Credit Limit</span>
-                    <span className="text-slate-700">₹{fmt(customer.creditLimit)}</span>
+                  <div className="flex justify-between text-sm mt-1.5">
+                    <span className="text-[var(--foreground)]/60">Credit Limit</span>
+                    <span className="text-[var(--foreground)] font-medium">₹{fmt(customer.creditLimit)}</span>
                   </div>
                   {safeNum(customer.creditLimit) > 0 && (
-                    <div className="flex justify-between text-sm mt-1">
-                      <span className="text-slate-500">Available Credit</span>
-                      <span className="font-medium text-green-600">
+                    <div className="flex justify-between text-sm mt-1.5">
+                      <span className="text-[var(--foreground)]/60">Available Credit</span>
+                      <span className="font-semibold text-[var(--color-success)]">
                         ₹{fmt(Math.max(0, safeNum(customer.creditLimit) - safeNum(customer.currentBalance)))}
                       </span>
                     </div>
@@ -277,7 +278,7 @@ export default function CustomersPage() {
             ))}
           </div>
         )}
-      </div>
+      </StaggerItem>
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -356,20 +357,20 @@ export default function CustomersPage() {
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-4 pt-6">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50"
+                  className="flex-1 px-4 py-3 bg-[var(--foreground)]/5 text-[var(--foreground)] rounded-full font-medium hover:bg-[var(--foreground)]/10 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
+                  className="flex-1 px-4 py-3 bg-[var(--color-primary)] text-white rounded-full font-bold hover:bg-blue-600 hover:-translate-y-1 neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)] disabled:opacity-50 transition-all"
                 >
-                  {saving ? "Saving..." : editingCustomer ? "Update" : "Create"}
+                  {saving ? "Saving..." : editingCustomer ? "Update Customer" : "Create Customer"}
                 </button>
               </div>
             </form>
@@ -390,6 +391,6 @@ export default function CustomersPage() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
       />
-    </div>
+    </StaggerContainer>
   );
 }

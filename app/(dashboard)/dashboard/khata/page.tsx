@@ -6,6 +6,7 @@ import { getCustomers } from "@/lib/actions/customers";
 import { getKhataStatement, createKhataTransaction, deleteKhataTransaction } from "@/lib/actions/khata";
 import { ConfirmDialog } from "@/lib/components/ui";
 import { Plus, Search, X, ArrowUpCircle, ArrowDownCircle, Trash2, Lock } from "lucide-react";
+import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
 // NaN-safe currency formatter — never shows ₹NaN to the user
 const fmt = (v: any): string => {
@@ -174,27 +175,27 @@ export default function KhataPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <StaggerContainer className="space-y-6">
+      <FadeIn className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Khata Ledger</h1>
-          <p className="text-slate-500">Track customer credit and payments</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">Khata Ledger</h1>
+          <p className="text-[var(--foreground)]/60 mt-1">Track customer credit and payments</p>
         </div>
-      </div>
+      </FadeIn>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-        <label className="block text-sm font-medium text-slate-700 mb-2">Select Customer</label>
+      <StaggerItem className="neo-clay p-6 overflow-hidden">
+        <label className="block text-sm font-semibold text-[var(--foreground)]/80 mb-4">Select Customer</label>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" size={18} />
           <input
             type="text"
             placeholder="Search customers..."
             value={customerSearch}
             onChange={(e) => setCustomerSearch(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-12 pr-4 py-3.5 neo-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
           />
         </div>
-        <div className="mt-2 max-h-60 overflow-y-auto border border-slate-200 rounded-xl">
+        <div className="mt-4 max-h-60 overflow-y-auto border border-[var(--border)] rounded-xl">
           {customers
             .filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
               (c.phone && c.phone.includes(customerSearch)))
@@ -230,47 +231,47 @@ export default function KhataPage() {
               ))
           )}
         </div>
-      </div>
+      </StaggerItem>
 
       {customer && (
         <>
           <div className="flex items-center justify-between">
             <button
               onClick={() => handleCustomerSelect("")}
-              className="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
+              className="text-sm text-[var(--foreground)]/60 hover:text-[var(--color-primary)] flex items-center gap-1 transition-colors"
             >
               ← Back to customer list
             </button>
             <button
               onClick={() => { setError(""); setShowModal(true); }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
+              className="flex items-center gap-2 px-6 py-3 bg-[var(--color-primary)] text-white font-bold rounded-full hover:-translate-y-1 transition-all neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
             >
               <Plus size={20} />
               Add Transaction
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              <p className="text-sm text-slate-500">Customer Name</p>
-              <p className="text-xl font-bold text-slate-900">{customer.name}</p>
+          <StaggerItem className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="neo-clay p-6 hover:-translate-y-1 transition-all">
+              <p className="text-sm font-semibold text-[var(--foreground)]/60 mb-1">Customer Name</p>
+              <p className="text-2xl font-bold text-[var(--foreground)] tracking-tight">{customer.name}</p>
             </div>
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              <p className="text-sm text-slate-500">Phone</p>
-              <p className="text-xl font-bold text-slate-900">{customer.phone || "-"}</p>
+            <div className="neo-clay p-6 hover:-translate-y-1 transition-all">
+              <p className="text-sm font-semibold text-[var(--foreground)]/60 mb-1">Phone</p>
+              <p className="text-2xl font-bold text-[var(--foreground)] tracking-tight">{customer.phone || "-"}</p>
             </div>
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="neo-clay p-6 hover:-translate-y-1 transition-all">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-slate-500">Total Owed (Due)</p>
-                  <p className={`text-xl font-bold ${(customer.currentBalance ?? 0) > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                  <p className="text-sm font-medium text-[var(--foreground)]/60">Total Owed (Due)</p>
+                  <p className={`text-2xl font-bold mt-1 tracking-tight ${(customer.currentBalance ?? 0) > 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
                     ₹{fmt(customer.currentBalance)}
                   </p>
                 </div>
                 {safeNum(customer.currentBalance) > 0 && (
                   <button
                     onClick={() => { setError(""); setShowPaymentModal(true); }}
-                    className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700"
+                    className="px-4 py-2 bg-[var(--color-success)] text-white text-sm font-medium rounded-xl hover:opacity-90 transition-opacity shadow-sm"
                   >
                     Record Payment
                   </button>
@@ -279,107 +280,107 @@ export default function KhataPage() {
             </div>
             {(customer.creditLimit ?? 0) > 0 && (
               <>
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                  <p className="text-sm text-slate-500">Credit Limit</p>
-                  <p className="text-xl font-bold text-slate-900">
+                <div className="neo-clay p-6 hover:-translate-y-1 transition-all">
+                  <p className="text-sm font-semibold text-[var(--foreground)]/60 mb-1">Credit Limit</p>
+                  <p className="text-2xl font-bold text-[var(--foreground)] tracking-tight">
                     ₹{fmt(customer.creditLimit)}
                   </p>
                 </div>
-                <div className="bg-white p-6 rounded-2xl border border-green-200 shadow-sm">
-                  <p className="text-sm text-green-600">Available Credit</p>
-                  <p className="text-xl font-bold text-green-600">
+                <div className="neo-clay p-6 bg-[var(--color-success)]/5 border border-[var(--color-success)]/10 hover:-translate-y-1 transition-all">
+                  <p className="text-sm font-semibold text-[var(--color-success)] mb-1">Available Credit</p>
+                  <p className="text-2xl font-bold text-[var(--color-success)] tracking-tight">
                     ₹{fmt(Math.max(0, safeNum(customer.creditLimit) - safeNum(customer.currentBalance)))}
                   </p>
                 </div>
               </>
             )}
             {accruedFines > 0 && (
-              <div className="bg-white p-6 rounded-2xl border border-red-200 shadow-sm">
-                <p className="text-sm text-red-500">Accrued Fines</p>
-                <p className="text-xl font-bold text-red-600">
+              <div className="bg-[var(--color-danger)]/5 backdrop-blur-3xl p-6 rounded-3xl border border-[var(--color-danger)]/20 shadow-sm hover:shadow-md transition-shadow">
+                <p className="text-sm font-medium text-[var(--color-danger)]/80">Accrued Fines</p>
+                <p className="text-2xl font-bold text-[var(--color-danger)] mt-1 tracking-tight">
                   ₹{accruedFines.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </p>
               </div>
             )}
-          </div>
+          </StaggerItem>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-slate-200">
-              <h2 className="font-semibold text-slate-900">Transaction History</h2>
+          <StaggerItem className="neo-clay overflow-hidden mt-6">
+            <div className="p-6 border-b border-[var(--border)]/50">
+              <h2 className="font-bold text-[var(--foreground)] text-xl">Transaction History</h2>
             </div>
 
             {statement.length === 0 ? (
-              <div className="p-8 text-center text-slate-500">No transactions found</div>
+              <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">No transactions found</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-slate-50">
+                  <thead className="bg-[var(--foreground)]/5 border-b border-[var(--border)]/30">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Date</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Type</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Note</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-slate-600">Amount</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-slate-600" title="Running balance after this transaction">
-                        Balance <span className="text-xs font-normal text-slate-400">(Running)</span>
+                      <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Date</th>
+                      <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Type</th>
+                      <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Note</th>
+                      <th className="px-5 py-4 text-right text-sm font-semibold text-[var(--foreground)]/70">Amount</th>
+                      <th className="px-5 py-4 text-right text-sm font-semibold text-[var(--foreground)]/70" title="Running balance after this transaction">
+                        Balance <span className="text-xs font-normal text-[var(--foreground)]/40">(Running)</span>
                       </th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Actions</th>
+                      <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody className="divide-y divide-[var(--border)]/30">
                     {statement.map((t) => (
-                      <tr key={t.id} className={`hover:bg-slate-50 ${(t as any).status === 'cancelled' ? 'bg-slate-100 opacity-60' : ''}`}>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                      <tr key={t.id} className={`hover:bg-[var(--foreground)]/[0.02] transition-colors ${(t as any).status === 'cancelled' ? 'opacity-50' : ''}`}>
+                        <td className="px-5 py-4 text-sm text-[var(--foreground)]/70">
                           {t.createdAt.toLocaleDateString('en-IN')}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-5 py-4">
                           {(t as any).status === 'cancelled' ? (
-                            <span className="flex items-center gap-1 text-sm font-medium text-slate-400 line-through">
+                            <span className="flex items-center gap-1.5 text-sm font-medium text-[var(--foreground)]/40 line-through">
                               {t.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
                               Cancelled / Refunded
                             </span>
                           ) : (
-                            <span className={`flex items-center gap-1 text-sm font-medium ${t.type === 'credit' ? 'text-orange-600' : 'text-green-600'}`}>
+                            <span className={`flex items-center gap-1.5 text-sm font-medium ${t.type === 'credit' ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
                               {t.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
                               {t.type === 'credit' ? 'Sale (Added to Khata)' : 'Payment Received'}
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{(t as any).status === 'cancelled' ? <span className="line-through">{t.note || "-"}</span> : t.note || "-"}</td>
-                        <td className="px-4 py-3 text-right font-medium text-slate-900">
+                        <td className="px-5 py-4 text-sm text-[var(--foreground)]/70">{(t as any).status === 'cancelled' ? <span className="line-through">{t.note || "-"}</span> : t.note || "-"}</td>
+                        <td className="px-5 py-4 text-right font-medium text-[var(--foreground)]">
                           {(t as any).status === 'cancelled' ? (
-                            <span className="line-through text-slate-400">₹{fmt(t.amount)}</span>
+                            <span className="line-through text-[var(--foreground)]/40">₹{fmt(t.amount)}</span>
                           ) : (
                             <span>₹{fmt(t.amount)}</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-right font-semibold">
+                        <td className="px-5 py-4 text-right font-semibold">
                           {(t as any).status === 'cancelled' ? (
-                            <span className="text-slate-400">-</span>
+                            <span className="text-[var(--foreground)]/40">-</span>
                           ) : (
-                            <span className={safeNum((t as any).runningBalance) >= 0 ? 'text-orange-600' : 'text-green-600'}>
+                            <span className={safeNum((t as any).runningBalance) >= 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}>
                               {safeNum((t as any).runningBalance) < 0 ? '-' : ''}₹{fmt((t as any).runningBalance)}
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-5 py-4">
                           {(t as any).status === 'cancelled' ? (
-                            <span className="text-xs text-slate-400">Cancelled</span>
+                            <span className="text-xs text-[var(--foreground)]/40">Cancelled</span>
                           ) : t.referenceInvoiceId ? (
                             <div className="relative group">
                               <button
-                                className="p-1 text-slate-300 cursor-not-allowed"
+                                className="p-1.5 text-[var(--foreground)]/20 cursor-not-allowed"
                                 title="Cannot delete - cancel the associated invoice to reverse this transaction"
                               >
                                 <Lock size={16} />
                               </button>
-                              <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-48 p-2 bg-slate-800 text-white text-xs rounded-lg z-10">
+                              <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-48 p-3 bg-black/90 backdrop-blur-xl text-white text-xs rounded-xl z-10 border border-white/10 shadow-xl">
                                 Cannot delete. Cancel the associated invoice to reverse this transaction.
                               </div>
                             </div>
                           ) : (
                             <button
                               onClick={() => setDeleteId(t.id)}
-                              className="p-1 text-slate-400 hover:text-red-600"
+                              className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-colors"
                               aria-label="Delete transaction"
                             >
                               <Trash2 size={16} />
@@ -392,14 +393,14 @@ export default function KhataPage() {
                 </table>
               </div>
             )}
-          </div>
+          </StaggerItem>
         </>
       )}
 
       {!selectedCustomer && !loading && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
-          <p className="text-slate-500">Select a customer to view their khata ledger</p>
-        </div>
+        <StaggerItem className="bg-[var(--card)]/60 backdrop-blur-3xl rounded-3xl border border-[var(--border)] shadow-sm p-12 text-center">
+          <p className="text-[var(--foreground)]/50 font-medium text-lg">Select a customer to view their khata ledger</p>
+        </StaggerItem>
       )}
 
       {showModal && (
@@ -583,6 +584,6 @@ export default function KhataPage() {
           </div>
         </div>
       )}
-    </div>
+    </StaggerContainer>
   );
 }

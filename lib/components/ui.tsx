@@ -30,20 +30,20 @@ export function ConfirmDialog({
   }[variant];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">{title}</h2>
-        <p className="text-slate-600 mb-6">{message}</p>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-[var(--card)] rounded-2xl w-full max-w-md p-6 shadow-2xl border border-[var(--border)]">
+        <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2 tracking-tight">{title}</h2>
+        <p className="text-[var(--foreground)]/70 mb-6">{message}</p>
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50"
+            className="flex-1 px-4 py-2 border border-[var(--border)] text-[var(--foreground)] rounded-xl hover:bg-[var(--foreground)]/5 transition-colors"
           >
             {cancelLabel}
           </button>
           <button
             onClick={onConfirm}
-            className={`flex-1 px-4 py-2 text-white rounded-xl ${buttonColor}`}
+            className={`flex-1 px-4 py-2 text-white rounded-xl transition-all shadow-sm active:scale-95 ${buttonColor}`}
           >
             {confirmLabel}
           </button>
@@ -57,7 +57,7 @@ export function SkeletonTable({ rows = 5 }: { rows?: number }) {
   return (
     <div className="space-y-3">
       {[...Array(rows)].map((_, i) => (
-        <div key={i} className="h-16 bg-slate-200 rounded-xl animate-pulse" />
+        <div key={i} className="h-16 bg-[var(--border)] rounded-xl animate-pulse" />
       ))}
     </div>
   );
@@ -65,12 +65,12 @@ export function SkeletonTable({ rows = 5 }: { rows?: number }) {
 
 export function SkeletonCard() {
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+    <div className="bg-[var(--card)] p-6 rounded-2xl border border-[var(--border)] shadow-sm">
       <div className="flex items-center gap-4">
-        <div className="p-3 bg-slate-200 rounded-xl animate-pulse w-12 h-12" />
+        <div className="p-3 bg-[var(--border)] rounded-xl animate-pulse w-12 h-12" />
         <div className="space-y-2">
-          <div className="h-4 bg-slate-200 rounded w-24 animate-pulse" />
-          <div className="h-6 bg-slate-200 rounded w-32 animate-pulse" />
+          <div className="h-4 bg-[var(--border)] rounded w-24 animate-pulse" />
+          <div className="h-6 bg-[var(--border)] rounded w-32 animate-pulse" />
         </div>
       </div>
     </div>

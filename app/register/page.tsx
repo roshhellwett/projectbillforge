@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerBusiness } from "@/lib/actions/auth";
+import { FadeIn, AnimatedBackground, StaggerContainer, StaggerItem, InteractiveItem } from "@/lib/components/MotionWrapper";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -56,175 +57,208 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 py-8">
-      <div className="relative w-full max-w-2xl p-8 mx-4">
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
-          <div className="p-8">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Register Business</h1>
-              <p className="text-slate-500">Create your billing account</p>
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] p-4 py-12 relative overflow-hidden font-sans">
+      <AnimatedBackground />
+      <FadeIn className="relative w-full max-w-2xl z-10">
+        <div className="neo-clay p-8 md:p-10 relative overflow-hidden group">
+          {/* Subtle inner glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none rounded-inherit"></div>
+
+          <div className="relative z-10">
+            <div className="text-center mb-10">
+              <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)] mb-1">BillForge</h1>
+              <p className="text-[10px] font-bold tracking-wider uppercase text-[var(--color-primary)] opacity-80 mb-4">Zenith Open Source Projects</p>
+              <p className="text-[var(--foreground)]/60 font-medium">Create your billing account</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-                  {error}
+            <StaggerContainer className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <StaggerItem>
+                    <div className="p-4 bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 rounded-xl text-[var(--color-danger)] text-sm font-medium">
+                      {error}
+                    </div>
+                  </StaggerItem>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <StaggerItem className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-[var(--foreground)]/80 ml-1 mb-2">
+                      Business Name *
+                    </label>
+                    <InteractiveItem>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-5 py-4 neo-input text-[var(--foreground)] placeholder-[var(--foreground)]/30 font-medium focus:ring-0"
+                        placeholder="Your Business Name"
+                      />
+                    </InteractiveItem>
+                  </StaggerItem>
+
+                  <StaggerItem className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-[var(--foreground)]/80 ml-1 mb-2">
+                      Email Address *
+                    </label>
+                    <InteractiveItem>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-5 py-4 neo-input text-[var(--foreground)] placeholder-[var(--foreground)]/30 font-medium focus:ring-0"
+                        placeholder="you@business.com"
+                      />
+                    </InteractiveItem>
+                  </StaggerItem>
+
+                  <StaggerItem>
+                    <label className="block text-sm font-semibold text-[var(--foreground)]/80 ml-1 mb-2">
+                      Password *
+                    </label>
+                    <InteractiveItem>
+                      <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        minLength={8}
+                        className="w-full px-5 py-4 neo-input text-[var(--foreground)] placeholder-[var(--foreground)]/30 font-medium focus:ring-0"
+                        placeholder="Min 8 characters"
+                      />
+                    </InteractiveItem>
+                  </StaggerItem>
+
+                  <StaggerItem>
+                    <label className="block text-sm font-semibold text-[var(--foreground)]/80 ml-1 mb-2">
+                      Confirm Password *
+                    </label>
+                    <InteractiveItem>
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-5 py-4 neo-input text-[var(--foreground)] placeholder-[var(--foreground)]/30 font-medium focus:ring-0"
+                        placeholder="Confirm password"
+                      />
+                    </InteractiveItem>
+                  </StaggerItem>
+
+                  <StaggerItem>
+                    <label className="block text-sm font-semibold text-[var(--foreground)]/80 ml-1 mb-2">
+                      GSTIN
+                    </label>
+                    <InteractiveItem>
+                      <input
+                        type="text"
+                        name="gstin"
+                        value={formData.gstin}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 neo-input text-[var(--foreground)] placeholder-[var(--foreground)]/30 font-medium focus:ring-0"
+                        placeholder="27AABCU9603R1ZM"
+                      />
+                    </InteractiveItem>
+                  </StaggerItem>
+
+                  <StaggerItem>
+                    <label className="block text-sm font-semibold text-[var(--foreground)]/80 ml-1 mb-2">
+                      Phone
+                    </label>
+                    <InteractiveItem>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 neo-input text-[var(--foreground)] placeholder-[var(--foreground)]/30 font-medium focus:ring-0"
+                        placeholder="+91 9876543210"
+                      />
+                    </InteractiveItem>
+                  </StaggerItem>
+
+                  <StaggerItem className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-[var(--foreground)]/80 ml-1 mb-2">
+                      Address
+                    </label>
+                    <InteractiveItem>
+                      <input
+                        type="text"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 neo-input text-[var(--foreground)] placeholder-[var(--foreground)]/30 font-medium focus:ring-0"
+                        placeholder="Full address"
+                      />
+                    </InteractiveItem>
+                  </StaggerItem>
+
+                  <StaggerItem>
+                    <label className="block text-sm font-semibold text-[var(--foreground)]/80 ml-1 mb-2">
+                      State
+                    </label>
+                    <InteractiveItem>
+                      <input
+                        type="text"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 neo-input text-[var(--foreground)] placeholder-[var(--foreground)]/30 font-medium focus:ring-0"
+                        placeholder="Maharashtra"
+                      />
+                    </InteractiveItem>
+                  </StaggerItem>
+
+                  <StaggerItem>
+                    <label className="block text-sm font-semibold text-[var(--foreground)]/80 ml-1 mb-2">
+                      Pincode
+                    </label>
+                    <InteractiveItem>
+                      <input
+                        type="text"
+                        name="pincode"
+                        value={formData.pincode}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 neo-input text-[var(--foreground)] placeholder-[var(--foreground)]/30 font-medium focus:ring-0"
+                        placeholder="400001"
+                      />
+                    </InteractiveItem>
+                  </StaggerItem>
                 </div>
-              )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Business Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Your Business Name"
-                  />
+                <StaggerItem className="pt-6">
+                  <InteractiveItem>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-4 bg-[var(--color-primary)] text-white font-bold rounded-full transition-all neo-soft hover:-translate-y-1 hover:shadow-lg shadow-[0_10px_20px_rgba(59,130,246,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                    >
+                      {loading ? "Creating Account..." : "Register Business"}
+                    </button>
+                  </InteractiveItem>
+                </StaggerItem>
+              </form>
+
+              <StaggerItem>
+                <div className="mt-8 text-center text-sm">
+                  <p className="text-[var(--foreground)]/60">
+                    Already have an account?{" "}
+                    <Link href="/login" className="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] font-medium transition-colors">
+                      Sign In
+                    </Link>
+                  </p>
                 </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="you@business.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Password *
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    minLength={8}
-                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Min 8 characters"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Confirm Password *
-                  </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Confirm password"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    GSTIN
-                  </label>
-                  <input
-                    type="text"
-                    name="gstin"
-                    value={formData.gstin}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="27AABCU9603R1ZM"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="+91 9876543210"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Full address"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    State
-                  </label>
-                  <input
-                    type="text"
-                    name="state"
-                    value={formData.state}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Maharashtra"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Pincode
-                  </label>
-                  <input
-                    type="text"
-                    name="pincode"
-                    value={formData.pincode}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="400001"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all disabled:opacity-50"
-              >
-                {loading ? "Creating Account..." : "Register Business"}
-              </button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-slate-500">
-                Already have an account?{" "}
-                <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-                  Sign In
-                </Link>
-              </p>
-            </div>
+              </StaggerItem>
+            </StaggerContainer>
           </div>
         </div>
-      </div>
+      </FadeIn>
     </div>
   );
 }

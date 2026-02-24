@@ -8,6 +8,7 @@ import { getInvoices, createInvoice, cancelInvoice } from "@/lib/actions/invoice
 import { getBusinessProfile } from "@/lib/actions/business";
 import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
 import { Plus, Search, X, Trash2, FileText, Printer, Download } from "lucide-react";
+import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
 interface Product {
   id: string;
@@ -283,90 +284,90 @@ export default function InvoicesPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <StaggerContainer className="space-y-6">
+      <FadeIn className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Invoices</h1>
-          <p className="text-slate-500">Create and manage invoices</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">Invoices</h1>
+          <p className="text-[var(--foreground)]/60 mt-1">Create and manage invoices</p>
         </div>
         <button
           onClick={() => { setError(""); setShowNewInvoice(true); }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
+          className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-full hover:-translate-y-1 transition-all neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
         >
           <Plus size={20} />
           New Invoice
         </button>
-      </div>
+      </FadeIn>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-        <div className="p-4 border-b border-slate-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+      <StaggerItem className="neo-clay overflow-hidden">
+        <div className="p-4 md:p-6 border-b border-[var(--border)]/50">
+          <div className="relative max-w-md">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" size={20} />
             <input
               type="text"
               placeholder="Search invoices..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-12 pr-4 py-3 neo-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
             />
           </div>
         </div>
 
         {loading ? (
-          <SkeletonTable rows={5} />
+          <div className="p-4"><SkeletonTable rows={5} /></div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">No invoices found</div>
+          <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">No invoices found</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-slate-50">
+              <thead className="bg-[var(--foreground)]/5 border-b border-[var(--border)]/30">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Invoice #</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Date</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Customer</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Amount</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-600">Actions</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Invoice #</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Date</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Customer</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Amount</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Status</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-[var(--border)]/30">
                 {filteredInvoices.map((invoice) => (
-                  <tr key={invoice.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900">{invoice.invoiceNumber}</td>
-                    <td className="px-4 py-3 text-slate-600">{invoice.invoiceDate.toLocaleDateString('en-IN')}</td>
-                    <td className="px-4 py-3 text-slate-900">{invoice.customerName}</td>
-                    <td className="px-4 py-3 font-semibold text-slate-900">₹{(invoice.total ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td className="px-4 py-3">
+                  <tr key={invoice.id} className="hover:bg-[var(--foreground)]/[0.02] transition-colors">
+                    <td className="px-5 py-4 font-medium text-[var(--foreground)]">{invoice.invoiceNumber}</td>
+                    <td className="px-5 py-4 text-[var(--foreground)]/70 text-sm">{invoice.invoiceDate.toLocaleDateString('en-IN')}</td>
+                    <td className="px-5 py-4 text-[var(--foreground)] font-medium">{invoice.customerName}</td>
+                    <td className="px-5 py-4 font-semibold text-[var(--foreground)]">₹{(invoice.total ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td className="px-5 py-4">
                       {invoice.status === 'cancelled' ? (
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">
+                        <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-danger)]/10 text-[var(--color-danger)] border border-[var(--color-danger)]/20">
                           Cancelled
                         </span>
                       ) : invoice.paymentStatus === 'unpaid' ? (
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-700">
+                        <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20">
                           Unpaid
                         </span>
                       ) : (
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                        <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20">
                           Paid
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-1 opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-100" style={{ opacity: 1 }}>
                         <button
                           onClick={() => setViewInvoice(invoice)}
-                          className="p-1 text-slate-400 hover:text-blue-600"
+                          className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-colors"
                           aria-label="View invoice"
                         >
-                          <Printer size={18} />
+                          <Printer size={16} />
                         </button>
                         {invoice.status === 'active' && (
                           <button
                             onClick={() => setCancelId(invoice.id)}
-                            className="p-1 text-slate-400 hover:text-red-600"
+                            className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-colors"
                             aria-label="Cancel invoice"
                           >
-                            <Trash2 size={18} />
+                            <Trash2 size={16} />
                           </button>
                         )}
                       </div>
@@ -377,7 +378,7 @@ export default function InvoicesPage() {
             </table>
           </div>
         )}
-      </div>
+      </StaggerItem>
 
       {showNewInvoice && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -819,6 +820,6 @@ export default function InvoicesPage() {
           </div>
         </div>
       )}
-    </div>
+    </StaggerContainer>
   );
 }
