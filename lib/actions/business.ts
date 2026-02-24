@@ -10,7 +10,7 @@ import { revalidatePath } from "next/cache";
 export async function getBusinessProfile() {
   try {
     const session = await requireBusinessSession();
-    
+
     const business = await db.query.businesses.findFirst({
       where: eq(businesses.id, session.id),
     });
@@ -59,6 +59,8 @@ export async function updateBusinessProfile(data: {
       .where(eq(businesses.id, session.id));
 
     revalidatePath('/dashboard/settings');
+    revalidatePath('/dashboard');
+    revalidatePath('/dashboard/invoices');
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Failed to update business profile" };
@@ -68,7 +70,7 @@ export async function updateBusinessProfile(data: {
 export async function checkBusinessProfileComplete() {
   try {
     const session = await requireBusinessSession();
-    
+
     const business = await db.query.businesses.findFirst({
       where: eq(businesses.id, session.id),
     });
@@ -104,14 +106,19 @@ export async function resetAllKhataData(password: string) {
     }
 
     await db.transaction(async (tx) => {
-      await tx.delete(khataTransactions)
+      // Soft-delete: mark all khata transactions as cancelled (never hard-delete financial records)
+      await tx.update(khataTransactions)
+        .set({ status: 'cancelled' })
         .where(eq(khataTransactions.businessId, businessId));
-      
-      await tx.delete(invoices)
+
+      // Soft-delete: mark all invoices as cancelled
+      await tx.update(invoices)
+        .set({ status: 'cancelled', updatedAt: new Date() })
         .where(eq(invoices.businessId, businessId));
-      
+
+      // Zero out all customer balances
       await tx.update(customers)
-        .set({ currentBalance: 0 })
+        .set({ currentBalance: 0, updatedAt: new Date() })
         .where(eq(customers.businessId, businessId));
     });
 
@@ -119,7 +126,8 @@ export async function resetAllKhataData(password: string) {
     revalidatePath('/dashboard/khata');
     revalidatePath('/dashboard/invoices');
     revalidatePath('/dashboard/customers');
-    return { success: true, message: "All Khata data has been reset. All invoices and transactions deleted." };
+    revalidatePath('/dashboard/products');
+    return { success: true, message: "All Khata data has been reset. All invoices and transactions marked as cancelled, balances zeroed." };
   } catch (error: any) {
     return { error: error.message || "Failed to reset Khata data" };
   }

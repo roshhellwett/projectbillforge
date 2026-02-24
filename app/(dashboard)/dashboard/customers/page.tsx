@@ -5,7 +5,18 @@ import { useRouter } from "next/navigation";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "@/lib/actions/customers";
 import { recalculateCustomerBalance } from "@/lib/actions/khata";
 import { ConfirmDialog, SkeletonCard } from "@/lib/components/ui";
-import { Plus, Search, Edit2, Trash2, X, Phone, Mail, MapPin, RefreshCw } from "lucide-react";
+import { Plus, Search, X, RefreshCw, Trash2, Edit2, Phone, Mail, MapPin, Pencil } from "lucide-react";
+
+// NaN-safe currency formatter
+const fmt = (v: any): string => {
+  const n = Number(v);
+  if (isNaN(n) || !isFinite(n)) return '0.00';
+  return Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+const safeNum = (v: any): number => {
+  const n = Number(v);
+  return isNaN(n) || !isFinite(n) ? 0 : n;
+};
 
 interface Customer {
   id: string;
@@ -231,8 +242,8 @@ export default function CustomersPage() {
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-slate-500">Total Owed (Due)</span>
                     <div className="flex items-center gap-1">
-                      <span className={(customer.currentBalance ?? 0) > 0 ? "font-semibold text-orange-600" : "font-medium text-slate-700"}>
-                        ₹{(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      <span className={safeNum(customer.currentBalance) > 0 ? "font-semibold text-orange-600" : safeNum(customer.currentBalance) < 0 ? "font-semibold text-blue-600" : "font-medium text-slate-700"}>
+                        {safeNum(customer.currentBalance) < 0 ? '-' : ''}₹{fmt(customer.currentBalance)}
                       </span>
                       <button
                         onClick={() => handleSyncBalance(customer.id)}
@@ -246,13 +257,13 @@ export default function CustomersPage() {
                   </div>
                   <div className="flex justify-between text-sm mt-1">
                     <span className="text-slate-500">Credit Limit</span>
-                    <span className="text-slate-700">₹{(customer.creditLimit ?? 0).toLocaleString('en-IN')}</span>
+                    <span className="text-slate-700">₹{fmt(customer.creditLimit)}</span>
                   </div>
-                  {(customer.creditLimit ?? 0) > 0 && (
+                  {safeNum(customer.creditLimit) > 0 && (
                     <div className="flex justify-between text-sm mt-1">
                       <span className="text-slate-500">Available Credit</span>
                       <span className="font-medium text-green-600">
-                        ₹{Math.max(0, (customer.creditLimit ?? 0) - (customer.currentBalance ?? 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        ₹{fmt(Math.max(0, safeNum(customer.creditLimit) - safeNum(customer.currentBalance)))}
                       </span>
                     </div>
                   )}
@@ -274,7 +285,7 @@ export default function CustomersPage() {
             </div>
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
               {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Customer Name *</label>
                 <input

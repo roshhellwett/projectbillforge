@@ -10,10 +10,17 @@ import { revalidatePath } from "next/cache";
 export async function createProduct(data: ProductInput) {
   try {
     const session = await requireBusinessSession();
-    
+
     const validation = productSchema.safeParse(data);
     if (!validation.success) {
       return { error: validation.error.errors[0].message };
+    }
+
+    // Server-side validation: threshold must be strictly less than stock
+    const stockQty = data.stockQuantity ?? 0;
+    const threshold = data.lowStockThreshold ?? 0;
+    if (stockQty > 0 && threshold >= stockQty) {
+      return { error: "Low stock threshold must be less than the stock quantity." };
     }
 
     const [product] = await db.insert(products).values({
@@ -31,6 +38,7 @@ export async function createProduct(data: ProductInput) {
     }).returning();
 
     revalidatePath('/dashboard/products');
+    revalidatePath('/dashboard');
     return { success: true, product };
   } catch (error: any) {
     return { error: error.message || "Failed to create product" };
@@ -46,6 +54,13 @@ export async function updateProduct(id: string, data: Partial<ProductInput>) {
       return { error: validation.error.errors[0].message };
     }
 
+    // Server-side validation: if both stock and threshold are provided, check the constraint
+    if (data.stockQuantity !== undefined && data.lowStockThreshold !== undefined) {
+      if (data.stockQuantity > 0 && data.lowStockThreshold >= data.stockQuantity) {
+        return { error: "Low stock threshold must be less than the stock quantity." };
+      }
+    }
+
     const [product] = await db.update(products)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(products.id, id))
@@ -56,6 +71,7 @@ export async function updateProduct(id: string, data: Partial<ProductInput>) {
     }
 
     revalidatePath('/dashboard/products');
+    revalidatePath('/dashboard');
     return { success: true, product };
   } catch (error: any) {
     return { error: error.message || "Failed to update product" };
@@ -75,6 +91,7 @@ export async function deleteProduct(id: string) {
     }
 
     revalidatePath('/dashboard/products');
+    revalidatePath('/dashboard');
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Failed to delete product" };

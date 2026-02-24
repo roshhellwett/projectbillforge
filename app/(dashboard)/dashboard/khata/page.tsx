@@ -7,6 +7,17 @@ import { getKhataStatement, createKhataTransaction, deleteKhataTransaction } fro
 import { ConfirmDialog } from "@/lib/components/ui";
 import { Plus, Search, X, ArrowUpCircle, ArrowDownCircle, Trash2, Lock } from "lucide-react";
 
+// NaN-safe currency formatter — never shows ₹NaN to the user
+const fmt = (v: any): string => {
+  const n = Number(v);
+  if (isNaN(n) || !isFinite(n)) return '0.00';
+  return Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+const safeNum = (v: any): number => {
+  const n = Number(v);
+  return isNaN(n) || !isFinite(n) ? 0 : n;
+};
+
 interface Customer {
   id: string;
   name: string;
@@ -46,6 +57,7 @@ export default function KhataPage() {
   const [paymentData, setPaymentData] = useState({
     amount: "",
     note: "",
+    method: "cash" as string,
   });
 
   useEffect(() => {
@@ -126,7 +138,7 @@ export default function KhataPage() {
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCustomer) return;
-    
+
     const amount = Number(paymentData.amount);
     if (!amount || amount <= 0) {
       setError("Please enter a valid payment amount");
@@ -136,18 +148,21 @@ export default function KhataPage() {
     setError("");
     setSaving(true);
 
+    const methodLabel = paymentData.method === 'cash' ? 'Cash' : paymentData.method === 'upi' ? 'UPI' : paymentData.method === 'bank' ? 'Bank Transfer' : 'Cheque';
+    const noteText = paymentData.note ? `${paymentData.note} (via ${methodLabel})` : `Payment via ${methodLabel}`;
+
     const result = await createKhataTransaction({
       customerId: selectedCustomer,
       type: "debit",
       amount: amount,
-      note: paymentData.note || "Payment received",
+      note: noteText,
     });
 
     if (result.error) {
       setError(result.error);
     } else {
       setShowPaymentModal(false);
-      setPaymentData({ amount: "", note: "" });
+      setPaymentData({ amount: "", note: "", method: "cash" });
       loadStatement(selectedCustomer);
       loadCustomers();
       router.refresh();
@@ -178,22 +193,21 @@ export default function KhataPage() {
         </div>
         <div className="mt-2 max-h-60 overflow-y-auto border border-slate-200 rounded-xl">
           {customers
-            .filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()) || 
+            .filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
               (c.phone && c.phone.includes(customerSearch)))
             .length === 0 ? (
             <div className="p-3 text-sm text-slate-500 text-center">No customers found</div>
           ) : (
             customers
-              .filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()) || 
+              .filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
                 (c.phone && c.phone.includes(customerSearch)))
               .map(c => (
                 <button
                   key={c.id}
                   type="button"
                   onClick={() => handleCustomerSelect(c.id)}
-                  className={`w-full text-left px-4 py-3 border-b border-slate-100 last:border-0 cursor-pointer transition-all hover:bg-blue-50 hover:shadow-sm ${
-                    selectedCustomer === c.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
-                  }`}
+                  className={`w-full text-left px-4 py-3 border-b border-slate-100 last:border-0 cursor-pointer transition-all hover:bg-blue-50 hover:shadow-sm ${selectedCustomer === c.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -203,8 +217,8 @@ export default function KhataPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={`text-sm font-semibold ${(c.currentBalance ?? 0) > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                        ₹{Math.abs(c.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      <div className={`text-sm font-semibold ${safeNum(c.currentBalance) > 0 ? 'text-orange-600' : safeNum(c.currentBalance) < 0 ? 'text-blue-600' : 'text-green-600'}`}>
+                        {safeNum(c.currentBalance) < 0 ? '-' : ''}₹{fmt(c.currentBalance)}
                       </div>
                       <div className="text-xs text-slate-400">Balance</div>
                     </div>
@@ -247,10 +261,10 @@ export default function KhataPage() {
                 <div>
                   <p className="text-sm text-slate-500">Total Owed (Due)</p>
                   <p className={`text-xl font-bold ${(customer.currentBalance ?? 0) > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                    ₹{Math.abs(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹{fmt(customer.currentBalance)}
                   </p>
                 </div>
-                {(customer.currentBalance ?? 0) > 0 && (
+                {safeNum(customer.currentBalance) > 0 && (
                   <button
                     onClick={() => setShowPaymentModal(true)}
                     className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700"
@@ -265,13 +279,13 @@ export default function KhataPage() {
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                   <p className="text-sm text-slate-500">Credit Limit</p>
                   <p className="text-xl font-bold text-slate-900">
-                    ₹{(customer.creditLimit ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹{fmt(customer.creditLimit)}
                   </p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-green-200 shadow-sm">
                   <p className="text-sm text-green-600">Available Credit</p>
                   <p className="text-xl font-bold text-green-600">
-                    ₹{Math.max(0, (customer.creditLimit ?? 0) - (customer.currentBalance ?? 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹{fmt(Math.max(0, safeNum(customer.creditLimit) - safeNum(customer.currentBalance)))}
                   </p>
                 </div>
               </>
@@ -290,7 +304,7 @@ export default function KhataPage() {
             <div className="p-4 border-b border-slate-200">
               <h2 className="font-semibold text-slate-900">Transaction History</h2>
             </div>
-            
+
             {statement.length === 0 ? (
               <div className="p-8 text-center text-slate-500">No transactions found</div>
             ) : (
@@ -330,17 +344,17 @@ export default function KhataPage() {
                         <td className="px-4 py-3 text-sm text-slate-600">{(t as any).status === 'cancelled' ? <span className="line-through">{t.note || "-"}</span> : t.note || "-"}</td>
                         <td className="px-4 py-3 text-right font-medium text-slate-900">
                           {(t as any).status === 'cancelled' ? (
-                            <span className="line-through text-slate-400">₹{t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            <span className="line-through text-slate-400">₹{fmt(t.amount)}</span>
                           ) : (
-                            <span>₹{t.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            <span>₹{fmt(t.amount)}</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-right font-semibold">
                           {(t as any).status === 'cancelled' ? (
                             <span className="text-slate-400">-</span>
                           ) : (
-                            <span className={(t as any).runningBalance >= 0 ? 'text-orange-600' : 'text-green-600'}>
-                              ₹{Math.abs((t as any).runningBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            <span className={safeNum((t as any).runningBalance) >= 0 ? 'text-orange-600' : 'text-green-600'}>
+                              {safeNum((t as any).runningBalance) < 0 ? '-' : ''}₹{fmt((t as any).runningBalance)}
                             </span>
                           )}
                         </td>
@@ -396,7 +410,7 @@ export default function KhataPage() {
             </div>
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
               {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
-              
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Transaction Type</label>
                 <div className="flex gap-2">
@@ -481,13 +495,13 @@ export default function KhataPage() {
             </div>
             <form onSubmit={handlePaymentSubmit} className="p-4 space-y-4">
               {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
-              
+
               <div className="bg-green-50 p-4 rounded-xl">
                 <p className="text-sm text-green-700">
                   Recording payment for <strong>{customer?.name}</strong>
                 </p>
                 <p className="text-lg font-bold text-green-800 mt-1">
-                  Current Due: ₹{(customer?.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  Current Due: ₹{fmt(customer?.currentBalance)}
                 </p>
               </div>
 
@@ -506,14 +520,14 @@ export default function KhataPage() {
                 <div className="flex gap-2 mt-2">
                   <button
                     type="button"
-                    onClick={() => setPaymentData({ ...paymentData, amount: String(customer?.currentBalance ?? 0) })}
+                    onClick={() => setPaymentData({ ...paymentData, amount: String(safeNum(customer?.currentBalance)) })}
                     className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded"
                   >
                     Pay Full
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPaymentData({ ...paymentData, amount: String(Math.round((customer?.currentBalance ?? 0) / 2)) })}
+                    onClick={() => setPaymentData({ ...paymentData, amount: String(Math.round(safeNum(customer?.currentBalance) / 2)) })}
                     className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded"
                   >
                     Pay Half
@@ -524,6 +538,8 @@ export default function KhataPage() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Payment Method</label>
                 <select
+                  value={paymentData.method}
+                  onChange={(e) => setPaymentData({ ...paymentData, method: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   <option value="cash">Cash</option>

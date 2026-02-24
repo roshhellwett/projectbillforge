@@ -74,6 +74,22 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
         throw new Error("Customer not found");
       }
 
+      const currentBalance = Number(lockedCustomer.current_balance) || 0;
+      const creditLimit = Number(lockedCustomer.credit_limit) || 0;
+
+      const newBalance = data.type === 'credit'
+        ? currentBalance + data.amount
+        : currentBalance - data.amount;
+
+      // Credit limit enforcement: check BEFORE inserting
+      if (data.type === 'credit' && creditLimit > 0 && newBalance > creditLimit) {
+        const available = Math.max(0, creditLimit - currentBalance);
+        throw new Error(`Credit limit exceeded. Limit: ₹${creditLimit.toLocaleString('en-IN')}, Current Owed: ₹${currentBalance.toLocaleString('en-IN')}, Available: ₹${available.toLocaleString('en-IN')}, Requested: ₹${data.amount.toLocaleString('en-IN')}`);
+      }
+
+      // For payments (debit): allow overpayment, resulting in negative balance (credit in customer's favor)
+      // No clamping to 0 — negative balance means customer has advance credit
+
       const [newTransaction] = await tx.insert(khataTransactions).values({
         id: crypto.randomUUID(),
         businessId: session.id,
@@ -82,18 +98,6 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
         amount: data.amount,
         note: data.note || null,
       }).returning();
-
-      const newBalance = data.type === 'credit'
-        ? (lockedCustomer.current_balance ?? 0) + data.amount
-        : (lockedCustomer.current_balance ?? 0) - data.amount;
-
-      if (newBalance < 0) {
-        throw new Error("Payment exceeds current balance");
-      }
-
-      if ((lockedCustomer.credit_limit ?? 0) > 0 && newBalance > lockedCustomer.credit_limit!) {
-        throw new Error(`Credit limit exceeded. Limit: ₹${lockedCustomer.credit_limit}, Current: ₹${lockedCustomer.current_balance}, New: ₹${newBalance}`);
-      }
 
       await tx.update(customers)
         .set({
@@ -250,6 +254,8 @@ export async function deleteKhataTransaction(id: string) {
     }
 
     await db.transaction(async (tx) => {
+      // Cancelling a debit (payment) → add the amount back (debt restored)
+      // Cancelling a credit (sale) → subtract the amount (debt removed)
       const balanceAdjustment = transaction.type === 'debit'
         ? transaction.amount
         : -transaction.amount;
@@ -260,10 +266,12 @@ export async function deleteKhataTransaction(id: string) {
       const customer = customerRows[0];
       
       if (customer) {
-        const newBalance = (customer.current_balance ?? 0) + balanceAdjustment;
+        const currentBalance = Number(customer.current_balance) || 0;
+        const newBalance = currentBalance + balanceAdjustment;
+        // No Math.max(0) clamping — preserve true accounting balance
         await tx.update(customers)
           .set({
-            currentBalance: Math.max(0, newBalance),
+            currentBalance: newBalance,
             updatedAt: new Date(),
           })
           .where(eq(customers.id, transaction.customerId));
@@ -303,13 +311,13 @@ export async function recalculateCustomerBalance(customerId: string) {
     let calculatedBalance = 0;
     for (const t of transactions) {
       if (t.type === 'credit') {
-        calculatedBalance += t.amount;
+        calculatedBalance += Number(t.amount) || 0;
       } else {
-        calculatedBalance -= t.amount;
+        calculatedBalance -= Number(t.amount) || 0;
       }
     }
 
-    calculatedBalance = Math.max(0, calculatedBalance);
+    // No Math.max(0) — allow negative balance (customer overpaid / has advance credit)
 
     await db.update(customers)
       .set({ currentBalance: calculatedBalance, updatedAt: new Date() })

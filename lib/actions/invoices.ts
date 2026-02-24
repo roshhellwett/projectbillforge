@@ -18,7 +18,7 @@ function generateInvoiceNumber(): string {
 function calculateGST(itemRate: number, quantity: number, gstRate: number, isInterState: boolean) {
   const amount = itemRate * quantity;
   const gstAmount = amount * (gstRate / 100);
-  
+
   if (isInterState) {
     return {
       amount,
@@ -27,10 +27,10 @@ function calculateGST(itemRate: number, quantity: number, gstRate: number, isInt
       igst: gstAmount,
     };
   }
-  
+
   const cgst = gstAmount / 2;
   const sgst = gstAmount / 2;
-  
+
   return {
     amount,
     cgst,
@@ -42,7 +42,7 @@ function calculateGST(itemRate: number, quantity: number, gstRate: number, isInt
 export async function createInvoice(data: InvoiceInput) {
   try {
     const session = await requireBusinessSession();
-    
+
     const validation = invoiceSchema.safeParse(data);
     if (!validation.success) {
       return { error: validation.error.errors[0].message };
@@ -53,9 +53,9 @@ export async function createInvoice(data: InvoiceInput) {
     });
 
     if (!business || !business.name || !business.address || !business.phone) {
-      return { 
+      return {
         error: "Please complete your business profile and address to generate valid invoices. Go to Settings to update.",
-        redirectToSettings: true 
+        redirectToSettings: true
       };
     }
 
@@ -73,7 +73,7 @@ export async function createInvoice(data: InvoiceInput) {
       totalCgst += gst.cgst;
       totalSgst += gst.sgst;
       totalIgst += gst.igst;
-      
+
       return {
         productId: item.productId,
         productName: item.productName,
@@ -143,10 +143,12 @@ export async function createInvoice(data: InvoiceInput) {
         if (customer.business_id !== session.id) {
           throw new Error("Customer does not belong to your business");
         }
-        const newBalance = (customer.current_balance ?? 0) + total;
-        const availableCredit = (customer.credit_limit ?? 0) - (customer.current_balance ?? 0);
-        if ((customer.credit_limit ?? 0) > 0 && newBalance > customer.credit_limit!) {
-          throw new Error(`Transaction exceeds customer credit limit. Credit Limit: ₹${customer.credit_limit}, Available: ₹${availableCredit}, Invoice Total: ₹${total}`);
+        const currentBalance = Number(customer.current_balance) || 0;
+        const creditLimit = Number(customer.credit_limit) || 0;
+        const newBalance = currentBalance + total;
+        const availableCredit = Math.max(0, creditLimit - currentBalance);
+        if (creditLimit > 0 && newBalance > creditLimit) {
+          throw new Error(`Transaction exceeds customer credit limit. Credit Limit: ₹${creditLimit.toLocaleString('en-IN')}, Available: ₹${availableCredit.toLocaleString('en-IN')}, Invoice Total: ₹${total.toLocaleString('en-IN')}`);
         }
         await tx.update(customers)
           .set({
@@ -255,7 +257,9 @@ export async function cancelInvoice(id: string) {
         ) as unknown as { id: string; current_balance: number | null }[];
         const customer = customerRows[0];
         if (customer) {
-          const newBalance = Math.max(0, (customer.current_balance ?? 0) - (invoice.total ?? 0));
+          const currentBalance = Number(customer.current_balance) || 0;
+          const newBalance = currentBalance - (Number(invoice.total) || 0);
+          // No Math.max(0) clamping — preserves true accounting balance
           await tx.update(customers)
             .set({
               currentBalance: newBalance,
