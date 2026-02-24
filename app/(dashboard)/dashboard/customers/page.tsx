@@ -28,7 +28,7 @@ export default function CustomersPage() {
     email: "",
     gstin: "",
     address: "",
-    creditLimit: 0,
+    creditLimit: "",
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -53,8 +53,12 @@ export default function CustomersPage() {
     setSaving(true);
 
     const data = {
-      ...formData,
-      creditLimit: Number(formData.creditLimit),
+      name: formData.name,
+      phone: formData.phone || undefined,
+      email: formData.email || undefined,
+      gstin: formData.gstin || undefined,
+      address: formData.address || undefined,
+      creditLimit: formData.creditLimit ? Number(formData.creditLimit) : 0,
     };
 
     let result;
@@ -83,7 +87,7 @@ export default function CustomersPage() {
       email: customer.email || "",
       gstin: customer.gstin || "",
       address: customer.address || "",
-      creditLimit: customer.creditLimit ?? 0,
+      creditLimit: customer.creditLimit?.toString() ?? "",
     });
     setShowModal(true);
   };
@@ -104,7 +108,7 @@ export default function CustomersPage() {
       email: "",
       gstin: "",
       address: "",
-      creditLimit: 0,
+      creditLimit: "",
     });
   };
 
@@ -280,8 +284,9 @@ export default function CustomersPage() {
                 <input
                   type="number"
                   min="0"
+                  step="0.01"
                   value={formData.creditLimit}
-                  onChange={(e) => setFormData({ ...formData, creditLimit: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setFormData({ ...formData, creditLimit: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

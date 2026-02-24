@@ -1,12 +1,82 @@
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
+"use client";
 
-export default async function SettingsPage() {
-  const session = await getServerSession(authOptions);
+import { useState, useEffect } from "react";
+import { getBusinessProfile, updateBusinessProfile, resetAllKhataData } from "@/lib/actions/business";
+import { ConfirmDialog } from "@/lib/components/ui";
 
-  if (!session) {
-    redirect("/login");
+const defaultTerms = `1. Goods once sold cannot be returned or exchanged unless damaged or defective at the time of delivery.
+2. Payment is due within the agreed credit period.
+3. Interest @24% p.a. will be charged on overdue payments.
+4. All disputes are subject to local jurisdiction only.
+5. E. & O.E.`;
+
+export default function SettingsPage() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    gstin: "",
+    address: "",
+    phone: "",
+    state: "",
+    pincode: "",
+    termsAndConditions: "",
+  });
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    setLoading(true);
+    const result = await getBusinessProfile();
+    if (result.success && result.business) {
+      setFormData({
+        name: result.business.name || "",
+        gstin: result.business.gstin || "",
+        address: result.business.address || "",
+        phone: result.business.phone || "",
+        state: result.business.state || "",
+        pincode: result.business.pincode || "",
+        termsAndConditions: result.business.termsAndConditions || defaultTerms,
+      });
+    }
+    setLoading(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setMessage("");
+
+    const result = await updateBusinessProfile({
+      name: formData.name,
+      gstin: formData.gstin || undefined,
+      address: formData.address || undefined,
+      phone: formData.phone || undefined,
+      state: formData.state || undefined,
+      pincode: formData.pincode || undefined,
+      termsAndConditions: formData.termsAndConditions || undefined,
+    });
+
+    if (result.error) {
+      setMessage(result.error);
+    } else {
+      setMessage("Business profile updated successfully!");
+    }
+    setSaving(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-48 bg-slate-200 animate-pulse rounded"></div>
+        <div className="h-64 bg-slate-200 animate-pulse rounded-2xl"></div>
+      </div>
+    );
   }
 
   return (
@@ -16,44 +86,146 @@ export default async function SettingsPage() {
         <p className="text-slate-500">Manage your business profile</p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Business Profile</h2>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Business Name</label>
-            <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900">
-              {session.user.name}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Business Profile</h2>
+          
+          {message && (
+            <div className={`mb-4 p-3 rounded-lg text-sm ${message.includes("success") ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}`}>
+              {message}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Business Name *</label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number *</label>
+              <input
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="+91 9876543210"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Business Address *</label>
+              <textarea
+                required
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                rows={2}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Shop No., Building Name, Street, Area"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">GSTIN</label>
+              <input
+                type="text"
+                value={formData.gstin}
+                onChange={(e) => setFormData({ ...formData, gstin: e.target.value.toUpperCase() })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="27AABCU9603R1ZM"
+                maxLength={15}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">State</label>
+              <input
+                type="text"
+                value={formData.state}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Maharashtra"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Pincode</label>
+              <input
+                type="text"
+                value={formData.pincode}
+                onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="400001"
+                maxLength={6}
+              />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-            <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900">
-              {session.user.email}
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-slate-200">
-            <p className="text-sm text-slate-500">
-              To update your business details, please contact support or edit your profile in the registration form.
-            </p>
+          <div className="mt-6 pt-4 border-t border-slate-200">
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-6 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
           </div>
         </div>
-      </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">About BillForge</h2>
-        <div className="space-y-2 text-sm text-slate-600">
-          <p><strong>Version:</strong> 1.0.0</p>
-          <p><strong>Platform:</strong> Indian Billing Solution</p>
-          <p className="pt-2">
-            BillForge is a comprehensive billing, invoicing, and Khata management platform 
-            designed specifically for Indian businesses. It supports GST calculations, 
-            inventory management, and customer credit tracking.
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Default Terms & Conditions</h2>
+          <p className="text-sm text-slate-500 mb-4">These terms will appear at the bottom of your invoices.</p>
+          
+          <textarea
+            value={formData.termsAndConditions}
+            onChange={(e) => setFormData({ ...formData, termsAndConditions: e.target.value })}
+            rows={6}
+            className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            placeholder="Enter terms and conditions..."
+          />
+        </div>
+
+        <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-red-600 mb-2">Danger Zone</h2>
+          <p className="text-sm text-slate-500 mb-4">
+            This will permanently delete all invoices, transactions, and reset all customer Khata balances to zero. 
+            This action cannot be undone.
           </p>
+          <button
+            type="button"
+            onClick={() => setShowResetConfirm(true)}
+            className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+          >
+            Reset All Khata Data
+          </button>
         </div>
-      </div>
+      </form>
+
+      <ConfirmDialog
+        open={showResetConfirm}
+        title="Reset All Khata Data"
+        message="This will permanently delete ALL invoices and transactions, and reset ALL customer balances to zero. Your business profile will be preserved. This cannot be undone. Are you sure?"
+        confirmLabel={resetting ? "Resetting..." : "Yes, Reset Everything"}
+        onConfirm={async () => {
+          setResetting(true);
+          const result = await resetAllKhataData();
+          if (result.error) {
+            setMessage(result.error);
+          } else {
+            setMessage(result.message || "Data reset successfully!");
+          }
+          setResetting(false);
+          setShowResetConfirm(false);
+        }}
+        onCancel={() => setShowResetConfirm(false)}
+      />
     </div>
   );
 }

@@ -74,18 +74,16 @@ export async function getKhataTransactions(customerId?: string) {
   try {
     const session = await requireBusinessSession();
 
-    let query: any = db.query.khataTransactions.findMany({
+    const transactions = await db.query.khataTransactions.findMany({
+      where: customerId 
+        ? eq(khataTransactions.customerId, customerId)
+        : undefined,
       orderBy: (khataTransactions, { desc }) => [desc(khataTransactions.createdAt)],
     });
 
-    let transactions = await query;
+    const filtered = transactions.filter((t: any) => t.businessId === session.id);
 
-    transactions = transactions.filter((t: any) => 
-      t.businessId === session.id && 
-      (!customerId || t.customerId === customerId)
-    );
-
-    return { success: true, transactions };
+    return { success: true, transactions: filtered };
   } catch (error: any) {
     return { error: error.message || "Failed to fetch transactions" };
   }
@@ -105,14 +103,16 @@ export async function getKhataStatement(customerId: string) {
 
     const transactions = await db.query.khataTransactions.findMany({
       where: eq(khataTransactions.customerId, customerId),
-      orderBy: (khataTransactions, { asc }) => [asc(khataTransactions.createdAt)],
+      orderBy: (khataTransactions, { desc }) => [desc(khataTransactions.createdAt)],
     });
 
-    let runningBalance = 0;
+    let runningBalance = customer.currentBalance ?? 0;
     const statement = transactions.map(t => {
-      runningBalance += t.type === 'credit' ? t.amount : -t.amount;
+      const prevBalance = runningBalance;
+      runningBalance += t.type === 'credit' ? -t.amount : t.amount;
       return {
         ...t,
+        prevBalance,
         runningBalance,
       };
     });

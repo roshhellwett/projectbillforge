@@ -32,10 +32,10 @@ export default function ProductsPage() {
     sku: "",
     hsnCode: "",
     unit: "piece",
-    rate: 0,
-    gstRate: 0,
-    stockQuantity: 0,
-    lowStockThreshold: 0,
+    rate: "",
+    gstRate: "0",
+    stockQuantity: "",
+    lowStockThreshold: "",
   });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -60,11 +60,14 @@ export default function ProductsPage() {
     setSaving(true);
 
     const data = {
-      ...formData,
-      rate: Number(formData.rate),
-      gstRate: Number(formData.gstRate),
-      stockQuantity: Number(formData.stockQuantity),
-      lowStockThreshold: Number(formData.lowStockThreshold),
+      name: formData.name,
+      sku: formData.sku || undefined,
+      hsnCode: formData.hsnCode || undefined,
+      unit: formData.unit,
+      rate: Number(formData.rate) || 0,
+      gstRate: formData.gstRate ? Number(formData.gstRate) : 0,
+      stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : 0,
+      lowStockThreshold: formData.lowStockThreshold ? Number(formData.lowStockThreshold) : 0,
     };
 
     let result;
@@ -92,10 +95,10 @@ export default function ProductsPage() {
       sku: product.sku || "",
       hsnCode: product.hsnCode || "",
       unit: product.unit ?? "piece",
-      rate: product.rate,
-      gstRate: product.gstRate ?? 0,
-      stockQuantity: product.stockQuantity ?? 0,
-      lowStockThreshold: product.lowStockThreshold ?? 0,
+      rate: product.rate?.toString() ?? "",
+      gstRate: product.gstRate?.toString() ?? "0",
+      stockQuantity: product.stockQuantity?.toString() ?? "",
+      lowStockThreshold: product.lowStockThreshold?.toString() ?? "",
     });
     setShowModal(true);
   };
@@ -115,10 +118,10 @@ export default function ProductsPage() {
       sku: "",
       hsnCode: "",
       unit: "piece",
-      rate: 0,
-      gstRate: 0,
-      stockQuantity: 0,
-      lowStockThreshold: 0,
+      rate: "",
+      gstRate: "0",
+      stockQuantity: "",
+      lowStockThreshold: "",
     });
   };
 
@@ -283,7 +286,7 @@ export default function ProductsPage() {
                     min="0"
                     required
                     value={formData.rate}
-                    onChange={(e) => setFormData({ ...formData, rate: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -294,7 +297,7 @@ export default function ProductsPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-1">GST Rate (%)</label>
                   <select
                     value={formData.gstRate}
-                    onChange={(e) => setFormData({ ...formData, gstRate: parseFloat(e.target.value) })}
+                    onChange={(e) => setFormData({ ...formData, gstRate: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {gstRates.map(r => <option key={r} value={r}>{r}%</option>)}
@@ -306,7 +309,7 @@ export default function ProductsPage() {
                     type="number"
                     min="0"
                     value={formData.stockQuantity}
-                    onChange={(e) => setFormData({ ...formData, stockQuantity: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -318,7 +321,7 @@ export default function ProductsPage() {
                   type="number"
                   min="0"
                   value={formData.lowStockThreshold}
-                  onChange={(e) => setFormData({ ...formData, lowStockThreshold: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setFormData({ ...formData, lowStockThreshold: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

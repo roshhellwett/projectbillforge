@@ -51,9 +51,9 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
         w-64 bg-white border-r border-slate-200
         transform transition-transform duration-200 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        h-full
+        h-full flex flex-col
       `}>
-        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+        <div className="p-6 border-b border-slate-200 flex items-center justify-between shrink-0">
           <h1 className="text-xl font-bold text-blue-600">BillForge</h1>
           <button 
             onClick={() => setSidebarOpen(false)}
@@ -63,7 +63,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
           </button>
         </div>
         
-        <nav className="p-4 space-y-1">
+        <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href || 
               (item.href !== '/dashboard' && pathname.startsWith(item.href));
@@ -87,7 +87,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200">
+        <div className="p-4 border-t border-slate-200 shrink-0">
           <div className="flex items-center gap-3 px-4 py-3 mb-2">
             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
               <span className="text-blue-600 font-bold text-sm">

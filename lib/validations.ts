@@ -63,6 +63,7 @@ export const invoiceSchema = z.object({
   items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
   notes: z.string().optional().transform(s => s?.trim() || undefined),
   isInterState: z.boolean().default(false),
+  paymentMode: z.enum(["cash", "upi", "khata"]).default("cash"),
 });
 
 export const khataTransactionSchema = z.object({

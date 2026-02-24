@@ -31,7 +31,7 @@ export default function KhataPage() {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     type: "credit" as "credit" | "debit",
-    amount: 0,
+    amount: "",
     note: "",
   });
   const [error, setError] = useState("");
@@ -83,7 +83,7 @@ export default function KhataPage() {
     const result = await createKhataTransaction({
       customerId: selectedCustomer,
       type: formData.type,
-      amount: Number(formData.amount),
+      amount: Number(formData.amount) || 0,
       note: formData.note || undefined,
     });
 
@@ -91,7 +91,7 @@ export default function KhataPage() {
       setError(result.error);
     } else {
       setShowModal(false);
-      setFormData({ type: "credit", amount: 0, note: "" });
+      setFormData({ type: "credit", amount: "", note: "" });
       loadStatement(selectedCustomer);
       loadCustomers();
     }
@@ -296,7 +296,7 @@ export default function KhataPage() {
                   min="0.01"
                   required
                   value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

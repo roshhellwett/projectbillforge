@@ -30,6 +30,7 @@ export const businesses = pgTable('businesses', {
   state: text('state').default(''),
   pincode: text('pincode'),
   logo: text('logo'),
+  termsAndConditions: text('terms_and_conditions'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -84,6 +85,8 @@ export const invoices = pgTable('invoices', {
   total: numeric2('total').notNull().default(0),
   items: jsonb('items').$type<InvoiceItem[]>(),
   notes: text('notes'),
+  paymentMode: text('payment_mode', { enum: ['cash', 'upi', 'khata'] }).default('cash'),
+  paymentStatus: text('payment_status', { enum: ['paid', 'unpaid', 'partial'] }).default('paid'),
   status: text('status', { enum: ['active', 'cancelled'] }).default('active'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
