@@ -30,6 +30,9 @@ export const businesses = pgTable('businesses', {
   state: text('state').default(''),
   pincode: text('pincode'),
   logo: text('logo'),
+  industryType: text('industry_type', { 
+    enum: ['mobile', 'pharmacy', 'kirana', 'garments', 'electronics', 'custom'] 
+  }).default('custom'),
   termsAndConditions: text('terms_and_conditions'),
   redemptionPeriodDays: integer('redemption_period_days').default(30),
   finePercentage: numeric5('fine_percentage').default(2),
@@ -65,6 +68,7 @@ export const products = pgTable('products', {
   gstRate: numeric5('gst_rate').default(0),
   stockQuantity: numeric2('stock_quantity').default(0),
   lowStockThreshold: numeric2('low_stock_threshold').default(0),
+  metadata: jsonb('metadata').$type<Record<string, any>>(),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),

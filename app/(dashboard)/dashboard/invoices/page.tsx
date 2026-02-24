@@ -482,6 +482,14 @@ export default function InvoicesPage() {
                       <option key={p.id} value={p.id}>{p.name} - ₹{p.rate} ({p.gstRate}% GST)</option>
                     ))}
                   </select>
+                  <button
+                    type="button"
+                    onClick={() => window.location.href = '/dashboard/products'}
+                    className="px-3 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 text-sm"
+                    title="Add new product"
+                  >
+                    + New
+                  </button>
                   <input
                     type="number"
                     min="1"

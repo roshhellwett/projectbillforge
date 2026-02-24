@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "@/lib/actions/products";
+import { getBusinessProfile } from "@/lib/actions/business";
 import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
 import { Plus, Search, Edit2, Trash2, X } from "lucide-react";
 
@@ -15,11 +16,23 @@ interface Product {
   gstRate: number | null;
   stockQuantity: number | null;
   lowStockThreshold: number | null;
+  metadata: Record<string, any> | null;
   isActive: boolean | null;
 }
 
+type IndustryType = "mobile" | "pharmacy" | "kirana" | "garments" | "electronics" | "custom";
+
 const gstRates = [0, 5, 12, 18, 28];
-const units = ["piece", "kg", "meter", "liter", "box", "dozen"];
+
+const getDefaultUnits = (industry: IndustryType) => {
+  switch (industry) {
+    case "kirana": return ["kg", "grams", "packets", "liters", "piece"];
+    case "garments": return ["piece", "meter", "dozen", "set"];
+    case "electronics": return ["piece", "box", "set"];
+    case "pharmacy": return ["piece", "strip", "box", "bottle"];
+    default: return ["piece", "kg", "meter", "liter", "box", "dozen"];
+  }
+};
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -27,6 +40,8 @@ export default function ProductsPage() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [industryType, setIndustryType] = useState<IndustryType>("custom");
+  const [metadata, setMetadata] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     name: "",
     sku: "",
@@ -42,14 +57,20 @@ export default function ProductsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadProducts();
+    loadData();
   }, []);
 
-  const loadProducts = async () => {
+  const loadData = async () => {
     setLoading(true);
-    const result = await getProducts();
-    if (result.success) {
-      setProducts(result.products);
+    const [productsResult, businessResult] = await Promise.all([
+      getProducts(),
+      getBusinessProfile()
+    ]);
+    if (productsResult.success) {
+      setProducts(productsResult.products);
+    }
+    if (businessResult.success && businessResult.business) {
+      setIndustryType((businessResult.business.industryType as IndustryType) || "custom");
     }
     setLoading(false);
   };
@@ -57,6 +78,15 @@ export default function ProductsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    
+    const stockQty = formData.stockQuantity ? Number(formData.stockQuantity) : 0;
+    const threshold = formData.lowStockThreshold ? Number(formData.lowStockThreshold) : 0;
+    
+    if (threshold >= stockQty && stockQty > 0) {
+      setError("Low stock threshold cannot be greater than or equal to the actual stock.");
+      return;
+    }
+    
     setSaving(true);
 
     const data = {
@@ -66,8 +96,9 @@ export default function ProductsPage() {
       unit: formData.unit,
       rate: Number(formData.rate) || 0,
       gstRate: formData.gstRate ? Number(formData.gstRate) : 0,
-      stockQuantity: formData.stockQuantity ? Number(formData.stockQuantity) : 0,
-      lowStockThreshold: formData.lowStockThreshold ? Number(formData.lowStockThreshold) : 0,
+      stockQuantity: stockQty,
+      lowStockThreshold: threshold,
+      metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
     };
 
     let result;
@@ -83,7 +114,7 @@ export default function ProductsPage() {
       setShowModal(false);
       setEditingProduct(null);
       resetForm();
-      loadProducts();
+      loadData();
     }
     setSaving(false);
   };
@@ -100,6 +131,7 @@ export default function ProductsPage() {
       stockQuantity: product.stockQuantity?.toString() ?? "",
       lowStockThreshold: product.lowStockThreshold?.toString() ?? "",
     });
+    setMetadata(product.metadata || {});
     setShowModal(true);
   };
 
@@ -107,7 +139,7 @@ export default function ProductsPage() {
     if (!deleteId) return;
     const result = await deleteProduct(deleteId);
     if (result.success) {
-      loadProducts();
+      loadData();
     }
     setDeleteId(null);
   };
@@ -117,12 +149,13 @@ export default function ProductsPage() {
       name: "",
       sku: "",
       hsnCode: "",
-      unit: "piece",
+      unit: industryType === "kirana" ? "kg" : "piece",
       rate: "",
       gstRate: "0",
       stockQuantity: "",
       lowStockThreshold: "",
     });
+    setMetadata({});
   };
 
   const openModal = () => {
@@ -275,7 +308,7 @@ export default function ProductsPage() {
                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {units.map(u => <option key={u} value={u}>{u}</option>)}
+                    {getDefaultUnits(industryType).map((u: string) => <option key={u} value={u}>{u}</option>)}
                   </select>
                 </div>
                 <div>
@@ -325,6 +358,69 @@ export default function ProductsPage() {
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+
+              {industryType === "mobile" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">IMEI Number</label>
+                    <input
+                      type="text"
+                      value={metadata.imei || ""}
+                      onChange={(e) => setMetadata({ ...metadata, imei: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="15 digit IMEI"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Color/Variant</label>
+                    <input
+                      type="text"
+                      value={metadata.color || ""}
+                      onChange={(e) => setMetadata({ ...metadata, color: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="e.g., Black, 128GB"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {industryType === "pharmacy" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Batch Number *</label>
+                    <input
+                      type="text"
+                      required
+                      value={metadata.batchNumber || ""}
+                      onChange={(e) => setMetadata({ ...metadata, batchNumber: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Expiry Date *</label>
+                    <input
+                      type="date"
+                      required
+                      value={metadata.expiryDate || ""}
+                      onChange={(e) => setMetadata({ ...metadata, expiryDate: e.target.value })}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {industryType === "custom" && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Custom Label</label>
+                  <input
+                    type="text"
+                    value={metadata.customLabel || ""}
+                    onChange={(e) => setMetadata({ ...metadata, customLabel: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., Brand, Size, Color"
+                  />
+                </div>
+              )}
 
               <div className="flex gap-3 pt-4">
                 <button

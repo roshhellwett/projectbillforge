@@ -43,6 +43,13 @@
       "when": 1771935495585,
       "tag": "0005_freezing_black_bolt",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1771938148804,
+      "tag": "0006_useful_roughhouse",
+      "breakpoints": true
     }
   ]
 }

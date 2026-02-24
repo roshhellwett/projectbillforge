@@ -27,11 +27,21 @@ export default function SettingsPage() {
     redemptionPeriodDays: 30,
     finePercentage: 2,
     fineFrequencyDays: 7,
+    industryType: "custom" as "mobile" | "pharmacy" | "kirana" | "garments" | "electronics" | "custom",
   });
 
   useEffect(() => {
     loadProfile();
   }, []);
+
+  const industryOptions = [
+    { value: "mobile", label: "Mobile & Accessories" },
+    { value: "pharmacy", label: "Pharmacy & Medical" },
+    { value: "kirana", label: "Kirana & Grocery" },
+    { value: "garments", label: "Garments & Apparel" },
+    { value: "electronics", label: "Electronics" },
+    { value: "custom", label: "Custom/Other" },
+  ];
 
   const loadProfile = async () => {
     setLoading(true);
@@ -48,6 +58,7 @@ export default function SettingsPage() {
         redemptionPeriodDays: result.business.redemptionPeriodDays || 30,
         finePercentage: Number(result.business.finePercentage) || 2,
         fineFrequencyDays: result.business.fineFrequencyDays || 7,
+        industryType: (result.business.industryType as any) || "custom",
       });
     }
     setLoading(false);
@@ -69,6 +80,7 @@ export default function SettingsPage() {
       redemptionPeriodDays: formData.redemptionPeriodDays,
       finePercentage: formData.finePercentage,
       fineFrequencyDays: formData.fineFrequencyDays,
+      industryType: formData.industryType,
     });
 
     if (result.error) {
@@ -127,6 +139,19 @@ export default function SettingsPage() {
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="+91 9876543210"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Industry Type</label>
+              <select
+                value={formData.industryType}
+                onChange={(e) => setFormData({ ...formData, industryType: e.target.value as any })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {industryOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
             </div>
 
             <div className="md:col-span-2">

@@ -34,6 +34,7 @@ export async function updateBusinessProfile(data: {
   redemptionPeriodDays?: number;
   finePercentage?: number;
   fineFrequencyDays?: number;
+  industryType?: "mobile" | "pharmacy" | "kirana" | "garments" | "electronics" | "custom";
 }) {
   try {
     const session = await requireBusinessSession();
@@ -49,6 +50,7 @@ export async function updateBusinessProfile(data: {
     if (data.redemptionPeriodDays !== undefined) updateData.redemptionPeriodDays = data.redemptionPeriodDays;
     if (data.finePercentage !== undefined) updateData.finePercentage = data.finePercentage;
     if (data.fineFrequencyDays !== undefined) updateData.fineFrequencyDays = data.fineFrequencyDays;
+    if (data.industryType !== undefined) updateData.industryType = data.industryType;
 
     await db.update(businesses)
       .set(updateData)
