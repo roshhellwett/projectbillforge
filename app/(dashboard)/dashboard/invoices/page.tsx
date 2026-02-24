@@ -86,7 +86,7 @@ export default function InvoicesPage() {
 
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState("");
-  const [itemQuantity, setItemQuantity] = useState(1);
+  const [itemQuantity, setItemQuantity] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [cancelId, setCancelId] = useState<string | null>(null);
@@ -130,7 +130,8 @@ export default function InvoicesPage() {
     const product = products.find(p => p.id === selectedProduct);
     if (!product) return;
 
-    const amount = product.rate * itemQuantity;
+    const qty = parseFloat(itemQuantity) || 1;
+    const amount = product.rate * qty;
     const gstRate = product.gstRate ?? 0;
     const gstAmount = amount * (gstRate / 100);
 
@@ -145,7 +146,7 @@ export default function InvoicesPage() {
     const newItem: InvoiceItem = {
       productId: product.id,
       productName: product.name,
-      quantity: itemQuantity,
+      quantity: qty,
       rate: product.rate,
       gstRate: gstRate,
       amount,
@@ -156,7 +157,7 @@ export default function InvoicesPage() {
 
     setItems([...items, newItem]);
     setSelectedProduct("");
-    setItemQuantity(1);
+    setItemQuantity("");
   };
 
   const removeItem = (index: number) => {
@@ -490,14 +491,22 @@ export default function InvoicesPage() {
                   >
                     + New
                   </button>
-                  <input
-                    type="number"
-                    min="1"
-                    value={itemQuantity}
-                    onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
-                    className="w-20 px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Qty"
-                  />
+                  <div className="relative flex items-center">
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      value={itemQuantity}
+                      onChange={(e) => setItemQuantity(e.target.value)}
+                      className="w-24 px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0"
+                    />
+                    {selectedProduct && products.find(p => p.id === selectedProduct)?.unit && (
+                      <span className="absolute right-3 text-xs text-slate-400 pointer-events-none">
+                        {products.find(p => p.id === selectedProduct)?.unit}
+                      </span>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={addItem}

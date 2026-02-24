@@ -285,7 +285,7 @@ export default function KhataPage() {
                         <td className="px-4 py-3">
                           <span className={`flex items-center gap-1 text-sm font-medium ${t.type === 'credit' ? 'text-orange-600' : 'text-green-600'}`}>
                             {t.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
-                            {t.type === 'credit' ? 'Credit' : 'Payment'}
+                            {t.type === 'credit' ? 'Sale (Added to Khata)' : 'Payment Received'}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-600">{t.note || "-"}</td>
@@ -344,14 +344,14 @@ export default function KhataPage() {
                     onClick={() => setFormData({ ...formData, type: "credit" })}
                     className={`flex-1 py-2 rounded-xl border-2 ${formData.type === 'credit' ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-slate-200'}`}
                   >
-                    Credit (Give)
+                    Sale (Add to Khata)
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: "debit" })}
                     className={`flex-1 py-2 rounded-xl border-2 ${formData.type === 'debit' ? 'border-green-500 bg-green-50 text-green-700' : 'border-slate-200'}`}
                   >
-                    Payment (Take)
+                    Payment Received
                   </button>
                 </div>
               </div>

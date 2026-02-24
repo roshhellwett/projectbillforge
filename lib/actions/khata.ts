@@ -170,27 +170,34 @@ export async function getKhataStatement(customerId: string) {
       }
     }
 
-    let runningBalance = 0;
-    const statementWithBalance = transactions.map(t => {
-      const prevBalance = runningBalance;
+    let runningBalance = customer.currentBalance ?? 0;
+    
+    const sortedTransactions = [...transactions].sort((a, b) => 
+      new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
+    );
+    
+    const transactionBalances: Record<string, number> = {};
+    
+    for (const t of sortedTransactions) {
       if (t.type === 'credit') {
         runningBalance += t.amount;
       } else {
         runningBalance -= t.amount;
       }
+      transactionBalances[t.id] = runningBalance;
+    }
+
+    const statement = transactions.map(t => {
       let accruedFine = 0;
       if (t.referenceInvoiceId && invoiceFines[t.referenceInvoiceId]) {
         accruedFine = invoiceFines[t.referenceInvoiceId];
       }
       return {
         ...t,
-        prevBalance,
-        runningBalance,
+        runningBalance: transactionBalances[t.id] ?? customer.currentBalance ?? 0,
         accruedFine,
       };
-    });
-
-    const statement = statementWithBalance.reverse();
+    }).reverse();
 
     const totalBalanceWithFines = (customer.currentBalance ?? 0) + totalAccruedFines;
 
