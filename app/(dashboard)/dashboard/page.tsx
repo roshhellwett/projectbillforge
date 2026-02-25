@@ -1,7 +1,7 @@
 import { getSalesSummary, getRecentInvoices, getWeeklySalesData } from "@/lib/actions/invoices";
 import { getLowStockProducts, getProducts } from "@/lib/actions/products";
 import { getCustomers } from "@/lib/actions/customers";
-import { DollarSign, FileText, Users, AlertTriangle, TrendingUp, Package, BarChart3, Clock, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { DollarSign, FileText, Users, AlertTriangle, TrendingUp, Package, BarChart3, Clock, ArrowUpRight, ArrowDownRight, ShoppingBag } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn, InteractiveItem } from "@/lib/components/MotionWrapper";
 
 export default async function DashboardPage() {
@@ -42,58 +42,52 @@ export default async function DashboardPage() {
       label: "Today's Sales",
       value: `₹${summary.todaySales.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
       icon: TrendingUp,
-      color: "var(--color-success)",
-      gradient: "from-emerald-500/20 to-teal-500/10",
-      iconBg: "bg-gradient-to-br from-emerald-500/20 to-teal-500/10",
+      color: "#10b981",
+      bg: "bg-emerald-500/10 dark:bg-emerald-500/15",
     },
     {
       label: "Total Sales",
       value: `₹${summary.totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
       icon: DollarSign,
-      color: "var(--color-primary)",
-      gradient: "from-indigo-500/20 to-violet-500/10",
-      iconBg: "bg-gradient-to-br from-indigo-500/20 to-violet-500/10",
+      color: "#6366f1",
+      bg: "bg-indigo-500/10 dark:bg-indigo-500/15",
     },
     {
       label: "Total Invoices",
       value: summary.totalInvoices.toString(),
       icon: FileText,
-      color: "var(--color-accent-purple)",
-      gradient: "from-purple-500/20 to-pink-500/10",
-      iconBg: "bg-gradient-to-br from-purple-500/20 to-pink-500/10",
+      color: "#a855f7",
+      bg: "bg-purple-500/10 dark:bg-purple-500/15",
     },
     {
       label: "Receivables",
       value: `₹${summary.totalReceivable.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
       icon: Users,
-      color: "var(--color-warning)",
-      gradient: "from-amber-500/20 to-orange-500/10",
-      iconBg: "bg-gradient-to-br from-amber-500/20 to-orange-500/10",
+      color: "#f59e0b",
+      bg: "bg-amber-500/10 dark:bg-amber-500/15",
     },
   ];
 
   return (
-    <StaggerContainer className="space-y-8">
+    <StaggerContainer className="space-y-6">
       <FadeIn>
         <h1 className="text-3xl font-bold tracking-tight gradient-text">Dashboard</h1>
         <p className="text-[var(--foreground)]/50 mt-1">Welcome back! Here&apos;s your business overview.</p>
       </FadeIn>
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card) => (
           <StaggerItem key={card.label}>
             <InteractiveItem>
-              <div className="glass-card p-6 group cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`p-3.5 rounded-2xl ${card.iconBg} group-hover:scale-110 transition-transform duration-300`}
-                  >
-                    <card.icon style={{ color: card.color }} size={24} />
+              <div className="glass-card p-5 group cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <div className={`p-3 rounded-2xl ${card.bg} shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                    <card.icon style={{ color: card.color }} size={22} />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-[var(--foreground)]/50 mb-0.5">{card.label}</p>
-                    <p className="text-2xl font-bold text-[var(--foreground)] tracking-tight">{card.value}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-[var(--foreground)]/50 mb-0.5 truncate">{card.label}</p>
+                    <p className="text-xl font-bold text-[var(--foreground)] tracking-tight truncate">{card.value}</p>
                   </div>
                 </div>
               </div>
@@ -103,146 +97,139 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Sales Trend + Business Snapshot ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sales Trend Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        {/* Sales Trend Chart — 2/3 width */}
         <StaggerItem className="lg:col-span-2">
-          <div className="glass-card p-6 md:p-8">
+          <div className="glass-card p-5 md:p-7">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-gradient-to-br from-indigo-500/15 to-violet-500/10 rounded-xl">
-                  <BarChart3 className="text-[var(--color-primary)]" size={20} />
+                <div className="p-2.5 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-xl">
+                  <BarChart3 style={{ color: '#6366f1' }} size={20} />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold tracking-tight text-[var(--foreground)]">Sales Trend</h2>
-                  <p className="text-xs text-[var(--foreground)]/40 mt-0.5">Last 7 days</p>
+                  <h2 className="text-base font-bold tracking-tight text-[var(--foreground)]">Sales Trend</h2>
+                  <p className="text-xs text-[var(--foreground)]/40">Last 7 days</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xs font-medium text-[var(--foreground)]/40">Weekly Total</p>
-                <p className="text-lg font-bold text-[var(--foreground)] tracking-tight">₹{weeklyTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                <p className="text-[10px] font-medium text-[var(--foreground)]/40 uppercase tracking-wider">Weekly Total</p>
+                <p className="text-lg font-bold text-[var(--foreground)]">₹{weeklyTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
               </div>
             </div>
 
-            {/* CSS Bar Chart */}
-            <div className="flex items-end gap-2 sm:gap-4 h-48 mt-4">
-              {weeklyData.map((day, i) => {
-                const heightPercent = weeklyMax > 0 ? (day.total / weeklyMax) * 100 : 0;
-                const isToday = i === weeklyData.length - 1;
-                return (
-                  <div key={day.date} className="flex-1 flex flex-col items-center gap-2">
-                    <span className="text-[10px] font-semibold text-[var(--foreground)]/50 whitespace-nowrap">
-                      {day.total > 0 ? `₹${(day.total / 1000).toFixed(day.total >= 1000 ? 1 : 0)}${day.total >= 1000 ? 'k' : ''}` : ''}
-                    </span>
-                    <div
-                      className={`w-full rounded-xl transition-all duration-500 ${isToday
-                          ? 'bg-gradient-to-t from-[var(--color-primary)] to-[var(--color-primary-light)] shadow-[0_4px_20px_rgba(99,102,241,0.3)]'
-                          : 'bg-gradient-to-t from-[var(--color-primary)]/30 to-[var(--color-primary)]/10'
-                        }`}
-                      style={{
-                        height: `${Math.max(heightPercent, 4)}%`,
-                        minHeight: '8px',
-                      }}
-                    />
-                    <span className={`text-xs font-semibold ${isToday ? 'text-[var(--color-primary)]' : 'text-[var(--foreground)]/40'}`}>
-                      {day.label}
-                    </span>
-                  </div>
-                );
-              })}
+            {/* Bar Chart — fixed height with absolute-positioned bars */}
+            <div className="relative" style={{ height: '200px' }}>
+              {/* Grid lines */}
+              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="border-b border-[var(--border)]/30" />
+                ))}
+              </div>
+
+              {/* Bars */}
+              <div className="absolute inset-0 flex items-end gap-2 sm:gap-3 px-1">
+                {weeklyData.map((day, i) => {
+                  const pct = weeklyMax > 0 ? (day.total / weeklyMax) * 100 : 0;
+                  const isToday = i === weeklyData.length - 1;
+                  return (
+                    <div key={day.date} className="flex-1 flex flex-col items-center justify-end h-full">
+                      {/* Value label */}
+                      {day.total > 0 && (
+                        <span className="text-[9px] font-bold text-[var(--foreground)]/50 mb-1.5 whitespace-nowrap">
+                          ₹{day.total >= 1000 ? `${(day.total / 1000).toFixed(1)}k` : day.total.toFixed(0)}
+                        </span>
+                      )}
+                      {/* Bar */}
+                      <div
+                        className={`w-full max-w-[48px] rounded-t-lg transition-all duration-700 ease-out ${isToday
+                            ? 'bg-gradient-to-t from-indigo-600 via-indigo-500 to-violet-400 shadow-[0_0_20px_rgba(99,102,241,0.4)]'
+                            : 'bg-gradient-to-t from-indigo-400/40 to-indigo-300/20 dark:from-indigo-400/30 dark:to-indigo-300/10'
+                          }`}
+                        style={{
+                          height: `${Math.max(pct, 3)}%`,
+                          minHeight: '6px',
+                        }}
+                      />
+                      {/* Day label */}
+                      <span className={`text-[11px] font-semibold mt-2 ${isToday ? 'text-indigo-500' : 'text-[var(--foreground)]/40'}`}>
+                        {day.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </StaggerItem>
 
-        {/* Business Snapshot */}
+        {/* Business Snapshot — 1/3 width */}
         <StaggerItem>
-          <div className="glass-card p-6 md:p-8 h-full flex flex-col">
-            <h2 className="text-lg font-bold tracking-tight text-[var(--foreground)] mb-5">Business Snapshot</h2>
-            <div className="space-y-4 flex-1">
-              <div className="flex items-center justify-between p-4 glass-light rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-indigo-500/15 to-indigo-500/5 rounded-lg">
-                    <Users size={16} style={{ color: 'var(--color-primary)' }} />
+          <div className="glass-card p-5 md:p-7 h-full flex flex-col">
+            <h2 className="text-base font-bold tracking-tight text-[var(--foreground)] mb-4">Business Snapshot</h2>
+            <div className="space-y-3 flex-1">
+              {[
+                { icon: Users, label: "Customers", value: summary.totalCustomers, color: "#6366f1", bg: "bg-indigo-500/10 dark:bg-indigo-500/15" },
+                { icon: Package, label: "Products", value: totalProducts, color: "#a855f7", bg: "bg-purple-500/10 dark:bg-purple-500/15" },
+                { icon: FileText, label: "Invoices", value: summary.totalInvoices, color: "#f59e0b", bg: "bg-amber-500/10 dark:bg-amber-500/15" },
+                { icon: AlertTriangle, label: "Low Stock", value: lowStock.length, color: lowStock.length > 0 ? "#ef4444" : "#10b981", bg: lowStock.length > 0 ? "bg-red-500/10 dark:bg-red-500/15" : "bg-emerald-500/10 dark:bg-emerald-500/15" },
+              ].map((item) => (
+                <div key={item.label} className="flex items-center justify-between p-3.5 glass-light rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 ${item.bg} rounded-lg`}>
+                      <item.icon size={15} style={{ color: item.color }} />
+                    </div>
+                    <span className="text-sm font-medium text-[var(--foreground)]/70">{item.label}</span>
                   </div>
-                  <span className="text-sm font-medium text-[var(--foreground)]/70">Customers</span>
+                  <span className="text-base font-bold text-[var(--foreground)]">{item.value}</span>
                 </div>
-                <span className="text-lg font-bold text-[var(--foreground)]">{summary.totalCustomers}</span>
-              </div>
-              <div className="flex items-center justify-between p-4 glass-light rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-purple-500/15 to-purple-500/5 rounded-lg">
-                    <Package size={16} style={{ color: 'var(--color-accent-purple)' }} />
-                  </div>
-                  <span className="text-sm font-medium text-[var(--foreground)]/70">Products</span>
-                </div>
-                <span className="text-lg font-bold text-[var(--foreground)]">{totalProducts}</span>
-              </div>
-              <div className="flex items-center justify-between p-4 glass-light rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-amber-500/15 to-amber-500/5 rounded-lg">
-                    <FileText size={16} style={{ color: 'var(--color-warning)' }} />
-                  </div>
-                  <span className="text-sm font-medium text-[var(--foreground)]/70">Invoices</span>
-                </div>
-                <span className="text-lg font-bold text-[var(--foreground)]">{summary.totalInvoices}</span>
-              </div>
-              <div className="flex items-center justify-between p-4 glass-light rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-red-500/15 to-red-500/5 rounded-lg">
-                    <AlertTriangle size={16} style={{ color: 'var(--color-danger)' }} />
-                  </div>
-                  <span className="text-sm font-medium text-[var(--foreground)]/70">Low Stock</span>
-                </div>
-                <span className={`text-lg font-bold ${lowStock.length > 0 ? 'text-[var(--color-danger)]' : 'text-[var(--color-success)]'}`}>{lowStock.length}</span>
-              </div>
+              ))}
             </div>
           </div>
         </StaggerItem>
       </div>
 
-      {/* ── Recent Invoices + Receivables ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* ── Recent Invoices + Top Receivables ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Recent Invoices */}
         <StaggerItem>
-          <div className="glass-card p-6 md:p-8">
+          <div className="glass-card p-5 md:p-7">
             <div className="flex items-center gap-3 mb-5">
-              <div className="p-2 bg-gradient-to-br from-blue-500/15 to-blue-500/5 rounded-xl">
-                <Clock className="text-[var(--color-primary)]" size={18} />
+              <div className="p-2 bg-blue-500/10 dark:bg-blue-500/15 rounded-xl">
+                <Clock style={{ color: '#6366f1' }} size={17} />
               </div>
-              <h2 className="text-lg font-bold tracking-tight text-[var(--foreground)]">Recent Invoices</h2>
+              <h2 className="text-base font-bold tracking-tight text-[var(--foreground)]">Recent Invoices</h2>
             </div>
             {recentInvoices.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-[var(--foreground)]/40 font-medium">No invoices yet</p>
-                <p className="text-sm text-[var(--foreground)]/30 mt-1">Create your first invoice to see it here</p>
+              <div className="text-center py-12 glass-light rounded-xl">
+                <ShoppingBag className="mx-auto mb-3 text-[var(--foreground)]/20" size={36} />
+                <p className="text-[var(--foreground)]/40 font-medium text-sm">No invoices yet</p>
+                <p className="text-xs text-[var(--foreground)]/25 mt-1">Create your first invoice to see it here</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {recentInvoices.map((inv: any) => (
                   <InteractiveItem key={inv.id}>
-                    <div className="flex items-center justify-between p-4 glass-light rounded-xl hover:bg-[var(--foreground)]/5 transition-colors cursor-pointer">
+                    <div className="flex items-center justify-between p-3.5 glass-light rounded-xl hover:bg-[var(--foreground)]/5 transition-colors cursor-pointer">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`p-2 rounded-lg ${inv.paymentStatus === 'paid'
-                            ? 'bg-[var(--color-success)]/10'
-                            : 'bg-[var(--color-warning)]/10'
+                        <div className={`p-2 rounded-lg shrink-0 ${inv.paymentStatus === 'paid'
+                            ? 'bg-emerald-500/10 dark:bg-emerald-500/15'
+                            : 'bg-amber-500/10 dark:bg-amber-500/15'
                           }`}>
                           {inv.paymentStatus === 'paid'
-                            ? <ArrowDownRight size={16} className="text-[var(--color-success)]" />
-                            : <ArrowUpRight size={16} className="text-[var(--color-warning)]" />
+                            ? <ArrowDownRight size={15} style={{ color: '#10b981' }} />
+                            : <ArrowUpRight size={15} style={{ color: '#f59e0b' }} />
                           }
                         </div>
                         <div className="min-w-0">
                           <p className="font-semibold text-[var(--foreground)] text-sm truncate">{inv.customerName}</p>
-                          <p className="text-xs text-[var(--foreground)]/40">{inv.invoiceNumber}</p>
+                          <p className="text-xs text-[var(--foreground)]/35">{inv.invoiceNumber}</p>
                         </div>
                       </div>
                       <div className="text-right shrink-0 ml-3">
-                        <p className="font-bold text-[var(--foreground)]">₹{Number(inv.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
-                        <span className={`text-[10px] font-semibold uppercase tracking-wider ${inv.paymentStatus === 'paid'
-                            ? 'text-[var(--color-success)]'
-                            : 'text-[var(--color-warning)]'
-                          }`}>
-                          {inv.paymentStatus}
-                        </span>
+                        <p className="font-bold text-sm text-[var(--foreground)]">₹{Number(inv.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                        <span className={`text-[10px] font-semibold uppercase tracking-wider ${inv.paymentStatus === 'paid' ? 'text-emerald-500' : 'text-amber-500'
+                          }`}>{inv.paymentStatus}</span>
                       </div>
                     </div>
                   </InteractiveItem>
@@ -254,20 +241,21 @@ export default async function DashboardPage() {
 
         {/* Top Receivables */}
         <StaggerItem>
-          <div className="glass-card p-6 md:p-8">
-            <h2 className="text-lg font-bold tracking-tight text-[var(--foreground)] mb-5">Top Receivables</h2>
+          <div className="glass-card p-5 md:p-7">
+            <h2 className="text-base font-bold tracking-tight text-[var(--foreground)] mb-5">Top Receivables</h2>
             {topReceivables.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-[var(--foreground)]/40 font-medium">No outstanding balances</p>
+              <div className="text-center py-12 glass-light rounded-xl">
+                <Users className="mx-auto mb-3 text-[var(--foreground)]/20" size={36} />
+                <p className="text-[var(--foreground)]/40 font-medium text-sm">No outstanding balances</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {topReceivables.map((customer) => (
                   <InteractiveItem key={customer.id}>
-                    <div className="flex items-center justify-between p-4 glass-light rounded-xl hover:bg-[var(--foreground)]/5 transition-colors cursor-pointer">
+                    <div className="flex items-center justify-between p-3.5 glass-light rounded-xl hover:bg-[var(--foreground)]/5 transition-colors cursor-pointer">
                       <div>
-                        <p className="font-semibold text-[var(--foreground)]">{customer.name}</p>
-                        <p className="text-sm text-[var(--foreground)]/40">{customer.phone || "No phone"}</p>
+                        <p className="font-semibold text-[var(--foreground)] text-sm">{customer.name}</p>
+                        <p className="text-xs text-[var(--foreground)]/35">{customer.phone || "No phone"}</p>
                       </div>
                       <div className="badge badge-warning">
                         ₹{(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
@@ -283,25 +271,25 @@ export default async function DashboardPage() {
 
       {/* ── Low Stock Alerts ── */}
       <StaggerItem>
-        <div className="glass-card p-6 md:p-8">
-          <h2 className="text-lg font-bold tracking-tight text-[var(--foreground)] mb-5 flex items-center gap-2.5">
-            <div className="p-2 bg-[var(--color-danger)]/10 rounded-xl">
-              <AlertTriangle className="text-[var(--color-danger)]" size={18} />
+        <div className="glass-card p-5 md:p-7">
+          <h2 className="text-base font-bold tracking-tight text-[var(--foreground)] mb-4 flex items-center gap-2.5">
+            <div className="p-2 bg-red-500/10 dark:bg-red-500/15 rounded-xl">
+              <AlertTriangle style={{ color: '#ef4444' }} size={17} />
             </div>
             Low Stock Alerts
           </h2>
           {lowStock.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-[var(--color-success)] font-medium">✓ All products are well stocked</p>
+            <div className="text-center py-8 glass-light rounded-xl">
+              <p className="text-emerald-500 font-medium text-sm">✓ All products are well stocked</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {lowStock.map((product) => (
                 <InteractiveItem key={product.id}>
-                  <div className="flex items-center justify-between p-4 glass-light rounded-xl border border-[var(--color-danger)]/10 hover:bg-[var(--color-danger)]/5 transition-colors cursor-pointer">
+                  <div className="flex items-center justify-between p-3.5 glass-light rounded-xl border border-red-500/10 hover:bg-red-500/5 transition-colors cursor-pointer">
                     <div>
-                      <p className="font-semibold text-[var(--foreground)]">{product.name}</p>
-                      <p className="text-sm text-[var(--foreground)]/40">Threshold: {product.lowStockThreshold}</p>
+                      <p className="font-semibold text-[var(--foreground)] text-sm">{product.name}</p>
+                      <p className="text-xs text-[var(--foreground)]/35">Threshold: {product.lowStockThreshold}</p>
                     </div>
                     <div className="badge badge-danger">
                       {product.stockQuantity} left
