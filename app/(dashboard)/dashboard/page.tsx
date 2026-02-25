@@ -80,7 +80,7 @@ export default async function DashboardPage() {
         {statCards.map((card) => (
           <StaggerItem key={card.label}>
             <InteractiveItem>
-              <div className="glass-card p-5 group cursor-pointer">
+              <div className="glass-card p-5 group cursor-pointer min-h-[100px] flex items-center">
                 <div className="flex items-center gap-3">
                   <div className={`p-3 rounded-2xl ${card.bg} shrink-0 group-hover:scale-110 transition-transform duration-300`}>
                     <card.icon style={{ color: card.color }} size={22} />
@@ -97,11 +97,11 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Sales Trend + Business Snapshot ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
 
         {/* Sales Trend Chart — 2/3 width */}
         <StaggerItem className="lg:col-span-2">
-          <div className="glass-card p-5 md:p-7">
+          <div className="glass-card p-5 md:p-7 h-full flex flex-col">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-xl">
@@ -119,7 +119,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* Bar Chart — fixed height with absolute-positioned bars */}
-            <div className="relative" style={{ height: '200px' }}>
+            <div className="relative flex-1" style={{ minHeight: '200px' }}>
               {/* Grid lines */}
               <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                 {[...Array(5)].map((_, i) => (
@@ -190,10 +190,10 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Recent Invoices + Top Receivables ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         {/* Recent Invoices */}
         <StaggerItem>
-          <div className="glass-card p-5 md:p-7">
+          <div className="glass-card p-5 md:p-7 h-full flex flex-col">
             <div className="flex items-center gap-3 mb-5">
               <div className="p-2 bg-blue-500/10 dark:bg-blue-500/15 rounded-xl">
                 <Clock style={{ color: '#6366f1' }} size={17} />
@@ -241,7 +241,7 @@ export default async function DashboardPage() {
 
         {/* Top Receivables */}
         <StaggerItem>
-          <div className="glass-card p-5 md:p-7">
+          <div className="glass-card p-5 md:p-7 h-full flex flex-col">
             <h2 className="text-base font-bold tracking-tight text-[var(--foreground)] mb-5">Top Receivables</h2>
             {topReceivables.length === 0 ? (
               <div className="text-center py-12 glass-light rounded-xl">

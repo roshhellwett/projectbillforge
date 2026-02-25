@@ -17,13 +17,8 @@ export default async function DashboardLayout({
 
   return (
     <div className="h-screen bg-[var(--background)] text-[var(--foreground)] flex overflow-hidden relative">
-      {/* Animated gradient background */}
-      <div className="dashboard-animated-bg">
-        <div className="orb orb-1" />
-        <div className="orb orb-2" />
-        <div className="orb orb-3" />
-        <div className="orb orb-4" />
-      </div>
+      {/* Purple wavy background */}
+      <div className="dashboard-purple-bg" />
 
       <DashboardSidebar session={session} />
       <main className="flex-1 overflow-y-auto relative z-10">
