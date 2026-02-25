@@ -76,18 +76,18 @@ export default async function DashboardPage() {
       </FadeIn>
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 xl:gap-6">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 xl:gap-6">
         {statCards.map((card) => (
           <StaggerItem key={card.label}>
             <InteractiveItem>
               <div className="glass-card p-3 sm:p-4 md:p-5 group cursor-pointer min-h-[70px] sm:min-h-[90px] md:min-h-[100px] flex items-center">
                 <div className="flex items-center gap-2 sm:gap-3 w-full">
-                  <div className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl ${card.bg} shrink-0 group-hover:scale-110 transition-transform duration-300`}>
-                    <card.icon style={{ color: card.color }} size={20} />
+                  <div className={`p-2 sm:p-2.5 rounded-lg sm:rounded-xl ${card.bg} shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                    <card.icon style={{ color: card.color }} size={16} className="sm:size-20 md:size-22" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[10px] sm:text-xs font-medium text-[var(--foreground)]/50 mb-0.5 truncate">{card.label}</p>
-                    <p className="text-base sm:text-lg md:text-xl font-bold text-[var(--foreground)] tracking-tight truncate">{card.value}</p>
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <p className="text-[9px] sm:text-xs font-medium text-[var(--foreground)]/50 mb-0.5 truncate">{card.label}</p>
+                    <p className="text-xs sm:text-base md:text-lg lg:text-xl font-bold text-[var(--foreground)] tracking-tight truncate">{card.value}</p>
                   </div>
                 </div>
               </div>
@@ -146,7 +146,7 @@ export default async function DashboardPage() {
                           ? 'bg-gradient-to-t from-indigo-600 via-indigo-500 to-violet-400 shadow-[0_0_20px_rgba(99,102,241,0.4)]'
                           : 'bg-gradient-to-t from-indigo-400/40 to-indigo-300/20 dark:from-indigo-400/30 dark:to-indigo-300/10'
                           }`}
-                          style={{
+                        style={{
                           height: `${Math.max(pct, 3)}%`,
                           minHeight: '6px',
                         }}

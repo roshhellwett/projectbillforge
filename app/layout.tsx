@@ -19,6 +19,7 @@ export const viewport: Viewport = {
 };
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { ToastProvider } from "@/lib/components/Toast";
 
 export default function RootLayout({
   children,
@@ -34,7 +35,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>

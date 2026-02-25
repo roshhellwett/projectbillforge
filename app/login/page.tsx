@@ -91,7 +91,7 @@ export default function LoginPage() {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <div className="relative">
               <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
               <input
@@ -100,7 +100,7 @@ export default function LoginPage() {
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full glass-input"
+                className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm"
                 style={{ paddingLeft: '2.75rem' }}
                 autoComplete="email"
               />
@@ -114,7 +114,7 @@ export default function LoginPage() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full glass-input"
+                className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm"
                 style={{ paddingLeft: '2.75rem', paddingRight: '2.75rem' }}
                 autoComplete="current-password"
               />

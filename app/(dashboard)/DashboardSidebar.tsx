@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,10 +8,7 @@ import {
   Package,
   BookOpen,
   Settings,
-  Menu,
-  X,
   Receipt,
-  LogOut,
 } from "lucide-react";
 import { SignOutButton } from "./signout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -28,7 +24,6 @@ interface DashboardSidebarProps {
 }
 
 export default function DashboardSidebar({ session }: DashboardSidebarProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
   const navItems = [
@@ -42,46 +37,16 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
 
   return (
     <>
-      {/* ── Mobile Hamburger Trigger (fixed top-left) ── */}
-      <button
-        onClick={() => setSidebarOpen(true)}
-        className="fixed top-4 left-4 z-40 md:hidden p-2.5 glass-card rounded-xl active:scale-95 transition-transform"
-        aria-label="Open menu"
-      >
-        <Menu size={22} className="text-[var(--foreground)]" />
-      </button>
-
-      {/* ── Mobile Overlay ── */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* ── Sidebar ── */}
-      <aside className={`
-        fixed md:static inset-y-0 left-0 z-50
-        w-[280px] md:w-[270px] lg:w-[280px] glass-sidebar
-        transform transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-[100%] md:translate-x-0'}
-        h-full flex flex-col
-        md:translate-x-0
-      `}>
+      {/* Desktop Sidebar - completely hidden on mobile */}
+      <aside className="hidden md:flex fixed md:static inset-y-0 left-0 z-50 w-[280px] md:w-[270px] lg:w-[280px] glass-sidebar h-full flex flex-col">
         {/* Logo */}
-        <div className="p-6 flex items-center justify-between shrink-0">
+        <div className="p-6 flex items-center shrink-0">
           <div className="flex flex-col">
             <h1 className="text-xl font-bold tracking-tight gradient-text">BillForge</h1>
             <p className="text-[9px] font-bold tracking-[0.15em] uppercase text-[var(--foreground)]/40 mt-0.5">
               Zenith Open Source
             </p>
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="md:hidden p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg text-[var(--foreground)]/60 transition-colors"
-          >
-            <X size={18} />
-          </button>
         </div>
 
         {/* Nav */}
@@ -93,7 +58,6 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setSidebarOpen(false)}
                 className={`
                   flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-sm
                   ${isActive

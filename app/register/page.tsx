@@ -137,49 +137,49 @@ export default function RegisterPage() {
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-3.5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             {step === 1 && (
-              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-3.5">
+              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 sm:space-y-5">
                 <div className="relative">
                   <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type="text" required placeholder="Business name *" value={formData.name} onChange={(e) => update("name", e.target.value)} className="w-full glass-input" style={{ paddingLeft: '2.75rem' }} />
+                  <input type="text" required placeholder="Business name *" value={formData.name} onChange={(e) => update("name", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} />
                 </div>
                 <div className="relative">
                   <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type="email" required placeholder="Email address *" value={formData.email} onChange={(e) => update("email", e.target.value)} className="w-full glass-input" style={{ paddingLeft: '2.75rem' }} autoComplete="email" />
+                  <input type="email" required placeholder="Email address *" value={formData.email} onChange={(e) => update("email", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} autoComplete="email" />
                 </div>
                 <div className="relative">
                   <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type={showPassword ? "text" : "password"} required placeholder="Password *" value={formData.password} onChange={(e) => update("password", e.target.value)} className="w-full glass-input" style={{ paddingLeft: '2.75rem', paddingRight: '2.75rem' }} autoComplete="new-password" />
+                  <input type={showPassword ? "text" : "password"} required placeholder="Password *" value={formData.password} onChange={(e) => update("password", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem', paddingRight: '2.75rem' }} autoComplete="new-password" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50 hover:text-[var(--foreground)]/70 transition-colors">
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
                 <div className="relative">
                   <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type={showPassword ? "text" : "password"} required placeholder="Confirm password *" value={formData.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} className="w-full glass-input" style={{ paddingLeft: '2.75rem' }} autoComplete="new-password" />
+                  <input type={showPassword ? "text" : "password"} required placeholder="Confirm password *" value={formData.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} autoComplete="new-password" />
                 </div>
                 <p className="text-xs text-[var(--foreground)]/35">Min 8 characters with uppercase, lowercase, and a number.</p>
               </motion.div>
             )}
 
             {step === 2 && (
-              <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-3.5">
+              <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 sm:space-y-5">
                 <div className="relative">
                   <Hash size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type="text" placeholder="GSTIN (optional)" value={formData.gstin} onChange={(e) => update("gstin", e.target.value.toUpperCase())} className="w-full glass-input" style={{ paddingLeft: '2.75rem' }} />
+                  <input type="text" placeholder="GSTIN (optional)" value={formData.gstin} onChange={(e) => update("gstin", e.target.value.toUpperCase())} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} />
                 </div>
                 <div className="relative">
                   <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type="tel" placeholder="Phone (optional)" value={formData.phone} onChange={(e) => update("phone", e.target.value)} className="w-full glass-input" style={{ paddingLeft: '2.75rem' }} />
+                  <input type="tel" placeholder="Phone (optional)" value={formData.phone} onChange={(e) => update("phone", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} />
                 </div>
                 <div className="relative">
                   <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type="text" placeholder="Address (optional)" value={formData.address} onChange={(e) => update("address", e.target.value)} className="w-full glass-input" style={{ paddingLeft: '2.75rem' }} />
+                  <input type="text" placeholder="Address (optional)" value={formData.address} onChange={(e) => update("address", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <input type="text" placeholder="State" value={formData.state} onChange={(e) => update("state", e.target.value)} className="w-full glass-input" />
-                  <input type="text" placeholder="Pincode" value={formData.pincode} onChange={(e) => update("pincode", e.target.value)} className="w-full glass-input" />
+                  <input type="text" placeholder="State" value={formData.state} onChange={(e) => update("state", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" />
+                  <input type="text" placeholder="Pincode" value={formData.pincode} onChange={(e) => update("pincode", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" />
                 </div>
               </motion.div>
             )}

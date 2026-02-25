@@ -274,10 +274,10 @@ body {
 
 /* ── Primary Glass Card (Apple-style frosted glass with noise grain) ── */
 .glass-card {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.25);
   backdrop-filter: blur(40px) saturate(200%);
   -webkit-backdrop-filter: blur(40px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 1.25rem;
   box-shadow:
     0 8px 32px rgba(91, 33, 182, 0.1),
@@ -309,7 +309,7 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 128px 128px;
-  opacity: 0.06;
+  opacity: 0.08;
   pointer-events: none;
   z-index: 1;
   border-radius: inherit;
@@ -326,8 +326,8 @@ body {
 
 /* Dark mode glass card */
 .dark .glass-card {
-  background: rgba(25, 20, 50, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(25, 20, 50, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
     0 1.5px 4px rgba(0, 0, 0, 0.15),
@@ -335,11 +335,11 @@ body {
 }
 
 .dark .glass-card::before {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
 }
 
 .dark .glass-card::after {
-  opacity: 0.08;
+  opacity: 0.1;
   mix-blend-mode: soft-light;
 }
 
@@ -353,20 +353,20 @@ body {
 
 /* ── Heavy Glass (modals, floating panels) ── */
 .glass-heavy {
-  background: var(--glass-bg-heavy);
-  backdrop-filter: blur(var(--glass-blur-heavy));
-  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
-  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(48px) saturate(200%);
+  -webkit-backdrop-filter: blur(48px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 1.25rem;
   box-shadow: var(--shadow-glass), var(--shadow-glass-inset);
 }
 
 /* ── Light Glass (inner tiles with noise grain) ── */
 .glass-light {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(24px) saturate(170%);
   -webkit-backdrop-filter: blur(24px) saturate(170%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 0.875rem;
   position: relative;
   overflow: hidden;
@@ -379,7 +379,7 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 128px 128px;
-  opacity: 0.05;
+  opacity: 0.07;
   pointer-events: none;
   z-index: 1;
   border-radius: inherit;
@@ -387,12 +387,12 @@ body {
 }
 
 .dark .glass-light {
-  background: rgba(25, 20, 50, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(25, 20, 50, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .dark .glass-light::after {
-  opacity: 0.07;
+  opacity: 0.09;
   mix-blend-mode: soft-light;
 }
 
@@ -406,10 +406,10 @@ body {
 
 /* ── Glass Input ── */
 .glass-input {
-  background: var(--glass-bg-light);
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 0.875rem;
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
@@ -422,13 +422,13 @@ body {
 
 .glass-input::placeholder {
   color: var(--foreground);
-  opacity: 0.35;
+  opacity: 0.45;
 }
 
 .glass-input:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), var(--shadow-glass);
-  background: var(--glass-bg);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* ── Glass Select ── */
@@ -732,4 +732,50 @@ select.glass-input {
 
 .text-balance {
   text-wrap: balance;
+}
+
+/* ── Toast Animations ── */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
 }
