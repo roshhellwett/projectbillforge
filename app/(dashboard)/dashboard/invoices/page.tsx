@@ -284,23 +284,24 @@ export default function InvoicesPage() {
   );
 
   return (
-    <StaggerContainer className="space-y-6">
-      <FadeIn className="flex items-center justify-between">
+    <StaggerContainer className="space-y-4 sm:space-y-6">
+      <FadeIn className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">Invoices</h1>
-          <p className="text-[var(--foreground)]/60 mt-1">Create and manage invoices</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)]">Invoices</h1>
+          <p className="text-[var(--foreground)]/60 mt-1 text-sm">Create and manage invoices</p>
         </div>
         <button
           onClick={() => { setError(""); setShowNewInvoice(true); }}
-          className="glass-btn-primary flex items-center gap-2"
+          className="glass-btn-primary flex items-center gap-2 min-h-[44px] px-4 sm:px-6"
         >
-          <Plus size={20} />
-          New Invoice
+          <Plus size={18} />
+          <span className="hidden sm:inline">New Invoice</span>
+          <span className="sm:hidden">New</span>
         </button>
       </FadeIn>
 
       <StaggerItem className="glass-card overflow-hidden">
-        <div className="p-4 md:p-6 border-b border-[var(--border)]/50">
+        <div className="p-3 sm:p-4 md:p-6 border-b border-[var(--border)]/50">
           <div className="relative max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-[var(--color-primary)]/60 pointer-events-none" size={18} />
             <input
@@ -317,47 +318,47 @@ export default function InvoicesPage() {
         {loading ? (
           <div className="p-4"><SkeletonTable rows={5} /></div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">No invoices found</div>
+          <div className="p-8 sm:p-12 text-center text-[var(--foreground)]/50 font-medium">No invoices found</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[600px]">
               <thead className="bg-[var(--foreground)]/5 border-b border-[var(--border)]/30">
                 <tr>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Invoice #</th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Date</th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Customer</th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Amount</th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Status</th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Actions</th>
+                  <th className="px-3 sm:px-5 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-[var(--foreground)]/70">Invoice #</th>
+                  <th className="px-3 sm:px-5 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-[var(--foreground)]/70">Date</th>
+                  <th className="px-3 sm:px-5 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-[var(--foreground)]/70">Customer</th>
+                  <th className="px-3 sm:px-5 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-[var(--foreground)]/70">Amount</th>
+                  <th className="px-3 sm:px-5 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-[var(--foreground)]/70">Status</th>
+                  <th className="px-3 sm:px-5 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-[var(--foreground)]/70">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]/30">
                 {filteredInvoices.map((invoice) => (
                   <tr key={invoice.id} className="hover:bg-[var(--foreground)]/[0.02] transition-colors">
-                    <td className="px-5 py-4 font-medium text-[var(--foreground)]">{invoice.invoiceNumber}</td>
-                    <td className="px-5 py-4 text-[var(--foreground)]/70 text-sm">{invoice.invoiceDate.toLocaleDateString('en-IN')}</td>
-                    <td className="px-5 py-4 text-[var(--foreground)] font-medium">{invoice.customerName}</td>
-                    <td className="px-5 py-4 font-semibold text-[var(--foreground)]">₹{(invoice.total ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    <td className="px-5 py-4">
+                    <td className="px-3 sm:px-5 py-3 sm:py-4 font-medium text-[var(--foreground)] text-sm">{invoice.invoiceNumber}</td>
+                    <td className="px-3 sm:px-5 py-3 sm:py-4 text-[var(--foreground)]/70 text-xs sm:text-sm">{invoice.invoiceDate.toLocaleDateString('en-IN')}</td>
+                    <td className="px-3 sm:px-5 py-3 sm:py-4 text-[var(--foreground)] font-medium text-sm">{invoice.customerName}</td>
+                    <td className="px-3 sm:px-5 py-3 sm:py-4 font-semibold text-[var(--foreground)]">₹{(invoice.total ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td className="px-3 sm:px-5 py-3 sm:py-4">
                       {invoice.status === 'cancelled' ? (
-                        <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-danger)]/10 text-[var(--color-danger)] border border-[var(--color-danger)]/20">
+                        <span className="px-2 sm:px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-danger)]/10 text-[var(--color-danger)] border border-[var(--color-danger)]/20">
                           Cancelled
                         </span>
                       ) : invoice.paymentStatus === 'unpaid' ? (
-                        <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20">
+                        <span className="px-2 sm:px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20">
                           Unpaid
                         </span>
                       ) : (
-                        <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20">
+                        <span className="px-2 sm:px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20">
                           Paid
                         </span>
                       )}
                     </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-1 opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-100" style={{ opacity: 1 }}>
+                    <td className="px-3 sm:px-5 py-3 sm:py-4">
+                      <div className="flex items-center gap-1" style={{ opacity: 1 }}>
                         <button
                           onClick={() => setViewInvoice(invoice)}
-                          className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-colors"
+                          className="p-1.5 sm:p-2 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-colors"
                           aria-label="View invoice"
                         >
                           <Printer size={16} />
@@ -365,7 +366,7 @@ export default function InvoicesPage() {
                         {invoice.status === 'active' && (
                           <button
                             onClick={() => setCancelId(invoice.id)}
-                            className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-colors"
+                            className="p-1.5 sm:p-2 text-[var(--foreground)]/40 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-colors"
                             aria-label="Cancel invoice"
                           >
                             <Trash2 size={16} />
@@ -383,7 +384,7 @@ export default function InvoicesPage() {
 
       {showNewInvoice && (
         <div className="glass-overlay">
-          <div className="glass-heavy glass-modal-panel max-w-4xl">
+          <div className="glass-heavy glass-modal-panel w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="glass-modal-header">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">New Invoice</h2>
               <button onClick={() => setShowNewInvoice(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
@@ -391,10 +392,10 @@ export default function InvoicesPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-4 space-y-6">
+            <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
               {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Customer</label>
                   <select
@@ -439,7 +440,7 @@ export default function InvoicesPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
                 <input
                   type="checkbox"
                   id="isInterState"
@@ -452,7 +453,7 @@ export default function InvoicesPage() {
 
               <div>
                 <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-2">Payment Mode</label>
-                <div className="flex gap-4">
+                <div className="flex flex-wrap gap-3 sm:gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
@@ -489,14 +490,14 @@ export default function InvoicesPage() {
                 </div>
               </div>
 
-              <div className="border border-[var(--border)] rounded-xl p-4">
-                <h3 className="font-semibold text-[var(--foreground)] mb-4">Items</h3>
+              <div className="border border-[var(--border)] rounded-xl p-3 sm:p-4">
+                <h3 className="font-semibold text-[var(--foreground)] mb-3 sm:mb-4">Items</h3>
 
-                <div className="flex gap-2 mb-4">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 mb-3 sm:mb-4">
                   <select
                     value={selectedProduct}
                     onChange={(e) => setSelectedProduct(e.target.value)}
-                    className="flex-1 glass-input"
+                    className="flex-1 glass-input min-h-[44px]"
                   >
                     <option value="">Select Product</option>
                     {products.filter(p => p.isActive).map(p => (
@@ -506,7 +507,7 @@ export default function InvoicesPage() {
                   <button
                     type="button"
                     onClick={() => router.push('/dashboard/products')}
-                    className="px-3 py-2 border border-[var(--border)] text-[var(--foreground)]/60 rounded-xl hover:bg-[var(--foreground)]/5 text-sm"
+                    className="px-3 py-2 border border-[var(--border)] text-[var(--foreground)]/60 rounded-xl hover:bg-[var(--foreground)]/5 text-sm min-h-[44px]"
                     title="Add new product"
                   >
                     + New
@@ -518,7 +519,7 @@ export default function InvoicesPage() {
                       min="0"
                       value={itemQuantity}
                       onChange={(e) => setItemQuantity(e.target.value)}
-                      className="w-24 glass-input"
+                      className="w-20 sm:w-24 glass-input min-h-[44px]"
                       placeholder="0"
                     />
                     {selectedProduct && products.find(p => p.id === selectedProduct)?.unit && (
@@ -530,44 +531,44 @@ export default function InvoicesPage() {
                   <button
                     type="button"
                     onClick={addItem}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 min-h-[44px]"
                   >
                     Add
                   </button>
                 </div>
 
                 {items.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                  <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+                    <table className="w-full text-xs sm:text-sm min-w-[500px]">
                       <thead className="bg-[var(--foreground)]/5">
                         <tr>
-                          <th className="px-3 py-2 text-left">Item</th>
-                          <th className="px-3 py-2 text-right">Qty</th>
-                          <th className="px-3 py-2 text-right">Rate</th>
-                          <th className="px-3 py-2 text-right">Amount</th>
-                          <th className="px-3 py-2 text-right">GST</th>
-                          <th className="px-3 py-2 text-right">Total</th>
-                          <th className="px-3 py-2"></th>
+                          <th className="px-2 sm:px-3 py-2 text-left">Item</th>
+                          <th className="px-2 sm:px-3 py-2 text-right">Qty</th>
+                          <th className="px-2 sm:px-3 py-2 text-right">Rate</th>
+                          <th className="px-2 sm:px-3 py-2 text-right">Amount</th>
+                          <th className="px-2 sm:px-3 py-2 text-right">GST</th>
+                          <th className="px-2 sm:px-3 py-2 text-right">Total</th>
+                          <th className="px-2 sm:px-3 py-2"></th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {items.map((item, idx) => (
                           <tr key={idx}>
-                            <td className="px-3 py-2">{item.productName}</td>
-                            <td className="px-3 py-2 text-right">{item.quantity}</td>
-                            <td className="px-3 py-2 text-right">₹{item.rate.toFixed(2)}</td>
-                            <td className="px-3 py-2 text-right">₹{item.amount.toFixed(2)}</td>
-                            <td className="px-3 py-2 text-right">
+                            <td className="px-2 sm:px-3 py-2">{item.productName}</td>
+                            <td className="px-2 sm:px-3 py-2 text-right">{item.quantity}</td>
+                            <td className="px-2 sm:px-3 py-2 text-right">₹{item.rate.toFixed(2)}</td>
+                            <td className="px-2 sm:px-3 py-2 text-right">₹{item.amount.toFixed(2)}</td>
+                            <td className="px-2 sm:px-3 py-2 text-right">
                               {isInterState
                                 ? `IGST ₹${item.igst.toFixed(2)}`
                                 : `C ₹${item.cgst.toFixed(2)} S ₹${item.sgst.toFixed(2)}`
                               }
                             </td>
-                            <td className="px-3 py-2 text-right font-medium">
+                            <td className="px-2 sm:px-3 py-2 text-right font-medium">
                               ₹{(item.amount + item.cgst + item.sgst + item.igst).toFixed(2)}
                             </td>
-                            <td className="px-3 py-2">
-                              <button type="button" onClick={() => removeItem(idx)} className="text-red-500 hover:text-red-700">
+                            <td className="px-2 sm:px-3 py-2">
+                              <button type="button" onClick={() => removeItem(idx)} className="text-red-500 hover:text-red-700 p-1">
                                 <X size={16} />
                               </button>
                             </td>
@@ -582,7 +583,7 @@ export default function InvoicesPage() {
               </div>
 
               <div className="flex justify-end">
-                <div className="w-64 space-y-2 text-sm">
+                <div className="w-full sm:w-64 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-[var(--foreground)]/60">Subtotal:</span>
                     <span className="font-medium">₹{totals.subtotal.toFixed(2)}</span>
@@ -617,18 +618,18 @@ export default function InvoicesPage() {
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-3 pt-2 sm:pt-4">
                 <button
                   type="button"
                   onClick={() => setShowNewInvoice(false)}
-                  className="glass-btn-secondary flex-1"
+                  className="glass-btn-secondary flex-1 min-h-[44px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving || items.length === 0}
-                  className="glass-btn-primary flex-1"
+                  className="glass-btn-primary flex-1 min-h-[44px]"
                 >
                   {saving ? "Creating..." : "Create Invoice"}
                 </button>
@@ -648,7 +649,7 @@ export default function InvoicesPage() {
 
       {viewInvoice && businessProfile && (
         <div className="glass-overlay">
-          <div className="glass-heavy glass-modal-panel max-w-3xl">
+          <div className="glass-heavy glass-modal-panel w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="glass-modal-header">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">Invoice</h2>
               <div className="flex gap-2">
@@ -684,9 +685,9 @@ export default function InvoicesPage() {
                       }
                     }
                   }}
-                  className="glass-btn-primary flex items-center gap-2"
+                  className="glass-btn-primary flex items-center gap-2 text-sm min-h-[40px]"
                 >
-                  <Printer size={18} />
+                  <Printer size={16} />
                   Print
                 </button>
                 <button onClick={() => setViewInvoice(null)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
@@ -695,7 +696,7 @@ export default function InvoicesPage() {
               </div>
             </div>
 
-            <div className="p-8" id="invoice-print" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <div className="p-4 sm:p-6 md:p-8" id="invoice-print" style={{ fontFamily: 'Arial, sans-serif' }}>
               {/* Header */}
               <div className="border-b-2 border-[var(--foreground)] pb-4 mb-6">
                 <div className="text-center">

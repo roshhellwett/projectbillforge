@@ -45,10 +45,10 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
       {/* ── Mobile Hamburger Trigger (fixed top-left) ── */}
       <button
         onClick={() => setSidebarOpen(true)}
-        className="fixed top-4 left-4 z-40 md:hidden p-2.5 glass-card rounded-xl"
+        className="fixed top-4 left-4 z-40 md:hidden p-2.5 glass-card rounded-xl active:scale-95 transition-transform"
         aria-label="Open menu"
       >
-        <Menu size={20} className="text-[var(--foreground)]" />
+        <Menu size={22} className="text-[var(--foreground)]" />
       </button>
 
       {/* ── Mobile Overlay ── */}
@@ -62,10 +62,11 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
       {/* ── Sidebar ── */}
       <aside className={`
         fixed md:static inset-y-0 left-0 z-50
-        w-[270px] glass-sidebar
+        w-[280px] sm:w-[280px] md:w-[270px] lg:w-[280px] glass-sidebar
         transform transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         h-full flex flex-col
+        max-w-[85vw] sm:max-w-[280px]
       `}>
         {/* Logo */}
         <div className="p-6 flex items-center justify-between shrink-0">
