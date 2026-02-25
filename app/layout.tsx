@@ -11,6 +11,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "BillForge - Indian Billing Platform",
   description: "Professional billing, invoicing, and Khata management for Indian businesses",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export const viewport: Viewport = {
