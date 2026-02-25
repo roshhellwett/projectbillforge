@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   // Produces a standalone output folder that Railway can run with `node server.js`
   output: "standalone",
 
+  // Include migration files in standalone output (they aren't auto-detected)
+  outputFileTracingIncludes: {
+    "*": ["./drizzle/**/*", "./migrate.mjs"],
+  },
+
   experimental: {
     serverActions: {
       bodySizeLimit: "2mb",
