@@ -69,25 +69,25 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <StaggerContainer className="space-y-8">
+    <StaggerContainer className="space-y-5 sm:space-y-6 lg:space-y-8">
       <FadeIn>
-        <h1 className="text-3xl font-bold tracking-tight gradient-text">Dashboard</h1>
-        <p className="text-[var(--foreground)]/50 mt-1">Welcome back! Here&apos;s your business overview.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight gradient-text">Dashboard</h1>
+        <p className="text-[var(--foreground)]/50 mt-1 text-sm sm:text-base">Welcome back! Here&apos;s your business overview.</p>
       </FadeIn>
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         {statCards.map((card) => (
           <StaggerItem key={card.label}>
             <InteractiveItem>
-              <div className="glass-card p-5 group cursor-pointer min-h-[100px] flex items-center">
+              <div className="glass-card p-4 sm:p-5 group cursor-pointer min-h-[80px] sm:min-h-[100px] flex items-center">
                 <div className="flex items-center gap-3">
                   <div className={`p-3 rounded-2xl ${card.bg} shrink-0 group-hover:scale-110 transition-transform duration-300`}>
                     <card.icon style={{ color: card.color }} size={22} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-[var(--foreground)]/50 mb-0.5 truncate">{card.label}</p>
-                    <p className="text-xl font-bold text-[var(--foreground)] tracking-tight truncate">{card.value}</p>
+                    <p className="text-lg sm:text-xl font-bold text-[var(--foreground)] tracking-tight truncate">{card.value}</p>
                   </div>
                 </div>
               </div>
@@ -97,11 +97,11 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Sales Trend + Business Snapshot ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 items-stretch">
 
         {/* Sales Trend Chart — 2/3 width */}
         <StaggerItem className="lg:col-span-2">
-          <div className="glass-card p-5 md:p-7 h-full flex flex-col">
+          <div className="glass-card p-4 sm:p-5 md:p-7 h-full flex flex-col">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-xl">
@@ -165,7 +165,7 @@ export default async function DashboardPage() {
 
         {/* Business Snapshot — 1/3 width */}
         <StaggerItem>
-          <div className="glass-card p-5 md:p-7 h-full flex flex-col">
+          <div className="glass-card p-4 sm:p-5 md:p-7 h-full flex flex-col">
             <h2 className="text-base font-bold tracking-tight text-[var(--foreground)] mb-4">Business Snapshot</h2>
             <div className="space-y-3 flex-1">
               {[
@@ -190,10 +190,10 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Recent Invoices + Top Receivables ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 items-stretch">
         {/* Recent Invoices */}
         <StaggerItem>
-          <div className="glass-card p-5 md:p-7 h-full flex flex-col">
+          <div className="glass-card p-4 sm:p-5 md:p-7 h-full flex flex-col">
             <div className="flex items-center gap-3 mb-5">
               <div className="p-2 bg-blue-500/10 dark:bg-blue-500/15 rounded-xl">
                 <Clock style={{ color: '#6366f1' }} size={17} />
@@ -241,7 +241,7 @@ export default async function DashboardPage() {
 
         {/* Top Receivables */}
         <StaggerItem>
-          <div className="glass-card p-5 md:p-7 h-full flex flex-col">
+          <div className="glass-card p-4 sm:p-5 md:p-7 h-full flex flex-col">
             <h2 className="text-base font-bold tracking-tight text-[var(--foreground)] mb-5">Top Receivables</h2>
             {topReceivables.length === 0 ? (
               <div className="text-center py-12 glass-light rounded-xl">
@@ -271,7 +271,7 @@ export default async function DashboardPage() {
 
       {/* ── Low Stock Alerts ── */}
       <StaggerItem>
-        <div className="glass-card p-5 md:p-7">
+        <div className="glass-card p-4 sm:p-5 md:p-7">
           <h2 className="text-base font-bold tracking-tight text-[var(--foreground)] mb-4 flex items-center gap-2.5">
             <div className="p-2 bg-red-500/10 dark:bg-red-500/15 rounded-xl">
               <AlertTriangle style={{ color: '#ef4444' }} size={17} />

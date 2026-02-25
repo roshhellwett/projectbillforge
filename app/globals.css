@@ -272,17 +272,17 @@ body {
    Glassmorphism Utility Classes
    ══════════════════════════════ */
 
-/* ── Primary Glass Card (Apple-style frosted glass with heavy blur) ── */
+/* ── Primary Glass Card (Apple-style frosted glass with noise grain) ── */
 .glass-card {
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(32px) saturate(180%);
-  -webkit-backdrop-filter: blur(32px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 1.25rem;
   box-shadow:
     0 8px 32px rgba(91, 33, 182, 0.1),
     0 1.5px 4px rgba(91, 33, 182, 0.06),
-    inset 0 1px 2px rgba(255, 255, 255, 0.25);
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
   transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
   position: relative;
   overflow: hidden;
@@ -296,22 +296,37 @@ body {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Noise grain texture overlay */
+.glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 128px 128px;
+  opacity: 0.045;
   pointer-events: none;
   z-index: 1;
+  border-radius: inherit;
+  mix-blend-mode: overlay;
 }
 
 .glass-card:hover {
   box-shadow:
     0 12px 40px rgba(91, 33, 182, 0.15),
     0 2px 6px rgba(91, 33, 182, 0.08),
-    inset 0 1px 2px rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.28);
+    inset 0 1px 2px rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 /* Dark mode glass card */
 .dark .glass-card {
-  background: rgba(25, 20, 50, 0.3);
+  background: rgba(25, 20, 50, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
@@ -320,11 +335,16 @@ body {
 }
 
 .dark .glass-card::before {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+}
+
+.dark .glass-card::after {
+  opacity: 0.06;
+  mix-blend-mode: soft-light;
 }
 
 .dark .glass-card:hover {
-  background: rgba(35, 30, 60, 0.4);
+  background: rgba(35, 30, 60, 0.35);
   box-shadow:
     0 16px 48px rgba(0, 0, 0, 0.4),
     0 2px 6px rgba(0, 0, 0, 0.2),
@@ -341,18 +361,39 @@ body {
   box-shadow: var(--shadow-glass), var(--shadow-glass-inset);
 }
 
-/* ── Light Glass (subtle panels, sidebar items) ── */
+/* ── Light Glass (inner tiles with noise grain) ── */
 .glass-light {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 0.875rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-light::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 128px 128px;
+  opacity: 0.035;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: inherit;
+  mix-blend-mode: overlay;
 }
 
 .dark .glass-light {
-  background: rgba(25, 20, 50, 0.25);
+  background: rgba(25, 20, 50, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dark .glass-light::after {
+  opacity: 0.05;
+  mix-blend-mode: soft-light;
 }
 
 /* ── Sidebar Glass ── */
