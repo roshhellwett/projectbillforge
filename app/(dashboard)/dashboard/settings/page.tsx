@@ -212,7 +212,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="px-8 py-3.5 bg-[var(--color-primary)] text-white font-bold rounded-full hover:-translate-y-1 hover:bg-blue-600 disabled:opacity-50 transition-all glass-card shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
+              className="glass-btn-primary px-8"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
@@ -300,8 +300,8 @@ export default function SettingsPage() {
       </form>
 
       {showResetConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="glass-heavy w-full max-w-md p-6">
+        <div className="glass-overlay">
+          <div className="glass-heavy glass-modal-panel max-w-md p-6">
             <h2 className="text-lg font-semibold text-red-600 mb-2">Reset All Khata Data</h2>
             <p className="text-sm text-[var(--foreground)]/60 mb-4">
               This will permanently delete ALL invoices and transactions, and reset ALL customer balances to zero.
@@ -357,7 +357,7 @@ export default function SettingsPage() {
                   }
                 }}
                 disabled={resetting}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-full font-semibold transition-all active:scale-95 shadow-[0_4px_20px_rgba(239,68,68,0.3)]"
               >
                 {resetting ? "Resetting..." : "Yes, Reset Everything"}
               </button>

@@ -186,7 +186,7 @@ export default function KhataPage() {
       <StaggerItem className="glass-card p-6 overflow-hidden">
         <label className="block text-sm font-semibold text-[var(--foreground)]/80 mb-4">Select Customer</label>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-[var(--foreground)]/60 pointer-events-none" size={18} />
           <input
             type="text"
             placeholder="Search customers..."
@@ -244,7 +244,7 @@ export default function KhataPage() {
             </button>
             <button
               onClick={() => { setError(""); setShowModal(true); }}
-              className="flex items-center gap-2 px-6 py-3 bg-[var(--color-primary)] text-white font-bold rounded-full hover:-translate-y-1 transition-all glass-card shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
+              className="glass-btn-primary flex items-center gap-2"
             >
               <Plus size={20} />
               Add Transaction

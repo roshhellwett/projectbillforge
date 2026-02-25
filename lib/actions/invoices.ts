@@ -373,3 +373,60 @@ export async function getSalesSummary() {
     return { error: error.message || "Failed to fetch sales summary" };
   }
 }
+
+export async function getRecentInvoices(limit = 5) {
+  try {
+    const session = await requireBusinessSession();
+
+    const invoiceList = await db.query.invoices.findMany({
+      where: and(
+        eq(invoices.businessId, session.id),
+        eq(invoices.status, 'active')
+      ),
+      orderBy: (invoices, { desc }) => [desc(invoices.createdAt)],
+      limit,
+    });
+
+    return { success: true, invoices: invoiceList };
+  } catch (error: any) {
+    return { error: error.message || "Failed to fetch recent invoices" };
+  }
+}
+
+export async function getWeeklySalesData() {
+  try {
+    const session = await requireBusinessSession();
+    const businessId = session.id;
+
+    // Get sales totals for each of the last 7 days
+    const days: { date: string; label: string; total: number }[] = [];
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+
+      const [result] = await db
+        .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
+        .from(invoices)
+        .where(
+          and(
+            eq(invoices.businessId, businessId),
+            eq(invoices.status, 'active'),
+            sql`${invoices.invoiceDate} = ${dateStr}`
+          )
+        );
+
+      days.push({
+        date: dateStr,
+        label: dayNames[d.getDay()],
+        total: Number(result.total),
+      });
+    }
+
+    return { success: true, days };
+  } catch (error: any) {
+    return { error: error.message || "Failed to fetch weekly sales data" };
+  }
+}

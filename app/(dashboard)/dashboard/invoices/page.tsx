@@ -292,7 +292,7 @@ export default function InvoicesPage() {
         </div>
         <button
           onClick={() => { setError(""); setShowNewInvoice(true); }}
-          className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-full hover:-translate-y-1 transition-all glass-card shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
+          className="glass-btn-primary flex items-center gap-2"
         >
           <Plus size={20} />
           New Invoice
@@ -302,7 +302,7 @@ export default function InvoicesPage() {
       <StaggerItem className="glass-card overflow-hidden">
         <div className="p-4 md:p-6 border-b border-[var(--border)]/50">
           <div className="relative max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" size={20} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-[var(--foreground)]/60 pointer-events-none" size={20} />
             <input
               type="text"
               placeholder="Search invoices..."
