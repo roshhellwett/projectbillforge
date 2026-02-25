@@ -69,14 +69,14 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <StaggerContainer className="space-y-6">
+    <StaggerContainer className="space-y-8">
       <FadeIn>
         <h1 className="text-3xl font-bold tracking-tight gradient-text">Dashboard</h1>
         <p className="text-[var(--foreground)]/50 mt-1">Welcome back! Here&apos;s your business overview.</p>
       </FadeIn>
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card) => (
           <StaggerItem key={card.label}>
             <InteractiveItem>
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Sales Trend + Business Snapshot ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Sales Trend Chart — 2/3 width */}
         <StaggerItem className="lg:col-span-2">
@@ -143,8 +143,8 @@ export default async function DashboardPage() {
                       {/* Bar */}
                       <div
                         className={`w-full max-w-[48px] rounded-t-lg transition-all duration-700 ease-out ${isToday
-                            ? 'bg-gradient-to-t from-indigo-600 via-indigo-500 to-violet-400 shadow-[0_0_20px_rgba(99,102,241,0.4)]'
-                            : 'bg-gradient-to-t from-indigo-400/40 to-indigo-300/20 dark:from-indigo-400/30 dark:to-indigo-300/10'
+                          ? 'bg-gradient-to-t from-indigo-600 via-indigo-500 to-violet-400 shadow-[0_0_20px_rgba(99,102,241,0.4)]'
+                          : 'bg-gradient-to-t from-indigo-400/40 to-indigo-300/20 dark:from-indigo-400/30 dark:to-indigo-300/10'
                           }`}
                         style={{
                           height: `${Math.max(pct, 3)}%`,
@@ -190,7 +190,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Recent Invoices + Top Receivables ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Invoices */}
         <StaggerItem>
           <div className="glass-card p-5 md:p-7">
@@ -213,8 +213,8 @@ export default async function DashboardPage() {
                     <div className="flex items-center justify-between p-3.5 glass-light rounded-xl hover:bg-[var(--foreground)]/5 transition-colors cursor-pointer">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className={`p-2 rounded-lg shrink-0 ${inv.paymentStatus === 'paid'
-                            ? 'bg-emerald-500/10 dark:bg-emerald-500/15'
-                            : 'bg-amber-500/10 dark:bg-amber-500/15'
+                          ? 'bg-emerald-500/10 dark:bg-emerald-500/15'
+                          : 'bg-amber-500/10 dark:bg-amber-500/15'
                           }`}>
                           {inv.paymentStatus === 'paid'
                             ? <ArrowDownRight size={15} style={{ color: '#10b981' }} />
