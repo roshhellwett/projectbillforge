@@ -62,11 +62,11 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
       {/* ── Sidebar ── */}
       <aside className={`
         fixed md:static inset-y-0 left-0 z-50
-        w-[280px] sm:w-[280px] md:w-[270px] lg:w-[280px] glass-sidebar
+        w-[280px] md:w-[270px] lg:w-[280px] glass-sidebar
         transform transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-[100%] md:translate-x-0'}
         h-full flex flex-col
-        max-w-[85vw] sm:max-w-[280px]
+        md:translate-x-0
       `}>
         {/* Logo */}
         <div className="p-6 flex items-center justify-between shrink-0">

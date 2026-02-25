@@ -21,9 +21,9 @@ export default async function DashboardLayout({
       <div className="dashboard-purple-bg" />
 
       <DashboardSidebar session={session} />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-10">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 w-full md:w-auto">
         <DashboardTransition>
-          <div className="p-3 sm:p-4 pt-16 sm:pt-18 md:p-6 lg:p-8 md:pt-8 min-h-full flex flex-col">
+          <div className="p-3 sm:p-4 pl-14 sm:pl-16 md:pl-4 pt-16 sm:pt-18 md:p-6 lg:p-8 md:pt-8 min-h-full flex flex-col">
             {children}
           </div>
         </DashboardTransition>
