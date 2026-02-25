@@ -19,8 +19,8 @@ export function FadeIn({
 }) {
     return (
         <motion.div
-            initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{
                 duration: 0.5,
                 delay,
@@ -71,11 +71,10 @@ export function StaggerItem({
     return (
         <motion.div
             variants={{
-                hidden: { opacity: 0, y: 16, filter: "blur(4px)" },
+                hidden: { opacity: 0, y: 12 },
                 visible: {
                     opacity: 1,
                     y: 0,
-                    filter: "blur(0px)",
                     transition: smoothSpring,
                 },
             }}
@@ -201,14 +200,14 @@ export function AnimatedRouteWrapper({
     pathKey: string;
 }) {
     return (
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
             <motion.div
                 key={pathKey}
-                initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
                 transition={{
-                    duration: 0.25,
+                    duration: 0.15,
                     ease: [0.25, 1, 0.5, 1],
                 }}
                 className="flex-1 flex flex-col min-h-0 relative"

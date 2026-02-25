@@ -381,12 +381,12 @@ export default function InvoicesPage() {
       </StaggerItem>
 
       {showNewInvoice && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="glass-heavy w-full max-w-4xl max-h-[95vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-[var(--border)] sticky top-0 glass-heavy">
-              <h2 className="text-lg font-semibold">New Invoice</h2>
-              <button onClick={() => setShowNewInvoice(false)} className="p-1 hover:bg-[var(--foreground)]/5 rounded-lg" aria-label="Close">
-                <X size={20} />
+        <div className="glass-overlay">
+          <div className="glass-heavy glass-modal-panel max-w-4xl">
+            <div className="glass-modal-header">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">New Invoice</h2>
+              <button onClick={() => setShowNewInvoice(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
+                <X size={20} className="text-[var(--foreground)]/60" />
               </button>
             </div>
 
@@ -627,7 +627,7 @@ export default function InvoicesPage() {
                 <button
                   type="submit"
                   disabled={saving || items.length === 0}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
+                  className="glass-btn-primary flex-1"
                 >
                   {saving ? "Creating..." : "Create Invoice"}
                 </button>
@@ -646,10 +646,10 @@ export default function InvoicesPage() {
       />
 
       {viewInvoice && businessProfile && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="glass-heavy w-full max-w-3xl max-h-[95vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-[var(--border)] sticky top-0 glass-heavy">
-              <h2 className="text-lg font-semibold">Invoice</h2>
+        <div className="glass-overlay">
+          <div className="glass-heavy glass-modal-panel max-w-3xl">
+            <div className="glass-modal-header">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Invoice</h2>
               <div className="flex gap-2">
                 <button
                   onClick={() => {
@@ -683,13 +683,13 @@ export default function InvoicesPage() {
                       }
                     }
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
+                  className="glass-btn-primary flex items-center gap-2"
                 >
                   <Printer size={18} />
                   Print
                 </button>
-                <button onClick={() => setViewInvoice(null)} className="p-1 hover:bg-[var(--foreground)]/5 rounded-lg" aria-label="Close">
-                  <X size={20} />
+                <button onClick={() => setViewInvoice(null)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
+                  <X size={20} className="text-[var(--foreground)]/60" />
                 </button>
               </div>
             </div>

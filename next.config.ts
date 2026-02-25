@@ -40,9 +40,9 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js needs unsafe-eval in dev
-              "style-src 'self' 'unsafe-inline'", // Tailwind needs unsafe-inline
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // Tailwind + Google Fonts
               "img-src 'self' data: blob:",
-              "font-src 'self'",
+              "font-src 'self' https://fonts.gstatic.com",
               "connect-src 'self'",
               "frame-ancestors 'none'",
             ].join("; "),

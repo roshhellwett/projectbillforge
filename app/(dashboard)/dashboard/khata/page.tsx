@@ -404,12 +404,12 @@ export default function KhataPage() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="glass-heavy w-full max-w-md">
-            <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
-              <h2 className="text-lg font-semibold">Add Transaction</h2>
-              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-[var(--foreground)]/5 rounded-lg" aria-label="Close">
-                <X size={20} />
+        <div className="glass-overlay">
+          <div className="glass-heavy glass-modal-panel max-w-md">
+            <div className="glass-modal-header">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Add Transaction</h2>
+              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
+                <X size={20} className="text-[var(--foreground)]/60" />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
@@ -470,7 +470,7 @@ export default function KhataPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
+                  className="glass-btn-primary flex-1"
                 >
                   {saving ? "Saving..." : "Add Transaction"}
                 </button>
@@ -489,12 +489,12 @@ export default function KhataPage() {
       />
 
       {showPaymentModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="glass-heavy w-full max-w-md">
-            <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
-              <h2 className="text-lg font-semibold">Record Payment</h2>
-              <button onClick={() => setShowPaymentModal(false)} className="p-1 hover:bg-[var(--foreground)]/5 rounded-lg" aria-label="Close">
-                <X size={20} />
+        <div className="glass-overlay">
+          <div className="glass-heavy glass-modal-panel max-w-md">
+            <div className="glass-modal-header">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Record Payment</h2>
+              <button onClick={() => setShowPaymentModal(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
+                <X size={20} className="text-[var(--foreground)]/60" />
               </button>
             </div>
             <form onSubmit={handlePaymentSubmit} className="p-4 space-y-4">
@@ -575,7 +575,7 @@ export default function KhataPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50"
+                  className="glass-btn-primary flex-1"
                 >
                   {saving ? "Processing..." : "Record Payment"}
                 </button>

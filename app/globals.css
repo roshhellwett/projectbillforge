@@ -277,10 +277,48 @@ select.glass-input {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 1rem;
+  padding: 2rem 1rem;
   z-index: 50;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ── Modal Panel ── */
+.glass-modal-panel {
+  margin: auto;
+  width: 100%;
+  animation: modal-enter 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* ── Modal Sticky Header ── */
+.glass-modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--glass-bg-heavy);
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+  border-radius: 1.5rem 1.5rem 0 0;
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
 }
 
 /* ── Glass Button (Primary) ── */
