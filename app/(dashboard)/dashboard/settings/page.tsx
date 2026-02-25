@@ -365,6 +365,36 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      {/* About */}
+      <StaggerItem>
+        <div className="glass-card p-6 text-center">
+          <h3 className="text-sm font-semibold text-[var(--foreground)]/60 mb-2">About BillForge</h3>
+          <p className="text-xs text-[var(--foreground)]/35 leading-relaxed">
+            BillForge v1.0 · An open source billing platform for Indian businesses
+          </p>
+          <p className="text-xs text-[var(--foreground)]/35 mt-1">
+            Built with ❤️ by{" "}
+            <a
+              href="https://github.com/roshhellwett"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--color-primary)]/70 hover:text-[var(--color-primary)] font-medium transition-colors"
+            >
+              @roshhellwett
+            </a>
+            {" "}·{" "}
+            <a
+              href="https://github.com/roshhellwett/projectbillforge"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--color-primary)]/70 hover:text-[var(--color-primary)] font-medium transition-colors"
+            >
+              Zenith Open Source
+            </a>
+          </p>
+        </div>
+      </StaggerItem>
     </StaggerContainer>
   );
 }

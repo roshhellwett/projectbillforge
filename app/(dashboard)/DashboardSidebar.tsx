@@ -136,6 +136,18 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
             </div>
           </div>
         </div>
+
+        {/* Credit */}
+        <div className="px-5 pb-3 shrink-0">
+          <a
+            href="https://github.com/roshhellwett"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-center text-[10px] text-[var(--foreground)]/20 hover:text-[var(--foreground)]/40 transition-colors"
+          >
+            A Zenith Open Source Project · @roshhellwett
+          </a>
+        </div>
       </aside>
     </>
   );
