@@ -5,8 +5,8 @@ import type { NextRequest } from 'next/server';
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 60; // 60 requests per minute per IP
-const AUTH_MAX_REQUESTS = 10; // 10 auth attempts per minute per IP
+const MAX_REQUESTS_PER_WINDOW = 200; // 200 requests per minute per IP (supports 100+ concurrent users)
+const AUTH_MAX_REQUESTS = 30; // 30 auth attempts per minute per IP
 
 function getRateLimit(ip: string, maxRequests: number): { allowed: boolean; remaining: number } {
     const now = Date.now();
@@ -36,13 +36,13 @@ setInterval(() => {
 }, 60 * 1000);
 
 export function middleware(request: NextRequest) {
-    // Railway injects x-forwarded-for. We take the LAST trusted hop to prevent
-    // IP spoofing (an attacker could set a fake x-forwarded-for header otherwise).
+    // Railway puts the real client IP as the FIRST entry in x-forwarded-for,
+    // followed by any intermediate proxies - use the first hop to get the actual user IP.
     // NOTE: The in-memory rateLimitMap resets on each Railway deploy/restart.
     // For multi-instance setups, upgrade to Redis-backed rate limiting.
     const forwardedFor = request.headers.get('x-forwarded-for');
     const ip = forwardedFor
-        ? forwardedFor.split(',').at(-1)?.trim() // Last hop is added by Railway's proxy
+        ? forwardedFor.split(',').at(0)?.trim() // First hop is the real client IP
         : request.headers.get('x-real-ip') ?? 'unknown';
 
     const safeIp = ip ?? 'unknown';
