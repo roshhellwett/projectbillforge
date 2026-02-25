@@ -100,7 +100,7 @@ export default function LoginPage() {
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm"
+                className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm"
                 style={{ paddingLeft: '2.75rem' }}
                 autoComplete="email"
               />
@@ -114,7 +114,7 @@ export default function LoginPage() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm"
+                className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm"
                 style={{ paddingLeft: '2.75rem', paddingRight: '2.75rem' }}
                 autoComplete="current-password"
               />
@@ -159,25 +159,11 @@ export default function LoginPage() {
 
       {/* ─── Right: Animated Illustration ─── */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden items-center justify-center">
-        {/* Rich gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500" />
+        {/* Rich professional gradient background */}
+        <div className="absolute inset-0 grad-blue opacity-90" />
 
-        {/* Animated mesh blobs */}
-        <motion.div
-          animate={{ x: ["0%", "15%", "-10%", "0%"], y: ["0%", "-20%", "15%", "0%"], scale: [1, 1.15, 0.95, 1] }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[-10%] right-[-5%] w-[60%] h-[60%] rounded-full blur-[80px] bg-pink-400/40"
-        />
-        <motion.div
-          animate={{ x: ["-5%", "12%", "-15%", "-5%"], y: ["5%", "-10%", "20%", "5%"] }}
-          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-[-10%] left-[-5%] w-[50%] h-[50%] rounded-full blur-[80px] bg-cyan-400/30"
-        />
-        <motion.div
-          animate={{ x: ["5%", "-10%", "10%", "5%"], y: ["-5%", "15%", "-10%", "-5%"] }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[30%] left-[20%] w-[40%] h-[40%] rounded-full blur-[80px] bg-indigo-300/30"
-        />
+        {/* Subtle radial glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.08)_0%,transparent_70%)] pointer-events-none" />
 
         {/* Grid pattern overlay */}
         <div className="absolute inset-0 opacity-[0.07]" style={{
@@ -197,16 +183,16 @@ export default function LoginPage() {
             <motion.div
               animate={{ y: [-5, 5, -5] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-3xl p-6 shadow-2xl"
+              className="white-container p-6"
             >
               {/* Invoice header */}
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <div className="text-white/90 font-bold text-lg">Invoice #001</div>
-                  <div className="text-white/50 text-sm">Feb 25, 2026</div>
+                  <div className="text-[var(--foreground)] font-bold text-lg">Invoice #001</div>
+                  <div className="text-[var(--foreground)]/50 text-sm">Feb 25, 2026</div>
                 </div>
                 <div className="px-3 py-1.5 bg-emerald-400/20 border border-emerald-400/30 rounded-full">
-                  <span className="text-emerald-300 text-xs font-bold">PAID</span>
+                  <span className="text-emerald-600 text-xs font-bold">PAID</span>
                 </div>
               </div>
 
@@ -222,18 +208,18 @@ export default function LoginPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 + i * 0.15 }}
-                    className="flex justify-between items-center py-2 border-b border-white/10"
+                    className="flex justify-between items-center py-2 border-b border-[var(--border)]"
                   >
-                    <span className="text-white/70 text-sm">{item.name}</span>
-                    <span className="text-white font-semibold text-sm">{item.amount}</span>
+                    <span className="text-[var(--foreground)]/70 text-sm">{item.name}</span>
+                    <span className="text-[var(--foreground)] font-semibold text-sm">{item.amount}</span>
                   </motion.div>
                 ))}
               </div>
 
               {/* Total */}
               <div className="flex justify-between items-center pt-2">
-                <span className="text-white/60 font-medium">Total</span>
-                <span className="text-white font-bold text-xl">₹44,700</span>
+                <span className="text-[var(--foreground)]/60 font-medium">Total</span>
+                <span className="text-[var(--foreground)] font-bold text-xl">₹44,700</span>
               </div>
             </motion.div>
 
@@ -245,12 +231,12 @@ export default function LoginPage() {
               className="absolute -top-6 -right-4"
             >
               <motion.div
-                animate={{ y: [-3, 3, -3], rotate: [-2, 2, -2] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="bg-white/20 backdrop-blur-lg border border-white/25 rounded-2xl px-4 py-3 shadow-xl"
+                animate={{ y: [-3, 3, -3] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="white-container px-4 py-3"
               >
-                <div className="text-emerald-300 text-xs font-bold mb-0.5">↑ 28%</div>
-                <div className="text-white/50 text-[10px]">Revenue</div>
+                <div className="text-emerald-500 text-xs font-bold mb-0.5">+ 28%</div>
+                <div className="text-[var(--foreground)]/40 text-[10px] uppercase tracking-wider">Revenue</div>
               </motion.div>
             </motion.div>
 
@@ -261,12 +247,12 @@ export default function LoginPage() {
               className="absolute -bottom-4 -left-6"
             >
               <motion.div
-                animate={{ y: [3, -3, 3], rotate: [2, -2, 2] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                className="bg-white/20 backdrop-blur-lg border border-white/25 rounded-2xl px-4 py-3 shadow-xl"
+                animate={{ y: [3, -3, 3] }}
+                transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                className="white-container px-4 py-3"
               >
-                <div className="text-amber-300 text-xs font-bold mb-0.5">152</div>
-                <div className="text-white/50 text-[10px]">Invoices</div>
+                <div className="text-blue-500 text-xs font-bold mb-0.5">152</div>
+                <div className="text-[var(--foreground)]/40 text-[10px] uppercase tracking-wider">Invoices</div>
               </motion.div>
             </motion.div>
           </motion.div>

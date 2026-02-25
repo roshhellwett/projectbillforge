@@ -384,8 +384,8 @@ export default function InvoicesPage() {
 
       {showNewInvoice && (
         <div className="glass-overlay">
-          <div className="glass-heavy glass-modal-panel w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="glass-modal-header">
+          <div className="glass-card glass-modal-panel w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 sm:p-5 md:p-6 border-b border-[var(--border)]/50">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">New Invoice</h2>
               <button onClick={() => setShowNewInvoice(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
                 <X size={20} className="text-[var(--foreground)]/60" />
@@ -461,7 +461,7 @@ export default function InvoicesPage() {
                       value="cash"
                       checked={formData.paymentMode === 'cash'}
                       onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value as "cash" })}
-                      className="w-4 h-4 text-blue-600"
+                      className="w-4 h-4 text-[var(--color-primary)] bg-[var(--background)] border border-[var(--border)] focus:ring-[var(--color-primary)]"
                     />
                     <span className="text-sm text-[var(--foreground)]/70">Cash</span>
                   </label>
@@ -472,7 +472,7 @@ export default function InvoicesPage() {
                       value="upi"
                       checked={formData.paymentMode === 'upi'}
                       onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value as "upi" })}
-                      className="w-4 h-4 text-blue-600"
+                      className="w-4 h-4 text-[var(--color-primary)] bg-[var(--background)] border border-[var(--border)] focus:ring-[var(--color-primary)]"
                     />
                     <span className="text-sm text-[var(--foreground)]/70">UPI/Online</span>
                   </label>
@@ -483,7 +483,7 @@ export default function InvoicesPage() {
                       value="khata"
                       checked={formData.paymentMode === 'khata'}
                       onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value as "khata" })}
-                      className="w-4 h-4 text-blue-600"
+                      className="w-4 h-4 text-[var(--color-primary)] bg-[var(--background)] border border-[var(--border)] focus:ring-[var(--color-primary)]"
                     />
                     <span className="text-sm text-[var(--foreground)]/70">Khata (Credit)</span>
                   </label>
@@ -531,7 +531,7 @@ export default function InvoicesPage() {
                   <button
                     type="button"
                     onClick={addItem}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 min-h-[44px]"
+                    className="px-4 py-2 glass-btn-primary rounded-xl min-h-[44px]"
                   >
                     Add
                   </button>
@@ -540,7 +540,7 @@ export default function InvoicesPage() {
                 {items.length > 0 ? (
                   <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
                     <table className="w-full text-xs sm:text-sm min-w-[500px]">
-                      <thead className="bg-[var(--foreground)]/5">
+                      <thead className="bg-[var(--foreground)]/[0.03] border-b border-[var(--border)]/30 rounded-t-lg">
                         <tr>
                           <th className="px-2 sm:px-3 py-2 text-left">Item</th>
                           <th className="px-2 sm:px-3 py-2 text-right">Qty</th>
@@ -568,7 +568,7 @@ export default function InvoicesPage() {
                               ₹{(item.amount + item.cgst + item.sgst + item.igst).toFixed(2)}
                             </td>
                             <td className="px-2 sm:px-3 py-2">
-                              <button type="button" onClick={() => removeItem(idx)} className="text-red-500 hover:text-red-700 p-1">
+                              <button type="button" onClick={() => removeItem(idx)} className="text-[var(--color-danger)]/80 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 p-1.5 rounded-lg transition-colors">
                                 <X size={16} />
                               </button>
                             </td>
@@ -649,8 +649,8 @@ export default function InvoicesPage() {
 
       {viewInvoice && businessProfile && (
         <div className="glass-overlay">
-          <div className="glass-heavy glass-modal-panel w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="glass-modal-header">
+          <div className="glass-card glass-modal-panel w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 sm:p-5 md:p-6 border-b border-[var(--border)]/50">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">Invoice</h2>
               <div className="flex gap-2">
                 <button
@@ -733,15 +733,15 @@ export default function InvoicesPage() {
 
               {/* Items Table */}
               <table className="w-full mb-6 border-collapse border border-[var(--border)]">
-                <thead className="bg-slate-800 text-white">
+                <thead className="bg-[var(--foreground)]/[0.05]">
                   <tr>
-                    <th className="px-3 py-2 text-left text-sm font-medium border border-[var(--border)]">#</th>
-                    <th className="px-3 py-2 text-left text-sm font-medium border border-[var(--border)]">Item Description</th>
-                    <th className="px-3 py-2 text-right text-sm font-medium border border-[var(--border)]">Qty</th>
-                    <th className="px-3 py-2 text-right text-sm font-medium border border-[var(--border)]">Rate (₹)</th>
-                    <th className="px-3 py-2 text-right text-sm font-medium border border-[var(--border)]">Amount (₹)</th>
-                    <th className="px-3 py-2 text-right text-sm font-medium border border-[var(--border)]">GST (₹)</th>
-                    <th className="px-3 py-2 text-right text-sm font-medium border border-[var(--border)]">Total (₹)</th>
+                    <th className="px-3 py-2 text-left text-sm font-semibold text-[var(--foreground)] border border-[var(--border)]">#</th>
+                    <th className="px-3 py-2 text-left text-sm font-semibold text-[var(--foreground)] border border-[var(--border)]">Item Description</th>
+                    <th className="px-3 py-2 text-right text-sm font-semibold text-[var(--foreground)] border border-[var(--border)]">Qty</th>
+                    <th className="px-3 py-2 text-right text-sm font-semibold text-[var(--foreground)] border border-[var(--border)]">Rate (₹)</th>
+                    <th className="px-3 py-2 text-right text-sm font-semibold text-[var(--foreground)] border border-[var(--border)]">Amount (₹)</th>
+                    <th className="px-3 py-2 text-right text-sm font-semibold text-[var(--foreground)] border border-[var(--border)]">GST (₹)</th>
+                    <th className="px-3 py-2 text-right text-sm font-semibold text-[var(--foreground)] border border-[var(--border)]">Total (₹)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -791,7 +791,7 @@ export default function InvoicesPage() {
 
               {/* Payment Status */}
               <div className="text-center mb-6">
-                <span className={`inline-block px-4 py-1 rounded-full text-sm font-medium ${viewInvoice.paymentStatus === 'unpaid' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'}`}>
+                <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-medium ${viewInvoice.paymentStatus === 'unpaid' ? 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20' : 'bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20'}`}>
                   {viewInvoice.paymentStatus === 'unpaid' ? 'UNPAID' : 'PAID'} - {viewInvoice.paymentMode?.toUpperCase()}
                 </span>
               </div>

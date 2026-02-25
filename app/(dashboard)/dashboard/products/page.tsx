@@ -269,8 +269,8 @@ export default function ProductsPage() {
 
       {showModal && (
         <div className="glass-overlay">
-          <div className="glass-heavy glass-modal-panel max-w-lg">
-            <div className="glass-modal-header">
+          <div className="glass-card glass-modal-panel max-w-lg">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--border)]/50">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">{editingProduct ? "Edit Product" : "Add Product"}</h2>
               <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
                 <X size={20} className="text-[var(--foreground)]/60" />

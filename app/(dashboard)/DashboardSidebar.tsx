@@ -9,6 +9,7 @@ import {
   BookOpen,
   Settings,
   Receipt,
+  Search,
 } from "lucide-react";
 import { SignOutButton } from "./signout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -38,15 +39,29 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
   return (
     <>
       {/* Desktop Sidebar - completely hidden on mobile */}
-      <aside className="hidden md:flex fixed md:static inset-y-0 left-0 z-50 w-[280px] md:w-[270px] lg:w-[280px] glass-sidebar h-full flex flex-col">
+      <aside className="hidden md:flex fixed md:static inset-y-0 left-0 z-50 w-[280px] md:w-[270px] lg:w-[280px] bg-[var(--surface)] border-r border-[var(--border)] shadow-[4px_0_24px_rgba(0,0,0,0.02)] h-full flex flex-col transition-all">
         {/* Logo */}
-        <div className="p-6 flex items-center shrink-0">
-          <div className="flex flex-col">
-            <h1 className="text-xl font-bold tracking-tight gradient-text">BillForge</h1>
-            <p className="text-[9px] font-bold tracking-[0.15em] uppercase text-[var(--foreground)]/40 mt-0.5">
-              Zenith Open Source
-            </p>
+        <div className="p-6 flex flex-col gap-4 shrink-0 border-b border-[var(--border)]/50">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <h1 className="text-xl font-bold tracking-tight text-[var(--foreground)]">BillForge</h1>
+              <p className="text-[9px] font-bold tracking-[0.15em] uppercase text-[var(--foreground)]/40 mt-0.5">
+                Zenith Open Source
+              </p>
+            </div>
           </div>
+          <button
+            onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+            className="flex items-center justify-between w-full px-3 py-2 bg-[var(--background)]/40 hover:bg-[var(--background)]/60 border border-[var(--border)] rounded-lg text-xs text-[var(--foreground)]/60 transition-colors group"
+          >
+            <span className="flex items-center gap-2">
+              <Search size={14} className="opacity-50 group-hover:opacity-100 transition-opacity" />
+              Quick Search...
+            </span>
+            <kbd className="hidden sm:inline-flex items-center gap-1 font-sans text-[10px] px-1.5 py-0.5 rounded shadow-[0_1px_0_rgba(0,0,0,0.1)] bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)]/50">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </button>
         </div>
 
         {/* Nav */}
@@ -61,7 +76,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
                 className={`
                   flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-sm
                   ${isActive
-                    ? 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white shadow-[0_4px_15px_rgba(99,102,241,0.3)]'
+                    ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
                     : 'text-[var(--foreground)]/60 hover:bg-[var(--foreground)]/5 hover:text-[var(--foreground)]'
                   }
                 `}
@@ -71,7 +86,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
                   size={20}
                   isActive={isActive}
                   animationKey={`${item.href}-${pathname}`}
-                  className={isActive ? "text-white" : "text-[var(--foreground)]/40"}
+                  className={isActive ? "text-[var(--color-primary)]" : "text-[var(--foreground)]/40"}
                 />
                 <span>{item.label}</span>
               </Link>
@@ -79,26 +94,25 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
           })}
         </nav>
 
-        {/* User Section */}
+        {/* Support Section */}
         <div className="p-4 shrink-0 mt-auto">
-          <div className="glass-light rounded-2xl p-3 space-y-3">
-            <div className="flex items-center gap-3 px-1">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent-purple)] flex items-center justify-center shadow-sm">
-                <span className="text-white font-bold text-sm">
-                  {session?.user?.name?.[0]?.toUpperCase() || "B"}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[var(--foreground)] truncate">{session?.user?.name}</p>
-                <p className="text-xs text-[var(--foreground)]/40 truncate">{session?.user?.email}</p>
-              </div>
+          <div className="bg-[var(--color-primary)]/5 rounded-2xl p-4 text-center border border-[var(--color-primary)]/10">
+            <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mx-auto mb-3">
+              <BookOpen size={20} />
             </div>
-            <div className="flex items-center gap-2 px-1">
-              <div className="flex-1">
-                <SignOutButton />
-              </div>
-              <ThemeToggle />
-            </div>
+            <h3 className="font-semibold text-sm text-[var(--foreground)] mb-1">Need help?</h3>
+            <p className="text-[10px] text-[var(--foreground)]/50 mb-3 px-1">
+              Do you have any problems while using BillForge?
+            </p>
+            <a href="mailto:zenithopensource@icloud.com" className="block w-full py-2 bg-white dark:bg-slate-800 rounded-lg text-xs font-medium text-[var(--color-primary)] shadow-sm border border-[var(--border)] hover:bg-[var(--background)] transition-colors">
+              Contact Support
+            </a>
+          </div>
+
+          {/* Minimal Auth/Theme Row */}
+          <div className="flex items-center justify-between mt-4 px-2">
+            <SignOutButton />
+            <ThemeToggle />
           </div>
         </div>
 

@@ -3,10 +3,11 @@
 import { usePathname } from "next/navigation";
 import BottomNavigation from "./BottomNavigation";
 import { KeyboardShortcutsHelp } from "@/lib/components/KeyboardShortcuts";
+import { CommandMenu } from "@/lib/components/CommandMenu";
 
 export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  
+
   const getCurrentPage = () => {
     if (pathname.includes("invoices")) return "invoices";
     if (pathname.includes("customers")) return "customers";
@@ -21,6 +22,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       {children}
       <BottomNavigation currentPage={getCurrentPage()} />
       <KeyboardShortcutsHelp />
+      <CommandMenu />
     </>
   );
 }

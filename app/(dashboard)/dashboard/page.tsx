@@ -1,8 +1,9 @@
 import { getSalesSummary, getRecentInvoices, getWeeklySalesData } from "@/lib/actions/invoices";
 import { getLowStockProducts, getProducts } from "@/lib/actions/products";
 import { getCustomers } from "@/lib/actions/customers";
-import { DollarSign, FileText, Users, AlertTriangle, TrendingUp, Package, BarChart3, Clock, ArrowUpRight, ArrowDownRight, ShoppingBag } from "lucide-react";
+import { DollarSign, FileText, Users, AlertTriangle, TrendingUp, Package, BarChart3, Clock, ArrowUpRight, ArrowDownRight, ShoppingBag, Plus } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn, InteractiveItem } from "@/lib/components/MotionWrapper";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   const [salesResult, lowStockResult, customersResult, recentResult, weeklyResult, productsResult] = await Promise.all([
@@ -42,58 +43,87 @@ export default async function DashboardPage() {
       label: "Today's Sales",
       value: `₹${summary.todaySales.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
       icon: TrendingUp,
-      color: "#10b981",
-      bg: "bg-emerald-500/10 dark:bg-emerald-500/15",
+      gradClass: "grad-purple",
     },
     {
       label: "Total Sales",
       value: `₹${summary.totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
       icon: DollarSign,
-      color: "#6366f1",
-      bg: "bg-indigo-500/10 dark:bg-indigo-500/15",
+      gradClass: "grad-blue",
     },
     {
       label: "Total Invoices",
       value: summary.totalInvoices.toString(),
       icon: FileText,
-      color: "#a855f7",
-      bg: "bg-purple-500/10 dark:bg-purple-500/15",
+      gradClass: "white-container border-none shadow-sm",
     },
     {
       label: "Receivables",
       value: `₹${summary.totalReceivable.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
       icon: Users,
-      color: "#f59e0b",
-      bg: "bg-amber-500/10 dark:bg-amber-500/15",
+      gradClass: "grad-pink",
     },
   ];
 
   return (
-    <StaggerContainer className="space-y-5 sm:space-y-6 lg:space-y-8">
-      <FadeIn>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight gradient-text">Dashboard</h1>
-        <p className="text-[var(--foreground)]/50 mt-1 text-sm sm:text-base">Welcome back! Here&apos;s your business overview.</p>
-      </FadeIn>
+    <StaggerContainer className="space-y-6 sm:space-y-8 lg:space-y-10">
+      {/* ── Welcome Banner ── */}
+      <StaggerItem>
+        <div className="white-container p-6 sm:p-8 md:p-10 flex items-center justify-between relative overflow-hidden">
+          <div className="relative z-10 max-w-xl">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[var(--foreground)] tracking-tight">
+              Welcome back to the business
+            </h1>
+            <p className="text-[var(--foreground)]/60 mt-1 text-sm md:text-base">
+              You have {summary.totalInvoices} invoices processed so far.
+            </p>
+            <Link href="/dashboard/invoices" className="mt-5 inline-flex items-center gap-2 px-6 py-2.5 bg-[#60a5fa] text-white text-sm font-medium rounded-full cursor-pointer hover:shadow-lg transition-all">
+              New Invoice
+            </Link>
+          </div>
+          <div className="hidden md:flex shrink-0 opacity-90 relative z-10 mr-10">
+            {/* Learnthru style stacked books illustration placeholder */}
+            <div className="w-32 h-32 bg-[var(--color-primary)]/5 rounded-3xl rotate-12 flex items-center justify-center transform hover:rotate-6 transition-transform duration-500">
+              <FileText size={48} className="text-[var(--color-primary)]/60 -rotate-12" />
+            </div>
+          </div>
+          {/* Very faint background blob inside white container */}
+          <div className="absolute -top-20 -right-10 w-64 h-64 bg-slate-100 dark:bg-slate-800/20 rounded-full blur-3xl pointer-events-none" />
+        </div>
+      </StaggerItem>
 
-      {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 xl:gap-6">
-        {statCards.map((card) => (
-          <StaggerItem key={card.label}>
-            <InteractiveItem>
-              <div className="glass-card p-3 sm:p-4 md:p-5 group cursor-pointer min-h-[70px] sm:min-h-[90px] md:min-h-[100px] flex items-center">
-                <div className="flex items-center gap-2 sm:gap-3 w-full">
-                  <div className={`p-2 sm:p-2.5 rounded-lg sm:rounded-xl ${card.bg} shrink-0 group-hover:scale-110 transition-transform duration-300`}>
-                    <card.icon style={{ color: card.color }} size={16} className="sm:size-20 md:size-22" />
+      {/* ── Stat Cards (Classes equivalent) ── */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold text-[var(--foreground)]/70 tracking-wide uppercase">Overview</h2>
+          <span className="text-[10px] sm:text-xs font-semibold text-[var(--foreground)]/40 hover:text-[var(--color-primary)] cursor-pointer flex items-center gap-1">View All <ArrowUpRight size={14} /></span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+          {statCards.map((card) => {
+            const isGradient = card.gradClass.includes('grad-');
+            return (
+              <StaggerItem key={card.label}>
+                <InteractiveItem>
+                  <div className={`p-5 sm:p-6 group cursor-pointer flex flex-col justify-center rounded-3xl transition-transform hover:-translate-y-1 ${card.gradClass}`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <card.icon size={16} className={isGradient ? 'text-white/90' : 'text-[var(--color-primary)]'} />
+                      <p className={`text-xs font-semibold truncate uppercase tracking-wider ${isGradient ? 'text-white/90' : 'text-[var(--foreground)]/60'}`}>{card.label}</p>
+                    </div>
+                    <p className={`text-2xl sm:text-3xl font-bold tracking-tight truncate ${isGradient ? 'text-white' : 'text-[var(--foreground)]'}`}>{card.value}</p>
+                    <div className="mt-3 flex items-center gap-1.5 opacity-80">
+                      {/* Fake avatars row to look like "Members" in reference */}
+                      <div className="flex -space-x-1.5">
+                        <div className={`w-5 h-5 rounded-full border border-white ${isGradient ? 'bg-white/20' : 'bg-[var(--color-primary)]/10'}`}></div>
+                        <div className={`w-5 h-5 rounded-full border border-white ${isGradient ? 'bg-white/40' : 'bg-[var(--color-primary)]/30'}`}></div>
+                      </div>
+                      <span className={`text-[9px] ${isGradient ? 'text-white' : 'text-[var(--foreground)]/50'}`}>Updated just now</span>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1 overflow-hidden">
-                    <p className="text-[9px] sm:text-xs font-medium text-[var(--foreground)]/50 mb-0.5 truncate">{card.label}</p>
-                    <p className="text-xs sm:text-base md:text-lg lg:text-xl font-bold text-[var(--foreground)] tracking-tight truncate">{card.value}</p>
-                  </div>
-                </div>
-              </div>
-            </InteractiveItem>
-          </StaggerItem>
-        ))}
+                </InteractiveItem>
+              </StaggerItem>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── Sales Trend + Business Snapshot ── */}
@@ -101,11 +131,11 @@ export default async function DashboardPage() {
 
         {/* Sales Trend Chart — 2/3 width */}
         <StaggerItem className="md:col-span-1 xl:col-span-2">
-          <div className="glass-card p-4 sm:p-5 md:p-6 lg:p-7 h-full flex flex-col">
+          <div className="white-container p-5 sm:p-6 md:p-7 lg:p-8 h-full flex flex-col">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div className="flex items-center gap-2 sm:gap-3">
-                <div className="p-2 sm:p-2.5 bg-indigo-500/10 dark:bg-indigo-500/15 rounded-xl">
-                  <BarChart3 style={{ color: '#6366f1' }} size={20} />
+                <div className="p-2 sm:p-2.5 bg-blue-600/10 rounded-xl">
+                  <BarChart3 style={{ color: '#2563eb' }} size={20} />
                 </div>
                 <div>
                   <h2 className="text-sm sm:text-base font-bold tracking-tight text-[var(--foreground)]">Sales Trend</h2>
@@ -143,8 +173,8 @@ export default async function DashboardPage() {
                       {/* Bar */}
                       <div
                         className={`w-full max-w-[28px] sm:max-w-[36px] md:max-w-[48px] rounded-t-lg transition-all duration-700 ease-out ${isToday
-                          ? 'bg-gradient-to-t from-indigo-600 via-indigo-500 to-violet-400 shadow-[0_0_20px_rgba(99,102,241,0.4)]'
-                          : 'bg-gradient-to-t from-indigo-400/40 to-indigo-300/20 dark:from-indigo-400/30 dark:to-indigo-300/10'
+                          ? 'bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]'
+                          : 'bg-blue-600/30'
                           }`}
                         style={{
                           height: `${Math.max(pct, 3)}%`,
@@ -152,7 +182,7 @@ export default async function DashboardPage() {
                         }}
                       />
                       {/* Day label */}
-                      <span className={`text-[9px] sm:text-[11px] font-semibold mt-1 sm:mt-2 ${isToday ? 'text-indigo-500' : 'text-[var(--foreground)]/40'}`}>
+                      <span className={`text-[9px] sm:text-[11px] font-semibold mt-1 sm:mt-2 ${isToday ? 'text-blue-600' : 'text-[var(--foreground)]/40'}`}>
                         {day.label}
                       </span>
                     </div>
@@ -165,16 +195,16 @@ export default async function DashboardPage() {
 
         {/* Business Snapshot — 1/3 width */}
         <StaggerItem>
-          <div className="glass-card p-4 sm:p-5 md:p-6 lg:p-7 h-full flex flex-col">
+          <div className="white-container p-5 sm:p-6 md:p-7 lg:p-8 h-full flex flex-col">
             <h2 className="text-sm sm:text-base font-bold tracking-tight text-[var(--foreground)] mb-3 sm:mb-4">Business Snapshot</h2>
             <div className="space-y-2 sm:space-y-3 flex-1">
               {[
-                { icon: Users, label: "Customers", value: summary.totalCustomers, color: "#6366f1", bg: "bg-indigo-500/10 dark:bg-indigo-500/15" },
-                { icon: Package, label: "Products", value: totalProducts, color: "#a855f7", bg: "bg-purple-500/10 dark:bg-purple-500/15" },
-                { icon: FileText, label: "Invoices", value: summary.totalInvoices, color: "#f59e0b", bg: "bg-amber-500/10 dark:bg-amber-500/15" },
-                { icon: AlertTriangle, label: "Low Stock", value: lowStock.length, color: lowStock.length > 0 ? "#ef4444" : "#10b981", bg: lowStock.length > 0 ? "bg-red-500/10 dark:bg-red-500/15" : "bg-emerald-500/10 dark:bg-emerald-500/15" },
+                { icon: Users, label: "Customers", value: summary.totalCustomers, color: "#2563eb", bg: "bg-blue-600/10" },
+                { icon: Package, label: "Products", value: totalProducts, color: "#6366f1", bg: "bg-indigo-500/10" },
+                { icon: FileText, label: "Invoices", value: summary.totalInvoices, color: "#f59e0b", bg: "bg-amber-500/10" },
+                { icon: AlertTriangle, label: "Low Stock", value: lowStock.length, color: lowStock.length > 0 ? "#ef4444" : "#10b981", bg: lowStock.length > 0 ? "bg-red-500/10" : "bg-emerald-500/10" },
               ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between p-2.5 sm:p-3.5 glass-light rounded-lg sm:rounded-xl">
+                <div key={item.label} className="flex items-center justify-between p-3 sm:p-4 bg-slate-50 dark:bg-slate-800/30 hover:bg-slate-100/80 dark:hover:bg-slate-800/50 transition-colors duration-200 border border-slate-100/50 dark:border-slate-700/30 rounded-xl sm:rounded-2xl">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className={`p-1.5 sm:p-2 ${item.bg} rounded-lg`}>
                       <item.icon size={16} style={{ color: item.color }} />
@@ -193,15 +223,15 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 items-stretch">
         {/* Recent Invoices */}
         <StaggerItem>
-          <div className="glass-card p-4 sm:p-5 md:p-6 lg:p-7 h-full flex flex-col">
+          <div className="white-container p-5 sm:p-6 md:p-7 lg:p-8 h-full flex flex-col">
             <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
-              <div className="p-2 bg-blue-500/10 dark:bg-blue-500/15 rounded-xl">
-                <Clock style={{ color: '#6366f1' }} size={16} />
+              <div className="p-2 bg-blue-600/10 rounded-xl">
+                <Clock style={{ color: '#2563eb' }} size={16} />
               </div>
               <h2 className="text-sm sm:text-base font-bold tracking-tight text-[var(--foreground)]">Recent Invoices</h2>
             </div>
             {recentInvoices.length === 0 ? (
-              <div className="text-center py-8 sm:py-10 md:py-12 glass-light rounded-xl">
+              <div className="text-center py-8 sm:py-10 md:py-12 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-700/30">
                 <ShoppingBag className="mx-auto mb-2 sm:mb-3 text-[var(--foreground)]/20" size={32} />
                 <p className="text-[var(--foreground)]/40 font-medium text-sm">No invoices yet</p>
                 <p className="text-xs text-[var(--foreground)]/25 mt-1">Create your first invoice to see it here</p>
@@ -210,11 +240,11 @@ export default async function DashboardPage() {
               <div className="space-y-2 sm:space-y-2.5">
                 {recentInvoices.map((inv: any) => (
                   <InteractiveItem key={inv.id}>
-                    <div className="flex items-center justify-between p-2.5 sm:p-3.5 glass-light rounded-lg sm:rounded-xl hover:bg-[var(--foreground)]/5 transition-colors cursor-pointer">
+                    <div className="flex items-center justify-between px-3 py-3 sm:px-4 sm:py-4 bg-white dark:bg-[var(--surface)] hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer">
                       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <div className={`p-1.5 sm:p-2 rounded-lg shrink-0 ${inv.paymentStatus === 'paid'
-                          ? 'bg-emerald-500/10 dark:bg-emerald-500/15'
-                          : 'bg-amber-500/10 dark:bg-amber-500/15'
+                          ? 'bg-emerald-500/10'
+                          : 'bg-amber-500/10'
                           }`}>
                           {inv.paymentStatus === 'paid'
                             ? <ArrowDownRight size={16} style={{ color: '#10b981' }} />
@@ -228,7 +258,7 @@ export default async function DashboardPage() {
                       </div>
                       <div className="text-right shrink-0 ml-2 sm:ml-3">
                         <p className="font-bold text-xs sm:text-sm text-[var(--foreground)]">₹{Number(inv.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
-                        <span className={`text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider ${inv.paymentStatus === 'paid' ? 'text-emerald-500' : 'text-amber-500'
+                        <span className={`text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider ${inv.paymentStatus === 'paid' ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]'
                           }`}>{inv.paymentStatus}</span>
                       </div>
                     </div>
@@ -241,10 +271,10 @@ export default async function DashboardPage() {
 
         {/* Top Receivables */}
         <StaggerItem>
-          <div className="glass-card p-4 sm:p-5 md:p-6 lg:p-7 h-full flex flex-col">
+          <div className="white-container p-5 sm:p-6 md:p-7 lg:p-8 h-full flex flex-col">
             <h2 className="text-sm sm:text-base font-bold tracking-tight text-[var(--foreground)] mb-4 sm:mb-5">Top Receivables</h2>
             {topReceivables.length === 0 ? (
-              <div className="text-center py-8 sm:py-10 md:py-12 glass-light rounded-xl">
+              <div className="text-center py-8 sm:py-10 md:py-12 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-700/30">
                 <Users className="mx-auto mb-2 sm:mb-3 text-[var(--foreground)]/20" size={32} />
                 <p className="text-[var(--foreground)]/40 font-medium text-sm">No outstanding balances</p>
               </div>
@@ -252,7 +282,7 @@ export default async function DashboardPage() {
               <div className="space-y-2 sm:space-y-2.5">
                 {topReceivables.map((customer) => (
                   <InteractiveItem key={customer.id}>
-                    <div className="flex items-center justify-between p-2.5 sm:p-3.5 glass-light rounded-lg sm:rounded-xl hover:bg-[var(--foreground)]/5 transition-colors cursor-pointer">
+                    <div className="flex items-center justify-between px-3 py-3 sm:px-4 sm:py-4 bg-white dark:bg-[var(--surface)] hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer">
                       <div>
                         <p className="font-semibold text-[var(--foreground)] text-xs sm:text-sm">{customer.name}</p>
                         <p className="text-[10px] sm:text-xs text-[var(--foreground)]/35">{customer.phone || "No phone"}</p>
@@ -273,14 +303,14 @@ export default async function DashboardPage() {
       <StaggerItem>
         <div className="glass-card p-4 sm:p-5 md:p-7">
           <h2 className="text-base font-bold tracking-tight text-[var(--foreground)] mb-4 flex items-center gap-2.5">
-            <div className="p-2 bg-red-500/10 dark:bg-red-500/15 rounded-xl">
+            <div className="p-2 bg-red-500/10 rounded-xl">
               <AlertTriangle style={{ color: '#ef4444' }} size={17} />
             </div>
             Low Stock Alerts
           </h2>
           {lowStock.length === 0 ? (
             <div className="text-center py-8 glass-light rounded-xl">
-              <p className="text-emerald-500 font-medium text-sm">✓ All products are well stocked</p>
+              <p className="text-[var(--color-success)] font-medium text-sm">✓ All products are well stocked</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

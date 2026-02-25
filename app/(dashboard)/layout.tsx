@@ -18,9 +18,6 @@ export default async function DashboardLayout({
 
   return (
     <div className="h-screen bg-[var(--background)] text-[var(--foreground)] flex overflow-hidden relative">
-      {/* Purple wavy background */}
-      <div className="dashboard-purple-bg" />
-
       <DashboardSidebar session={session} />
       <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 w-full">
         <DashboardTransition>

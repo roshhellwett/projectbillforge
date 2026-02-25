@@ -142,22 +142,22 @@ export default function RegisterPage() {
               <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 sm:space-y-5">
                 <div className="relative">
                   <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type="text" required placeholder="Business name *" value={formData.name} onChange={(e) => update("name", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} />
+                  <input type="text" required placeholder="Business name *" value={formData.name} onChange={(e) => update("name", e.target.value)} className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} />
                 </div>
                 <div className="relative">
                   <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type="email" required placeholder="Email address *" value={formData.email} onChange={(e) => update("email", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} autoComplete="email" />
+                  <input type="email" required placeholder="Email address *" value={formData.email} onChange={(e) => update("email", e.target.value)} className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} autoComplete="email" />
                 </div>
                 <div className="relative">
                   <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type={showPassword ? "text" : "password"} required placeholder="Password *" value={formData.password} onChange={(e) => update("password", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem', paddingRight: '2.75rem' }} autoComplete="new-password" />
+                  <input type={showPassword ? "text" : "password"} required placeholder="Password *" value={formData.password} onChange={(e) => update("password", e.target.value)} className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem', paddingRight: '2.75rem' }} autoComplete="new-password" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50 hover:text-[var(--foreground)]/70 transition-colors">
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
                 <div className="relative">
                   <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type={showPassword ? "text" : "password"} required placeholder="Confirm password *" value={formData.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} autoComplete="new-password" />
+                  <input type={showPassword ? "text" : "password"} required placeholder="Confirm password *" value={formData.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} autoComplete="new-password" />
                 </div>
                 <p className="text-xs text-[var(--foreground)]/35">Min 8 characters with uppercase, lowercase, and a number.</p>
               </motion.div>
@@ -167,19 +167,19 @@ export default function RegisterPage() {
               <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-4 sm:space-y-5">
                 <div className="relative">
                   <Hash size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type="text" placeholder="GSTIN (optional)" value={formData.gstin} onChange={(e) => update("gstin", e.target.value.toUpperCase())} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} />
+                  <input type="text" placeholder="GSTIN (optional)" value={formData.gstin} onChange={(e) => update("gstin", e.target.value.toUpperCase())} className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} />
                 </div>
                 <div className="relative">
                   <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type="tel" placeholder="Phone (optional)" value={formData.phone} onChange={(e) => update("phone", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} />
+                  <input type="tel" placeholder="Phone (optional)" value={formData.phone} onChange={(e) => update("phone", e.target.value)} className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} />
                 </div>
                 <div className="relative">
                   <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
-                  <input type="text" placeholder="Address (optional)" value={formData.address} onChange={(e) => update("address", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} />
+                  <input type="text" placeholder="Address (optional)" value={formData.address} onChange={(e) => update("address", e.target.value)} className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm" style={{ paddingLeft: '2.75rem' }} />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <input type="text" placeholder="State" value={formData.state} onChange={(e) => update("state", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" />
-                  <input type="text" placeholder="Pincode" value={formData.pincode} onChange={(e) => update("pincode", e.target.value)} className="w-full glass-input min-h-[48px] py-3 text-base sm:text-sm" />
+                  <input type="text" placeholder="State" value={formData.state} onChange={(e) => update("state", e.target.value)} className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm" />
+                  <input type="text" placeholder="Pincode" value={formData.pincode} onChange={(e) => update("pincode", e.target.value)} className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm" />
                 </div>
               </motion.div>
             )}
@@ -220,20 +220,11 @@ export default function RegisterPage() {
 
       {/* ─── Right: Animated Illustration ─── */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden items-center justify-center">
-        {/* Rich gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-indigo-600 to-cyan-500" />
+        {/* Rich professional gradient background */}
+        <div className="absolute inset-0 grad-purple opacity-90" />
 
-        {/* Animated blobs */}
-        <motion.div
-          animate={{ x: ["0%", "15%", "-10%", "0%"], y: ["0%", "-15%", "10%", "0%"], scale: [1, 1.1, 0.95, 1] }}
-          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[5%] right-[-5%] w-[55%] h-[55%] rounded-full blur-[80px] bg-purple-400/35"
-        />
-        <motion.div
-          animate={{ x: ["-5%", "10%", "-15%", "-5%"], y: ["5%", "-10%", "15%", "5%"] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-[-5%] left-[0%] w-[45%] h-[45%] rounded-full blur-[80px] bg-teal-400/25"
-        />
+        {/* Subtle radial glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.08)_0%,transparent_70%)] pointer-events-none" />
 
         {/* Grid overlay */}
         <div className="absolute inset-0 opacity-[0.07]" style={{
@@ -252,32 +243,32 @@ export default function RegisterPage() {
             <motion.div
               animate={{ y: [-4, 4, -4] }}
               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-              className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-3xl p-6 shadow-2xl"
+              className="white-container p-6 w-full"
             >
               {/* Mini stats row */}
               <div className="grid grid-cols-3 gap-3 mb-6">
                 {[
-                  { label: "Revenue", value: "₹4.2L", color: "from-emerald-400/30 to-teal-400/20", change: "+18%" },
-                  { label: "Invoices", value: "256", color: "from-indigo-400/30 to-blue-400/20", change: "+12" },
-                  { label: "Customers", value: "89", color: "from-amber-400/30 to-orange-400/20", change: "+7" },
+                  { label: "Revenue", value: "₹4.2L", color: "text-emerald-500", change: "+18%" },
+                  { label: "Invoices", value: "256", color: "text-blue-500", change: "+12" },
+                  { label: "Customers", value: "89", color: "text-amber-500", change: "+7" },
                 ].map((stat, i) => (
                   <motion.div
                     key={stat.label}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 + i * 0.1 }}
-                    className={`bg-gradient-to-br ${stat.color} rounded-2xl p-3 border border-white/10`}
+                    className="bg-slate-50 border border-slate-100 rounded-xl p-3"
                   >
-                    <div className="text-white/50 text-[10px] font-medium">{stat.label}</div>
-                    <div className="text-white font-bold text-lg leading-tight">{stat.value}</div>
-                    <div className="text-emerald-300 text-[10px] font-bold">{stat.change}</div>
+                    <div className="text-[var(--foreground)]/40 text-[10px] mb-1 font-semibold tracking-wider uppercase">{stat.label}</div>
+                    <div className="text-[var(--foreground)] font-bold text-lg leading-tight">{stat.value}</div>
+                    <div className={`${stat.color} text-[10px] font-bold mt-0.5`}>{stat.change}</div>
                   </motion.div>
                 ))}
               </div>
 
               {/* Mini chart */}
               <div className="mb-4">
-                <div className="text-white/50 text-xs font-medium mb-3">Weekly Overview</div>
+                <div className="text-[var(--foreground)]/40 text-[10px] font-semibold tracking-wider uppercase mb-3">Weekly Overview</div>
                 <div className="flex items-end gap-1.5 h-16">
                   {[40, 65, 45, 80, 55, 90, 70].map((h, i) => (
                     <motion.div
@@ -285,33 +276,33 @@ export default function RegisterPage() {
                       initial={{ height: 0 }}
                       animate={{ height: `${h}%` }}
                       transition={{ delay: 0.7 + i * 0.08, duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
-                      className="flex-1 rounded-lg bg-gradient-to-t from-white/30 to-white/10"
+                      className={`flex-1 rounded-t-sm ${i === 6 ? 'bg-blue-600' : 'bg-blue-600/20'}`}
                     />
                   ))}
                 </div>
                 <div className="flex justify-between mt-1.5">
                   {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-                    <span key={i} className="flex-1 text-center text-[9px] text-white/30">{d}</span>
+                    <span key={i} className={`flex-1 text-center text-[9px] font-medium ${i === 6 ? 'text-blue-600 font-bold' : 'text-[var(--foreground)]/30'}`}>{d}</span>
                   ))}
                 </div>
               </div>
 
               {/* Recent activity */}
-              <div className="text-white/50 text-xs font-medium mb-2">Recent Activity</div>
+              <div className="text-[var(--foreground)]/40 text-[10px] font-semibold tracking-wider uppercase mb-2 mt-6">Recent Activity</div>
               {[
-                { text: "Invoice #042 generated", time: "2m ago", dot: "bg-emerald-400" },
-                { text: "Payment received ₹8,400", time: "15m ago", dot: "bg-blue-400" },
+                { text: "Invoice #042 generated", time: "2m ago", dot: "bg-emerald-500" },
+                { text: "Payment received ₹8,400", time: "15m ago", dot: "bg-blue-500" },
               ].map((item, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, x: -15 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 1.2 + i * 0.15 }}
-                  className="flex items-center gap-2.5 py-2 border-b border-white/5 last:border-0"
+                  className="flex items-center gap-2.5 py-2.5 border-b border-slate-100 last:border-0"
                 >
                   <div className={`w-1.5 h-1.5 rounded-full ${item.dot}`} />
-                  <span className="text-white/70 text-xs flex-1">{item.text}</span>
-                  <span className="text-white/30 text-[10px]">{item.time}</span>
+                  <span className="text-[var(--foreground)]/70 text-xs font-medium flex-1">{item.text}</span>
+                  <span className="text-[var(--foreground)]/30 font-medium text-[10px]">{item.time}</span>
                 </motion.div>
               ))}
             </motion.div>
@@ -325,12 +316,17 @@ export default function RegisterPage() {
             className="absolute -top-4 -right-2"
           >
             <motion.div
-              animate={{ y: [-3, 3, -3], rotate: [-2, 2, -2] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="bg-white/20 backdrop-blur-lg border border-white/25 rounded-2xl px-4 py-3 shadow-xl"
+              animate={{ y: [-3, 3, -3] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              className="white-container px-4 py-3 shadow-xl flex items-center gap-3"
             >
-              <div className="text-violet-200 text-xs font-bold mb-0.5">GST Ready</div>
-              <div className="text-white/40 text-[10px]">Auto-calculate</div>
+              <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                <span className="text-indigo-600 font-bold">%</span>
+              </div>
+              <div className="text-left">
+                <div className="text-[var(--foreground)] font-bold text-sm">GST Ready</div>
+                <div className="text-[var(--foreground)]/40 text-xs">Auto-calculate</div>
+              </div>
             </motion.div>
           </motion.div>
 
