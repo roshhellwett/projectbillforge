@@ -5,6 +5,7 @@ import { compare } from "bcryptjs";
 import { db } from "./db";
 import { businesses } from "./schema";
 import { eq } from "drizzle-orm";
+import { getLoginRateLimiter, checkRateLimit } from "./rate-limit";
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -34,6 +35,13 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
+
+        // Rate limit by email
+        const limiter = getLoginRateLimiter();
+        const { success } = await checkRateLimit(limiter, credentials.email.toLowerCase());
+        if (!success) {
+          throw new Error("Too many login attempts. Please try again in a minute.");
+        }
 
         const business = await db.query.businesses.findFirst({
           where: eq(businesses.email, credentials.email.toLowerCase()),
