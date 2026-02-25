@@ -114,7 +114,7 @@ export default function SettingsPage() {
       </FadeIn>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <StaggerItem className="neo-clay p-8">
+        <StaggerItem className="glass-card p-8">
           <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">Business Profile</h2>
 
           {message && (
@@ -142,7 +142,7 @@ export default function SettingsPage() {
                 required
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-5 py-3.5 neo-input text-[var(--foreground)] transition-all font-medium focus:ring-0"
+                className="w-full px-5 py-3.5 glass-input text-[var(--foreground)] transition-all font-medium focus:ring-0"
                 placeholder="+91 9876543210"
               />
             </div>
@@ -152,7 +152,7 @@ export default function SettingsPage() {
               <select
                 value={formData.industryType}
                 onChange={(e) => setFormData({ ...formData, industryType: e.target.value as any })}
-                className="w-full px-5 py-3.5 neo-input text-[var(--foreground)] transition-all font-medium focus:ring-0"
+                className="w-full px-5 py-3.5 glass-input text-[var(--foreground)] transition-all font-medium focus:ring-0"
               >
                 {industryOptions.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -212,14 +212,14 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="px-8 py-3.5 bg-[var(--color-primary)] text-white font-bold rounded-full hover:-translate-y-1 hover:bg-blue-600 disabled:opacity-50 transition-all neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
+              className="px-8 py-3.5 bg-[var(--color-primary)] text-white font-bold rounded-full hover:-translate-y-1 hover:bg-blue-600 disabled:opacity-50 transition-all glass-card shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </StaggerItem>
 
-        <StaggerItem className="neo-clay p-8">
+        <StaggerItem className="glass-card p-8">
           <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2">Default Terms & Conditions</h2>
           <p className="text-sm text-[var(--foreground)]/60 mb-6">These terms will appear at the bottom of your invoices.</p>
 
@@ -232,7 +232,7 @@ export default function SettingsPage() {
           />
         </StaggerItem>
 
-        <StaggerItem className="neo-clay p-8">
+        <StaggerItem className="glass-card p-8">
           <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2">Late Payment Fine Settings</h2>
           <p className="text-sm text-[var(--foreground)]/60 mb-6">Configure automatic fine calculation for overdue Khata payments.</p>
 
@@ -275,7 +275,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="mt-6 p-5 bg-[var(--color-primary)]/10 rounded-2xl border-l-4 border-[var(--color-primary)] neo-soft">
+          <div className="mt-6 p-5 bg-[var(--color-primary)]/10 rounded-2xl border-l-4 border-[var(--color-primary)] glass-card">
             <p className="text-sm font-medium text-[var(--foreground)]/80">
               <span className="font-bold text-[var(--color-primary)] mr-2">Example:</span> With {formData.redemptionPeriodDays} days grace, {formData.finePercentage}% per {formData.fineFrequencyDays} days -
               A ₹10,000 invoice overdue by 44 days would incur: ₹{Math.round(10000 * (formData.finePercentage / 100) * Math.floor((44 - formData.redemptionPeriodDays) / formData.fineFrequencyDays) * 100) / 100} in fines.
@@ -283,7 +283,7 @@ export default function SettingsPage() {
           </div>
         </StaggerItem>
 
-        <StaggerItem className="neo-clay p-8 border border-[var(--color-danger)]/10">
+        <StaggerItem className="glass-card p-8 border border-[var(--color-danger)]/10">
           <h2 className="text-xl font-bold text-[var(--color-danger)] mb-2">Danger Zone</h2>
           <p className="text-sm font-medium text-[var(--foreground)]/60 mb-6">
             This will permanently delete all invoices, transactions, and reset all customer Khata balances to zero.
@@ -301,14 +301,14 @@ export default function SettingsPage() {
 
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+          <div className="glass-heavy w-full max-w-md p-6">
             <h2 className="text-lg font-semibold text-red-600 mb-2">Reset All Khata Data</h2>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="text-sm text-[var(--foreground)]/60 mb-4">
               This will permanently delete ALL invoices and transactions, and reset ALL customer balances to zero.
               Your business profile will be preserved. This cannot be undone.
             </p>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">
                 Enter your password to confirm
               </label>
               <input
@@ -318,7 +318,7 @@ export default function SettingsPage() {
                   setResetPassword(e.target.value);
                   setResetError("");
                 }}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full glass-input"
                 placeholder="Your login password"
               />
               {resetError && <p className="text-sm text-red-600 mt-1">{resetError}</p>}
@@ -331,7 +331,7 @@ export default function SettingsPage() {
                   setResetPassword("");
                   setResetError("");
                 }}
-                className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50"
+                className="glass-btn-secondary flex-1"
               >
                 Cancel
               </button>

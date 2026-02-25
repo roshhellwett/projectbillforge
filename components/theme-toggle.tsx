@@ -15,7 +15,7 @@ export function ThemeToggle() {
 
     if (!mounted) {
         return (
-            <div className="w-[84px] h-[40px] rounded-full bg-[var(--card)] neo-soft opacity-50 relative pointer-events-none">
+            <div className="w-[84px] h-[40px] rounded-full bg-[var(--card)] glass-card opacity-50 relative pointer-events-none">
                 <div className="absolute top-1 bottom-1 w-[32px] rounded-full bg-gray-300"></div>
             </div>
         );

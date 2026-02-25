@@ -188,14 +188,14 @@ export default function ProductsPage() {
         </div>
         <button
           onClick={openModal}
-          className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-full hover:-translate-y-1 transition-all neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
+          className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-full hover:-translate-y-1 transition-all glass-card shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
         >
           <Plus size={20} />
           Add Product
         </button>
       </FadeIn>
 
-      <StaggerItem className="neo-clay overflow-hidden">
+      <StaggerItem className="glass-card overflow-hidden">
         <div className="p-4 md:p-6 border-b border-[var(--border)]/50">
           <div className="relative max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" size={20} />
@@ -204,7 +204,7 @@ export default function ProductsPage() {
               placeholder="Search products..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 neo-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
+              className="w-full pl-12 pr-4 py-3 glass-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
             />
           </div>
         </div>
@@ -267,131 +267,73 @@ export default function ProductsPage() {
       </StaggerItem>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200">
-              <h2 className="text-lg font-semibold">{editingProduct ? "Edit Product" : "Add Product"}</h2>
-              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="Close">
-                <X size={20} />
+        <div className="glass-overlay">
+          <div className="glass-heavy w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">{editingProduct ? "Edit Product" : "Add Product"}</h2>
+              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
+                <X size={20} className="text-[var(--foreground)]/60" />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-4 space-y-4">
-              {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
+              {error && <div className="p-3 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-xl text-sm font-medium border border-[var(--color-danger)]/20">{error}</div>}
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Product Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Product Name *</label>
+                <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full glass-input" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">SKU</label>
-                  <input
-                    type="text"
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">SKU</label>
+                  <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} className="w-full glass-input" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">HSN Code</label>
-                  <input
-                    type="text"
-                    value={formData.hsnCode}
-                    onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">HSN Code</label>
+                  <input type="text" value={formData.hsnCode} onChange={(e) => setFormData({ ...formData, hsnCode: e.target.value })} className="w-full glass-input" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Unit</label>
-                  <select
-                    value={formData.unit}
-                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Unit</label>
+                  <select value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} className="w-full glass-input">
                     {getDefaultUnits(industryType).map((u: string) => <option key={u} value={u}>{u}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Rate (₹) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    required
-                    value={formData.rate}
-                    onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Rate (₹) *</label>
+                  <input type="number" step="0.01" min="0" required value={formData.rate} onChange={(e) => setFormData({ ...formData, rate: e.target.value })} className="w-full glass-input" />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">GST Rate (%)</label>
-                  <select
-                    value={formData.gstRate}
-                    onChange={(e) => setFormData({ ...formData, gstRate: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">GST Rate (%)</label>
+                  <select value={formData.gstRate} onChange={(e) => setFormData({ ...formData, gstRate: e.target.value })} className="w-full glass-input">
                     {gstRates.map(r => <option key={r} value={r}>{r}%</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Initial Stock</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={formData.stockQuantity}
-                    onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Initial Stock</label>
+                  <input type="number" min="0" step="any" value={formData.stockQuantity} onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })} className="w-full glass-input" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Low Stock Threshold</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="any"
-                  value={formData.lowStockThreshold}
-                  onChange={(e) => setFormData({ ...formData, lowStockThreshold: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Low Stock Threshold</label>
+                <input type="number" min="0" step="any" value={formData.lowStockThreshold} onChange={(e) => setFormData({ ...formData, lowStockThreshold: e.target.value })} className="w-full glass-input" />
               </div>
 
               {industryType === "mobile" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">IMEI Number</label>
-                    <input
-                      type="text"
-                      value={metadata.imei || ""}
-                      onChange={(e) => setMetadata({ ...metadata, imei: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="15 digit IMEI"
-                    />
+                    <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">IMEI Number</label>
+                    <input type="text" value={metadata.imei || ""} onChange={(e) => setMetadata({ ...metadata, imei: e.target.value })} className="w-full glass-input" placeholder="15 digit IMEI" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Color/Variant</label>
-                    <input
-                      type="text"
-                      value={metadata.color || ""}
-                      onChange={(e) => setMetadata({ ...metadata, color: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="e.g., Black, 128GB"
-                    />
+                    <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Color/Variant</label>
+                    <input type="text" value={metadata.color || ""} onChange={(e) => setMetadata({ ...metadata, color: e.target.value })} className="w-full glass-input" placeholder="e.g., Black, 128GB" />
                   </div>
                 </div>
               )}
@@ -399,54 +341,26 @@ export default function ProductsPage() {
               {industryType === "pharmacy" && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Batch Number *</label>
-                    <input
-                      type="text"
-                      required
-                      value={metadata.batchNumber || ""}
-                      onChange={(e) => setMetadata({ ...metadata, batchNumber: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Batch Number *</label>
+                    <input type="text" required value={metadata.batchNumber || ""} onChange={(e) => setMetadata({ ...metadata, batchNumber: e.target.value })} className="w-full glass-input" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Expiry Date *</label>
-                    <input
-                      type="date"
-                      required
-                      value={metadata.expiryDate || ""}
-                      onChange={(e) => setMetadata({ ...metadata, expiryDate: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Expiry Date *</label>
+                    <input type="date" required value={metadata.expiryDate || ""} onChange={(e) => setMetadata({ ...metadata, expiryDate: e.target.value })} className="w-full glass-input" />
                   </div>
                 </div>
               )}
 
               {industryType === "custom" && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Custom Label</label>
-                  <input
-                    type="text"
-                    value={metadata.customLabel || ""}
-                    onChange={(e) => setMetadata({ ...metadata, customLabel: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., Brand, Size, Color"
-                  />
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Custom Label</label>
+                  <input type="text" value={metadata.customLabel || ""} onChange={(e) => setMetadata({ ...metadata, customLabel: e.target.value })} className="w-full glass-input" placeholder="e.g., Brand, Size, Color" />
                 </div>
               )}
 
-              <div className="flex gap-4 pt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-3 bg-[var(--foreground)]/5 text-[var(--foreground)] rounded-full font-medium hover:bg-[var(--foreground)]/10 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 px-4 py-3 bg-[var(--color-primary)] text-white rounded-full font-bold hover:bg-blue-600 hover:-translate-y-1 neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)] disabled:opacity-50 transition-all"
-                >
+              <div className="flex gap-3 pt-4">
+                <button type="button" onClick={() => setShowModal(false)} className="glass-btn-secondary flex-1">Cancel</button>
+                <button type="submit" disabled={saving} className="glass-btn-primary flex-1">
                   {saving ? "Saving..." : editingProduct ? "Update Product" : "Create Product"}
                 </button>
               </div>

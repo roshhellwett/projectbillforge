@@ -16,11 +16,14 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="h-screen bg-[var(--background)] text-[var(--foreground)] flex overflow-hidden">
+    <div className="h-screen bg-[var(--background)] text-[var(--foreground)] flex overflow-hidden relative">
+      {/* Gradient mesh background */}
+      <div className="gradient-mesh" />
+
       <DashboardSidebar session={session} />
-      <main className="flex-1 overflow-y-auto relative">
+      <main className="flex-1 overflow-y-auto relative z-10">
         <DashboardTransition>
-          <div className="p-4 md:p-8 min-h-full flex flex-col">
+          <div className="p-4 pt-16 md:p-8 md:pt-8 min-h-full flex flex-col">
             {children}
           </div>
         </DashboardTransition>

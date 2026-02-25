@@ -183,7 +183,7 @@ export default function KhataPage() {
         </div>
       </FadeIn>
 
-      <StaggerItem className="neo-clay p-6 overflow-hidden">
+      <StaggerItem className="glass-card p-6 overflow-hidden">
         <label className="block text-sm font-semibold text-[var(--foreground)]/80 mb-4">Select Customer</label>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" size={18} />
@@ -192,7 +192,7 @@ export default function KhataPage() {
             placeholder="Search customers..."
             value={customerSearch}
             onChange={(e) => setCustomerSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 neo-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
+            className="w-full pl-12 pr-4 py-3.5 glass-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
           />
         </div>
         <div className="mt-4 max-h-60 overflow-y-auto border border-[var(--border)] rounded-xl">
@@ -200,7 +200,7 @@ export default function KhataPage() {
             .filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
               (c.phone && c.phone.includes(customerSearch)))
             .length === 0 ? (
-            <div className="p-3 text-sm text-slate-500 text-center">No customers found</div>
+            <div className="p-3 text-sm text-[var(--foreground)]/50 text-center">No customers found</div>
           ) : (
             customers
               .filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
@@ -210,13 +210,13 @@ export default function KhataPage() {
                   key={c.id}
                   type="button"
                   onClick={() => handleCustomerSelect(c.id)}
-                  className={`w-full text-left px-4 py-3 border-b border-slate-100 last:border-0 cursor-pointer transition-all hover:bg-blue-50 hover:shadow-sm ${selectedCustomer === c.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                  className={`w-full text-left px-4 py-3 border-b border-[var(--border)] last:border-0 cursor-pointer transition-all hover:bg-[var(--color-primary)]/10 hover:shadow-sm ${selectedCustomer === c.id ? 'bg-[var(--color-primary)]/10 border-l-4 border-l-blue-500' : ''
                     }`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium text-slate-900">{c.name}</div>
-                      <div className="text-sm text-slate-500">
+                      <div className="font-medium text-[var(--foreground)]">{c.name}</div>
+                      <div className="text-sm text-[var(--foreground)]/50">
                         {c.phone || 'No phone'}
                       </div>
                     </div>
@@ -224,7 +224,7 @@ export default function KhataPage() {
                       <div className={`text-sm font-semibold ${safeNum(c.currentBalance) > 0 ? 'text-orange-600' : safeNum(c.currentBalance) < 0 ? 'text-blue-600' : 'text-green-600'}`}>
                         {safeNum(c.currentBalance) < 0 ? '-' : ''}₹{fmt(c.currentBalance)}
                       </div>
-                      <div className="text-xs text-slate-400">Balance</div>
+                      <div className="text-xs text-[var(--foreground)]/40">Balance</div>
                     </div>
                   </div>
                 </button>
@@ -244,7 +244,7 @@ export default function KhataPage() {
             </button>
             <button
               onClick={() => { setError(""); setShowModal(true); }}
-              className="flex items-center gap-2 px-6 py-3 bg-[var(--color-primary)] text-white font-bold rounded-full hover:-translate-y-1 transition-all neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
+              className="flex items-center gap-2 px-6 py-3 bg-[var(--color-primary)] text-white font-bold rounded-full hover:-translate-y-1 transition-all glass-card shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
             >
               <Plus size={20} />
               Add Transaction
@@ -252,15 +252,15 @@ export default function KhataPage() {
           </div>
 
           <StaggerItem className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="neo-clay p-6 hover:-translate-y-1 transition-all">
+            <div className="glass-card p-6 hover:-translate-y-1 transition-all">
               <p className="text-sm font-semibold text-[var(--foreground)]/60 mb-1">Customer Name</p>
               <p className="text-2xl font-bold text-[var(--foreground)] tracking-tight">{customer.name}</p>
             </div>
-            <div className="neo-clay p-6 hover:-translate-y-1 transition-all">
+            <div className="glass-card p-6 hover:-translate-y-1 transition-all">
               <p className="text-sm font-semibold text-[var(--foreground)]/60 mb-1">Phone</p>
               <p className="text-2xl font-bold text-[var(--foreground)] tracking-tight">{customer.phone || "-"}</p>
             </div>
-            <div className="neo-clay p-6 hover:-translate-y-1 transition-all">
+            <div className="glass-card p-6 hover:-translate-y-1 transition-all">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-[var(--foreground)]/60">Total Owed (Due)</p>
@@ -280,13 +280,13 @@ export default function KhataPage() {
             </div>
             {(customer.creditLimit ?? 0) > 0 && (
               <>
-                <div className="neo-clay p-6 hover:-translate-y-1 transition-all">
+                <div className="glass-card p-6 hover:-translate-y-1 transition-all">
                   <p className="text-sm font-semibold text-[var(--foreground)]/60 mb-1">Credit Limit</p>
                   <p className="text-2xl font-bold text-[var(--foreground)] tracking-tight">
                     ₹{fmt(customer.creditLimit)}
                   </p>
                 </div>
-                <div className="neo-clay p-6 bg-[var(--color-success)]/5 border border-[var(--color-success)]/10 hover:-translate-y-1 transition-all">
+                <div className="glass-card p-6 bg-[var(--color-success)]/5 border border-[var(--color-success)]/10 hover:-translate-y-1 transition-all">
                   <p className="text-sm font-semibold text-[var(--color-success)] mb-1">Available Credit</p>
                   <p className="text-2xl font-bold text-[var(--color-success)] tracking-tight">
                     ₹{fmt(Math.max(0, safeNum(customer.creditLimit) - safeNum(customer.currentBalance)))}
@@ -304,7 +304,7 @@ export default function KhataPage() {
             )}
           </StaggerItem>
 
-          <StaggerItem className="neo-clay overflow-hidden mt-6">
+          <StaggerItem className="glass-card overflow-hidden mt-6">
             <div className="p-6 border-b border-[var(--border)]/50">
               <h2 className="font-bold text-[var(--foreground)] text-xl">Transaction History</h2>
             </div>
@@ -405,10 +405,10 @@ export default function KhataPage() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-md">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200">
+          <div className="glass-heavy w-full max-w-md">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
               <h2 className="text-lg font-semibold">Add Transaction</h2>
-              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="Close">
+              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-[var(--foreground)]/5 rounded-lg" aria-label="Close">
                 <X size={20} />
               </button>
             </div>
@@ -416,19 +416,19 @@ export default function KhataPage() {
               {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Transaction Type</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-2">Transaction Type</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: "credit" })}
-                    className={`flex-1 py-2 rounded-xl border-2 ${formData.type === 'credit' ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-slate-200'}`}
+                    className={`flex-1 py-2 rounded-xl border-2 ${formData.type === 'credit' ? 'border-orange-500 bg-orange-500/10 text-orange-700' : 'border-[var(--border)]'}`}
                   >
                     Sale (Add to Khata)
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: "debit" })}
-                    className={`flex-1 py-2 rounded-xl border-2 ${formData.type === 'debit' ? 'border-green-500 bg-green-50 text-green-700' : 'border-slate-200'}`}
+                    className={`flex-1 py-2 rounded-xl border-2 ${formData.type === 'debit' ? 'border-green-500 bg-green-500/10 text-green-700' : 'border-[var(--border)]'}`}
                   >
                     Payment Received
                   </button>
@@ -436,7 +436,7 @@ export default function KhataPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Amount (₹)</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Amount (₹)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -444,17 +444,17 @@ export default function KhataPage() {
                   required
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full glass-input"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Note (Optional)</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Note (Optional)</label>
                 <input
                   type="text"
                   value={formData.note}
                   onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full glass-input"
                   placeholder="e.g., Cash payment, Partial payment"
                 />
               </div>
@@ -463,7 +463,7 @@ export default function KhataPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50"
+                  className="glass-btn-secondary flex-1"
                 >
                   Cancel
                 </button>
@@ -490,17 +490,17 @@ export default function KhataPage() {
 
       {showPaymentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-md">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200">
+          <div className="glass-heavy w-full max-w-md">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
               <h2 className="text-lg font-semibold">Record Payment</h2>
-              <button onClick={() => setShowPaymentModal(false)} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="Close">
+              <button onClick={() => setShowPaymentModal(false)} className="p-1 hover:bg-[var(--foreground)]/5 rounded-lg" aria-label="Close">
                 <X size={20} />
               </button>
             </div>
             <form onSubmit={handlePaymentSubmit} className="p-4 space-y-4">
               {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
 
-              <div className="bg-green-50 p-4 rounded-xl">
+              <div className="bg-green-500/10 p-4 rounded-xl">
                 <p className="text-sm text-green-700">
                   Recording payment for <strong>{customer?.name}</strong>
                 </p>
@@ -510,7 +510,7 @@ export default function KhataPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Payment Amount (₹)</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Payment Amount (₹)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -518,7 +518,7 @@ export default function KhataPage() {
                   required
                   value={paymentData.amount}
                   onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full glass-input"
                   placeholder="0.00"
                 />
                 <div className="flex gap-2 mt-2">
@@ -540,11 +540,11 @@ export default function KhataPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Payment Method</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Payment Method</label>
                 <select
                   value={paymentData.method}
                   onChange={(e) => setPaymentData({ ...paymentData, method: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full glass-input"
                 >
                   <option value="cash">Cash</option>
                   <option value="upi">UPI</option>
@@ -554,12 +554,12 @@ export default function KhataPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Note (Optional)</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Note (Optional)</label>
                 <input
                   type="text"
                   value={paymentData.note}
                   onChange={(e) => setPaymentData({ ...paymentData, note: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full glass-input"
                   placeholder="e.g., Cash received, UPI payment"
                 />
               </div>
@@ -568,7 +568,7 @@ export default function KhataPage() {
                 <button
                   type="button"
                   onClick={() => setShowPaymentModal(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50"
+                  className="glass-btn-secondary flex-1"
                 >
                   Cancel
                 </button>

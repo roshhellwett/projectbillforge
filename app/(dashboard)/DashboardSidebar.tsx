@@ -11,7 +11,8 @@ import {
   Settings,
   Menu,
   X,
-  Receipt
+  Receipt,
+  LogOut,
 } from "lucide-react";
 import { SignOutButton } from "./signout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -33,7 +34,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/invoices", label: "Invoices", icon: Receipt },
-    { href: "/dashboard/customers", label: "Customers (Khata)", icon: Users },
+    { href: "/dashboard/customers", label: "Customers", icon: Users },
     { href: "/dashboard/products", label: "Products", icon: Package },
     { href: "/dashboard/khata", label: "Khata Ledger", icon: BookOpen },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
@@ -41,34 +42,49 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
 
   return (
     <>
+      {/* ── Mobile Hamburger Trigger (fixed top-left) ── */}
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="fixed top-4 left-4 z-40 md:hidden p-2.5 glass-card rounded-xl"
+        aria-label="Open menu"
+      >
+        <Menu size={20} className="text-[var(--foreground)]" />
+      </button>
+
+      {/* ── Mobile Overlay ── */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
+      {/* ── Sidebar ── */}
       <aside className={`
         fixed md:static inset-y-0 left-0 z-50
-        w-64 bg-[var(--card)] border-r border-[var(--border)]
+        w-[270px] glass-sidebar
         transform transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        h-full flex flex-col pt-4
+        h-full flex flex-col
       `}>
-        <div className="p-6 flex items-center justify-between shrink-0 mb-4">
-          <div className="flex flex-col justify-center">
-            <h1 className="text-2xl font-bold tracking-tight text-[var(--foreground)]">BillForge</h1>
-            <p className="text-[10px] font-bold tracking-wider uppercase text-[var(--color-primary)] mt-1 opacity-80">Zenith Open Source Projects</p>
+        {/* Logo */}
+        <div className="p-6 flex items-center justify-between shrink-0">
+          <div className="flex flex-col">
+            <h1 className="text-xl font-bold tracking-tight gradient-text">BillForge</h1>
+            <p className="text-[9px] font-bold tracking-[0.15em] uppercase text-[var(--foreground)]/40 mt-0.5">
+              Zenith Open Source
+            </p>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="md:hidden p-1 hover:bg-[var(--foreground)]/10 rounded-lg text-[var(--foreground)]/70"
+            className="md:hidden p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg text-[var(--foreground)]/60 transition-colors"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
+        {/* Nav */}
+        <nav className="px-4 space-y-1 flex-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href ||
               (item.href !== '/dashboard' && pathname.startsWith(item.href));
@@ -78,19 +94,19 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
                 className={`
-                  flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all duration-300 ease-out font-medium
+                  flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-sm
                   ${isActive
-                    ? 'bg-[var(--color-primary)] text-white neo-soft shadow-[0_5px_15px_rgba(59,130,246,0.3)] transform translate-x-2'
-                    : 'text-[var(--foreground)]/70 hover:bg-[var(--foreground)]/5 hover:text-[var(--foreground)] hover:translate-x-1'
+                    ? 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-white shadow-[0_4px_15px_rgba(99,102,241,0.3)]'
+                    : 'text-[var(--foreground)]/60 hover:bg-[var(--foreground)]/5 hover:text-[var(--foreground)]'
                   }
                 `}
               >
                 <FloatingIcon
                   icon={item.icon}
-                  size={22}
+                  size={20}
                   isActive={isActive}
                   animationKey={`${item.href}-${pathname}`}
-                  className={isActive ? "text-white" : "text-[var(--foreground)]/50"}
+                  className={isActive ? "text-white" : "text-[var(--foreground)]/40"}
                 />
                 <span>{item.label}</span>
               </Link>
@@ -98,20 +114,21 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
           })}
         </nav>
 
+        {/* User Section */}
         <div className="p-4 shrink-0 mt-auto">
-          <div className="bg-[var(--foreground)]/5 rounded-[2rem] p-2 flex flex-col gap-2">
-            <div className="flex items-center gap-3 px-3 py-2">
-              <div className="w-10 h-10 bg-white dark:bg-[var(--card)] rounded-full flex items-center justify-center neo-soft shadow-sm">
-                <span className="text-[var(--color-primary)] font-bold text-sm">
+          <div className="glass-light rounded-2xl p-3 space-y-3">
+            <div className="flex items-center gap-3 px-1">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent-purple)] flex items-center justify-center shadow-sm">
+                <span className="text-white font-bold text-sm">
                   {session?.user?.name?.[0]?.toUpperCase() || "B"}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-[var(--foreground)] truncate">{session?.user?.name}</p>
-                <p className="text-xs text-[var(--foreground)]/60 truncate font-medium">{session?.user?.email}</p>
+                <p className="text-sm font-semibold text-[var(--foreground)] truncate">{session?.user?.name}</p>
+                <p className="text-xs text-[var(--foreground)]/40 truncate">{session?.user?.email}</p>
               </div>
             </div>
-            <div className="px-2 pb-2 flex items-center gap-2">
+            <div className="flex items-center gap-2 px-1">
               <div className="flex-1">
                 <SignOutButton />
               </div>

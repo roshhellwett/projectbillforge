@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "@/lib/actions/customers";
 import { recalculateCustomerBalance } from "@/lib/actions/khata";
 import { ConfirmDialog, SkeletonCard } from "@/lib/components/ui";
-import { Plus, Search, X, RefreshCw, Trash2, Edit2, Phone, Mail, MapPin, Pencil } from "lucide-react";
+import { Plus, Search, X, RefreshCw, Trash2, Edit2, Phone, Mail, MapPin } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
 // NaN-safe currency formatter
@@ -169,7 +169,7 @@ export default function CustomersPage() {
         </div>
         <button
           onClick={openModal}
-          className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-full hover:-translate-y-1 transition-all neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
+          className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-full hover:-translate-y-1 transition-all glass-card shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
         >
           <Plus size={20} />
           Add Customer
@@ -185,7 +185,7 @@ export default function CustomersPage() {
         </div>
       )}
 
-      <StaggerItem className="neo-clay overflow-hidden">
+      <StaggerItem className="glass-card overflow-hidden">
         <div className="p-4 md:p-6 border-b border-[var(--border)]/50">
           <div className="relative max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" size={20} />
@@ -194,7 +194,7 @@ export default function CustomersPage() {
               placeholder="Search customers..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 neo-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
+              className="w-full pl-12 pr-4 py-3 glass-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
             />
           </div>
         </div>
@@ -281,94 +281,94 @@ export default function CustomersPage() {
       </StaggerItem>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200">
-              <h2 className="text-lg font-semibold">{editingCustomer ? "Edit Customer" : "Add Customer"}</h2>
-              <button onClick={() => setShowModal(false)} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="Close">
-                <X size={20} />
+        <div className="glass-overlay">
+          <div className="glass-heavy w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">{editingCustomer ? "Edit Customer" : "Add Customer"}</h2>
+              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
+                <X size={20} className="text-[var(--foreground)]/60" />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-4 space-y-4">
-              {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
+              {error && <div className="p-3 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-xl text-sm font-medium border border-[var(--color-danger)]/20">{error}</div>}
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Customer Name *</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Customer Name *</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full glass-input"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Phone</label>
                   <input
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full glass-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Email</label>
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full glass-input"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">GSTIN</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">GSTIN</label>
                 <input
                   type="text"
                   value={formData.gstin}
                   onChange={(e) => setFormData({ ...formData, gstin: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full glass-input"
                   placeholder="27AABCU9603R1ZM"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Address</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Address</label>
                 <textarea
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full glass-input"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Credit Limit (₹)</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Credit Limit (₹)</label>
                 <input
                   type="number"
                   min="0"
                   step="0.01"
                   value={formData.creditLimit}
                   onChange={(e) => setFormData({ ...formData, creditLimit: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full glass-input"
                 />
               </div>
 
-              <div className="flex gap-4 pt-6">
+              <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-3 bg-[var(--foreground)]/5 text-[var(--foreground)] rounded-full font-medium hover:bg-[var(--foreground)]/10 transition-colors"
+                  className="glass-btn-secondary flex-1"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-3 bg-[var(--color-primary)] text-white rounded-full font-bold hover:bg-blue-600 hover:-translate-y-1 neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)] disabled:opacity-50 transition-all"
+                  className="glass-btn-primary flex-1"
                 >
                   {saving ? "Saving..." : editingCustomer ? "Update Customer" : "Create Customer"}
                 </button>

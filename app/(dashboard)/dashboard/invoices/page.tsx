@@ -292,14 +292,14 @@ export default function InvoicesPage() {
         </div>
         <button
           onClick={() => { setError(""); setShowNewInvoice(true); }}
-          className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-full hover:-translate-y-1 transition-all neo-soft shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
+          className="flex items-center gap-2 px-5 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-full hover:-translate-y-1 transition-all glass-card shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
         >
           <Plus size={20} />
           New Invoice
         </button>
       </FadeIn>
 
-      <StaggerItem className="neo-clay overflow-hidden">
+      <StaggerItem className="glass-card overflow-hidden">
         <div className="p-4 md:p-6 border-b border-[var(--border)]/50">
           <div className="relative max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" size={20} />
@@ -308,7 +308,7 @@ export default function InvoicesPage() {
               placeholder="Search invoices..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 neo-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
+              className="w-full pl-12 pr-4 py-3 glass-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
             />
           </div>
         </div>
@@ -382,10 +382,10 @@ export default function InvoicesPage() {
 
       {showNewInvoice && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 sticky top-0 bg-white">
+          <div className="glass-heavy w-full max-w-4xl max-h-[95vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border)] sticky top-0 glass-heavy">
               <h2 className="text-lg font-semibold">New Invoice</h2>
-              <button onClick={() => setShowNewInvoice(false)} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="Close">
+              <button onClick={() => setShowNewInvoice(false)} className="p-1 hover:bg-[var(--foreground)]/5 rounded-lg" aria-label="Close">
                 <X size={20} />
               </button>
             </div>
@@ -395,11 +395,11 @@ export default function InvoicesPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Customer</label>
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Customer</label>
                   <select
                     value={formData.customerId}
                     onChange={(e) => handleCustomerChange(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full glass-input"
                   >
                     <option value="">Select Customer (Optional)</option>
                     {customers.map(c => (
@@ -408,32 +408,32 @@ export default function InvoicesPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Customer Name *</label>
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Customer Name *</label>
                   <input
                     type="text"
                     required
                     value={formData.customerName}
                     onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full glass-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">GSTIN</label>
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">GSTIN</label>
                   <input
                     type="text"
                     value={formData.customerGstin}
                     onChange={(e) => setFormData({ ...formData, customerGstin: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full glass-input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Invoice Date</label>
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Invoice Date</label>
                   <input
                     type="date"
                     required
                     value={formData.invoiceDate}
                     onChange={(e) => setFormData({ ...formData, invoiceDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full glass-input"
                   />
                 </div>
               </div>
@@ -446,11 +446,11 @@ export default function InvoicesPage() {
                   onChange={(e) => handleInterStateToggle(e.target.checked)}
                   className="w-4 h-4"
                 />
-                <label htmlFor="isInterState" className="text-sm text-slate-700">Inter-State (IGST instead of CGST+SGST)</label>
+                <label htmlFor="isInterState" className="text-sm text-[var(--foreground)]/70">Inter-State (IGST instead of CGST+SGST)</label>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Payment Mode</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-2">Payment Mode</label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -461,7 +461,7 @@ export default function InvoicesPage() {
                       onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value as "cash" })}
                       className="w-4 h-4 text-blue-600"
                     />
-                    <span className="text-sm text-slate-700">Cash</span>
+                    <span className="text-sm text-[var(--foreground)]/70">Cash</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -472,7 +472,7 @@ export default function InvoicesPage() {
                       onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value as "upi" })}
                       className="w-4 h-4 text-blue-600"
                     />
-                    <span className="text-sm text-slate-700">UPI/Online</span>
+                    <span className="text-sm text-[var(--foreground)]/70">UPI/Online</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -483,19 +483,19 @@ export default function InvoicesPage() {
                       onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value as "khata" })}
                       className="w-4 h-4 text-blue-600"
                     />
-                    <span className="text-sm text-slate-700">Khata (Credit)</span>
+                    <span className="text-sm text-[var(--foreground)]/70">Khata (Credit)</span>
                   </label>
                 </div>
               </div>
 
-              <div className="border border-slate-200 rounded-xl p-4">
-                <h3 className="font-semibold text-slate-900 mb-4">Items</h3>
+              <div className="border border-[var(--border)] rounded-xl p-4">
+                <h3 className="font-semibold text-[var(--foreground)] mb-4">Items</h3>
 
                 <div className="flex gap-2 mb-4">
                   <select
                     value={selectedProduct}
                     onChange={(e) => setSelectedProduct(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 glass-input"
                   >
                     <option value="">Select Product</option>
                     {products.filter(p => p.isActive).map(p => (
@@ -505,7 +505,7 @@ export default function InvoicesPage() {
                   <button
                     type="button"
                     onClick={() => router.push('/dashboard/products')}
-                    className="px-3 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 text-sm"
+                    className="px-3 py-2 border border-[var(--border)] text-[var(--foreground)]/60 rounded-xl hover:bg-[var(--foreground)]/5 text-sm"
                     title="Add new product"
                   >
                     + New
@@ -517,11 +517,11 @@ export default function InvoicesPage() {
                       min="0"
                       value={itemQuantity}
                       onChange={(e) => setItemQuantity(e.target.value)}
-                      className="w-24 px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-24 glass-input"
                       placeholder="0"
                     />
                     {selectedProduct && products.find(p => p.id === selectedProduct)?.unit && (
-                      <span className="absolute right-3 text-xs text-slate-400 pointer-events-none">
+                      <span className="absolute right-3 text-xs text-[var(--foreground)]/40 pointer-events-none">
                         {products.find(p => p.id === selectedProduct)?.unit}
                       </span>
                     )}
@@ -538,7 +538,7 @@ export default function InvoicesPage() {
                 {items.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-slate-50">
+                      <thead className="bg-[var(--foreground)]/5">
                         <tr>
                           <th className="px-3 py-2 text-left">Item</th>
                           <th className="px-3 py-2 text-right">Qty</th>
@@ -576,26 +576,26 @@ export default function InvoicesPage() {
                     </table>
                   </div>
                 ) : (
-                  <p className="text-center text-slate-500 py-4">No items added</p>
+                  <p className="text-center text-[var(--foreground)]/50 py-4">No items added</p>
                 )}
               </div>
 
               <div className="flex justify-end">
                 <div className="w-64 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-600">Subtotal:</span>
+                    <span className="text-[var(--foreground)]/60">Subtotal:</span>
                     <span className="font-medium">₹{totals.subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">CGST:</span>
+                    <span className="text-[var(--foreground)]/60">CGST:</span>
                     <span className="font-medium">₹{totals.cgst.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">SGST:</span>
+                    <span className="text-[var(--foreground)]/60">SGST:</span>
                     <span className="font-medium">₹{totals.sgst.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-600">IGST:</span>
+                    <span className="text-[var(--foreground)]/60">IGST:</span>
                     <span className="font-medium">₹{totals.igst.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-lg font-bold pt-2 border-t">
@@ -606,12 +606,12 @@ export default function InvoicesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Notes</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Notes</label>
                 <textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full glass-input"
                   placeholder="Optional notes..."
                 />
               </div>
@@ -620,7 +620,7 @@ export default function InvoicesPage() {
                 <button
                   type="button"
                   onClick={() => setShowNewInvoice(false)}
-                  className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50"
+                  className="glass-btn-secondary flex-1"
                 >
                   Cancel
                 </button>
@@ -647,8 +647,8 @@ export default function InvoicesPage() {
 
       {viewInvoice && businessProfile && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[95vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 sticky top-0 bg-white">
+          <div className="glass-heavy w-full max-w-3xl max-h-[95vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--border)] sticky top-0 glass-heavy">
               <h2 className="text-lg font-semibold">Invoice</h2>
               <div className="flex gap-2">
                 <button
@@ -688,7 +688,7 @@ export default function InvoicesPage() {
                   <Printer size={18} />
                   Print
                 </button>
-                <button onClick={() => setViewInvoice(null)} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="Close">
+                <button onClick={() => setViewInvoice(null)} className="p-1 hover:bg-[var(--foreground)]/5 rounded-lg" aria-label="Close">
                   <X size={20} />
                 </button>
               </div>
@@ -696,15 +696,15 @@ export default function InvoicesPage() {
 
             <div className="p-8" id="invoice-print" style={{ fontFamily: 'Arial, sans-serif' }}>
               {/* Header */}
-              <div className="border-b-2 border-slate-800 pb-4 mb-6">
+              <div className="border-b-2 border-[var(--foreground)] pb-4 mb-6">
                 <div className="text-center">
-                  <h1 className="text-3xl font-bold text-slate-900 uppercase tracking-wide">{businessProfile.name}</h1>
-                  <p className="text-slate-600 mt-1">
+                  <h1 className="text-3xl font-bold text-[var(--foreground)] uppercase tracking-wide">{businessProfile.name}</h1>
+                  <p className="text-[var(--foreground)]/60 mt-1">
                     {businessProfile.address}
                     {businessProfile.state && `, ${businessProfile.state}`}
                     {businessProfile.pincode && ` - ${businessProfile.pincode}`}
                   </p>
-                  <p className="text-slate-600">
+                  <p className="text-[var(--foreground)]/60">
                     {businessProfile.phone && <span>Ph: {businessProfile.phone}</span>}
                     {businessProfile.phone && businessProfile.gstin && <span> | </span>}
                     {businessProfile.gstin && <span>GSTIN: {businessProfile.gstin}</span>}
@@ -714,46 +714,46 @@ export default function InvoicesPage() {
 
               {/* Document Title */}
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-slate-900 uppercase">
+                <h2 className="text-2xl font-bold text-[var(--foreground)] uppercase">
                   {businessProfile.gstin ? 'Tax Invoice' : 'Invoice'}
                 </h2>
-                <p className="text-slate-600 mt-1">Invoice No: {viewInvoice.invoiceNumber}</p>
-                <p className="text-slate-600">Date: {viewInvoice.invoiceDate.toLocaleDateString('en-IN')}</p>
+                <p className="text-[var(--foreground)]/60 mt-1">Invoice No: {viewInvoice.invoiceNumber}</p>
+                <p className="text-[var(--foreground)]/60">Date: {viewInvoice.invoiceDate.toLocaleDateString('en-IN')}</p>
               </div>
 
               {/* Customer Details */}
-              <div className="mb-6 p-4 bg-slate-50 rounded-lg">
-                <h3 className="font-semibold text-slate-700 mb-2 border-b border-slate-300 pb-1">Bill To:</h3>
-                <p className="font-bold text-slate-900">{viewInvoice.customerName}</p>
-                {viewInvoice.customerGstin && <p className="text-slate-600">GSTIN: {viewInvoice.customerGstin}</p>}
-                {viewInvoice.customerAddress && <p className="text-slate-600">{viewInvoice.customerAddress}</p>}
+              <div className="mb-6 p-4 bg-[var(--foreground)]/5 rounded-lg">
+                <h3 className="font-semibold text-[var(--foreground)]/70 mb-2 border-b border-[var(--border)] pb-1">Bill To:</h3>
+                <p className="font-bold text-[var(--foreground)]">{viewInvoice.customerName}</p>
+                {viewInvoice.customerGstin && <p className="text-[var(--foreground)]/60">GSTIN: {viewInvoice.customerGstin}</p>}
+                {viewInvoice.customerAddress && <p className="text-[var(--foreground)]/60">{viewInvoice.customerAddress}</p>}
               </div>
 
               {/* Items Table */}
-              <table className="w-full mb-6 border-collapse border border-slate-300">
+              <table className="w-full mb-6 border-collapse border border-[var(--border)]">
                 <thead className="bg-slate-800 text-white">
                   <tr>
-                    <th className="px-3 py-2 text-left text-sm font-medium border border-slate-300">#</th>
-                    <th className="px-3 py-2 text-left text-sm font-medium border border-slate-300">Item Description</th>
-                    <th className="px-3 py-2 text-right text-sm font-medium border border-slate-300">Qty</th>
-                    <th className="px-3 py-2 text-right text-sm font-medium border border-slate-300">Rate (₹)</th>
-                    <th className="px-3 py-2 text-right text-sm font-medium border border-slate-300">Amount (₹)</th>
-                    <th className="px-3 py-2 text-right text-sm font-medium border border-slate-300">GST (₹)</th>
-                    <th className="px-3 py-2 text-right text-sm font-medium border border-slate-300">Total (₹)</th>
+                    <th className="px-3 py-2 text-left text-sm font-medium border border-[var(--border)]">#</th>
+                    <th className="px-3 py-2 text-left text-sm font-medium border border-[var(--border)]">Item Description</th>
+                    <th className="px-3 py-2 text-right text-sm font-medium border border-[var(--border)]">Qty</th>
+                    <th className="px-3 py-2 text-right text-sm font-medium border border-[var(--border)]">Rate (₹)</th>
+                    <th className="px-3 py-2 text-right text-sm font-medium border border-[var(--border)]">Amount (₹)</th>
+                    <th className="px-3 py-2 text-right text-sm font-medium border border-[var(--border)]">GST (₹)</th>
+                    <th className="px-3 py-2 text-right text-sm font-medium border border-[var(--border)]">Total (₹)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {viewInvoice.items?.map((item, idx) => (
                     <tr key={idx}>
-                      <td className="px-3 py-2 text-slate-900 border border-slate-300 text-center">{idx + 1}</td>
-                      <td className="px-3 py-2 text-slate-900 border border-slate-300">{item.productName}</td>
-                      <td className="px-3 py-2 text-right text-slate-900 border border-slate-300">{item.quantity}</td>
-                      <td className="px-3 py-2 text-right text-slate-900 border border-slate-300">{item.rate.toFixed(2)}</td>
-                      <td className="px-3 py-2 text-right text-slate-900 border border-slate-300">{item.amount.toFixed(2)}</td>
-                      <td className="px-3 py-2 text-right text-slate-900 border border-slate-300">
+                      <td className="px-3 py-2 text-[var(--foreground)] border border-[var(--border)] text-center">{idx + 1}</td>
+                      <td className="px-3 py-2 text-[var(--foreground)] border border-[var(--border)]">{item.productName}</td>
+                      <td className="px-3 py-2 text-right text-[var(--foreground)] border border-[var(--border)]">{item.quantity}</td>
+                      <td className="px-3 py-2 text-right text-[var(--foreground)] border border-[var(--border)]">{item.rate.toFixed(2)}</td>
+                      <td className="px-3 py-2 text-right text-[var(--foreground)] border border-[var(--border)]">{item.amount.toFixed(2)}</td>
+                      <td className="px-3 py-2 text-right text-[var(--foreground)] border border-[var(--border)]">
                         {item.igst > 0 ? item.igst.toFixed(2) : (item.cgst + item.sgst).toFixed(2)}
                       </td>
-                      <td className="px-3 py-2 text-right font-medium text-slate-900 border border-slate-300">
+                      <td className="px-3 py-2 text-right font-medium text-[var(--foreground)] border border-[var(--border)]">
                         {(item.amount + item.cgst + item.sgst + item.igst).toFixed(2)}
                       </td>
                     </tr>
@@ -765,22 +765,22 @@ export default function InvoicesPage() {
               <div className="flex justify-end mb-6">
                 <div className="w-72">
                   <div className="flex justify-between py-1">
-                    <span className="text-slate-600">Subtotal:</span>
+                    <span className="text-[var(--foreground)]/60">Subtotal:</span>
                     <span className="font-medium">₹{viewInvoice.items?.reduce((sum, item) => sum + item.amount, 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between py-1">
-                    <span className="text-slate-600">CGST:</span>
+                    <span className="text-[var(--foreground)]/60">CGST:</span>
                     <span className="font-medium">₹{viewInvoice.items?.reduce((sum, item) => sum + item.cgst, 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between py-1">
-                    <span className="text-slate-600">SGST:</span>
+                    <span className="text-[var(--foreground)]/60">SGST:</span>
                     <span className="font-medium">₹{viewInvoice.items?.reduce((sum, item) => sum + item.sgst, 0).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between py-1">
-                    <span className="text-slate-600">IGST:</span>
+                    <span className="text-[var(--foreground)]/60">IGST:</span>
                     <span className="font-medium">₹{viewInvoice.items?.reduce((sum, item) => sum + item.igst, 0).toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between py-2 border-t-2 border-slate-800 font-bold text-lg">
+                  <div className="flex justify-between py-2 border-t-2 border-[var(--foreground)] font-bold text-lg">
                     <span>Grand Total:</span>
                     <span>₹{(viewInvoice.total ?? 0).toFixed(2)}</span>
                   </div>
@@ -795,25 +795,25 @@ export default function InvoicesPage() {
               </div>
 
               {/* Footer */}
-              <div className="flex justify-between items-start pt-4 border-t border-slate-300">
+              <div className="flex justify-between items-start pt-4 border-t border-[var(--border)]">
                 <div className="w-1/2 pr-4">
-                  <h4 className="font-semibold text-slate-700 mb-2">Terms & Conditions:</h4>
-                  <p className="text-xs text-slate-500 whitespace-pre-line">
+                  <h4 className="font-semibold text-[var(--foreground)]/70 mb-2">Terms & Conditions:</h4>
+                  <p className="text-xs text-[var(--foreground)]/50 whitespace-pre-line">
                     {businessProfile.termsAndConditions || "1. Goods once sold cannot be returned.\n2. Payment is due within agreed period."}
                   </p>
                 </div>
                 <div className="w-1/2 text-right">
                   <div className="mb-8">
-                    <div className="border-b border-slate-400 w-48 ml-auto mb-2"></div>
-                    <p className="text-sm font-medium text-slate-700">Authorized Signatory</p>
+                    <div className="border-b border-[var(--border)] w-48 ml-auto mb-2"></div>
+                    <p className="text-sm font-medium text-[var(--foreground)]/70">Authorized Signatory</p>
                   </div>
-                  <p className="font-semibold text-slate-900">{businessProfile.name}</p>
+                  <p className="font-semibold text-[var(--foreground)]">{businessProfile.name}</p>
                 </div>
               </div>
 
               {viewInvoice.notes && (
                 <div className="mt-4 pt-2 border-t">
-                  <p className="text-sm text-slate-500"><strong>Notes:</strong> {viewInvoice.notes}</p>
+                  <p className="text-sm text-[var(--foreground)]/50"><strong>Notes:</strong> {viewInvoice.notes}</p>
                 </div>
               )}
             </div>

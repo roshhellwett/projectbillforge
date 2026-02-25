@@ -2,6 +2,12 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 
+/* ═══════════════════════════════════════════
+   Smooth spring config — consistent everywhere
+   ═══════════════════════════════════════════ */
+const smoothSpring = { type: "spring" as const, stiffness: 260, damping: 24 };
+const gentleSpring = { type: "spring" as const, stiffness: 200, damping: 26 };
+
 export function FadeIn({
     children,
     delay = 0,
@@ -13,12 +19,12 @@ export function FadeIn({
 }) {
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             transition={{
                 duration: 0.5,
                 delay,
-                ease: [0.25, 1, 0.5, 1], // Apple-like ease
+                ease: [0.25, 1, 0.5, 1],
             }}
             className={className}
         >
@@ -43,7 +49,8 @@ export function StaggerContainer({
                 visible: {
                     opacity: 1,
                     transition: {
-                        staggerChildren: 0.1,
+                        staggerChildren: 0.07,
+                        delayChildren: 0.05,
                     },
                 },
             }}
@@ -64,12 +71,12 @@ export function StaggerItem({
     return (
         <motion.div
             variants={{
-                hidden: { opacity: 0, y: 20, scale: 0.95 },
+                hidden: { opacity: 0, y: 16, filter: "blur(4px)" },
                 visible: {
                     opacity: 1,
                     y: 0,
-                    scale: 1,
-                    transition: { type: "spring", stiffness: 300, damping: 24 }
+                    filter: "blur(0px)",
+                    transition: smoothSpring,
                 },
             }}
             className={className}
@@ -88,9 +95,9 @@ export function InteractiveItem({
 }) {
     return (
         <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 300, damping: 15 }} /* Bouncy, physical feel */
+            whileHover={{ scale: 1.015, y: -1 }}
+            whileTap={{ scale: 0.97 }}
+            transition={gentleSpring}
             className={className}
         >
             {children}
@@ -100,47 +107,33 @@ export function InteractiveItem({
 
 export function AnimatedBackground() {
     return (
-        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-            {/* Soft Ambient Light 1 */}
+        <div className="gradient-mesh">
+            {/* Extra orb via motion for drift effect */}
             <motion.div
                 animate={{
-                    x: ["-20%", "20%", "0%", "-20%"],
-                    y: ["-20%", "10%", "20%", "-20%"],
-                    scale: [1, 1.2, 0.9, 1],
-                }}
-                transition={{
-                    duration: 25,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                }}
-                className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-[var(--color-primary)]/15 blur-[100px] mix-blend-multiply dark:mix-blend-screen"
-            />
-            {/* Soft Ambient Light 2 (Accent) */}
-            <motion.div
-                animate={{
-                    x: ["20%", "-20%", "10%", "20%"],
-                    y: ["20%", "-10%", "-20%", "20%"],
-                    scale: [0.9, 1.1, 1, 0.9],
-                }}
-                transition={{
-                    duration: 30,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                }}
-                className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[70%] rounded-full bg-[var(--color-accent-purple)]/15 blur-[120px] mix-blend-multiply dark:mix-blend-screen"
-            />
-            {/* Soft Ambient Light 3 (Vibrant Pop) */}
-            <motion.div
-                animate={{
-                    x: ["0%", "30%", "-30%", "0%"],
-                    y: ["0%", "-30%", "30%", "0%"],
+                    x: ["0%", "30%", "-20%", "0%"],
+                    y: ["0%", "-25%", "25%", "0%"],
                 }}
                 transition={{
                     duration: 35,
                     repeat: Infinity,
                     ease: "linear",
                 }}
-                className="absolute top-[30%] left-[30%] w-[40%] h-[40%] rounded-full bg-[var(--color-secondary)]/10 blur-[150px] mix-blend-multiply dark:mix-blend-screen"
+                className="absolute top-[25%] left-[25%] w-[45%] h-[45%] rounded-full blur-[120px]"
+                style={{ background: "var(--mesh-3)" }}
+            />
+            <motion.div
+                animate={{
+                    x: ["10%", "-20%", "15%", "10%"],
+                    y: ["-10%", "20%", "-15%", "-10%"],
+                }}
+                transition={{
+                    duration: 28,
+                    repeat: Infinity,
+                    ease: "linear",
+                }}
+                className="absolute top-[50%] right-[10%] w-[35%] h-[35%] rounded-full blur-[100px]"
+                style={{ background: "var(--mesh-4)" }}
             />
         </div>
     );
@@ -159,25 +152,43 @@ export function FloatingIcon({
 }) {
     return (
         <motion.div
-            key={animationKey} // Triggers re-animation on path change
-            initial={{ scale: 0.5, y: 15, rotate: -20, opacity: 0 }}
-            animate={{ scale: 1, y: 0, rotate: 0, opacity: 1 }}
+            key={animationKey}
+            initial={{ scale: 0.7, y: 8, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
             whileHover={{
-                scale: 1.2,
-                rotate: [0, -15, 15, -10, 10, 0],
-                y: -2,
-                transition: { duration: 0.6, ease: "easeInOut" }
+                scale: 1.15,
+                rotate: [0, -8, 8, 0],
+                transition: { duration: 0.4, ease: "easeInOut" }
             }}
-            whileTap={{ scale: 0.85, rotate: -15, y: 2 }}
+            whileTap={{ scale: 0.9 }}
             transition={{
-                type: "spring",
-                stiffness: 400,
-                damping: isActive ? 12 : 25, // Active icons bounce a bit more eagerly
-                mass: 1,
+                ...smoothSpring,
+                damping: isActive ? 14 : 22,
             }}
-            className="flex items-center justify-center origin-bottom"
+            className="flex items-center justify-center"
         >
             <Icon {...props} />
+        </motion.div>
+    );
+}
+
+/* ── Modal animation wrapper ── */
+export function ModalTransition({
+    children,
+    className = "",
+}: {
+    children: React.ReactNode;
+    className?: string;
+}) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.92, y: 20, filter: "blur(8px)" }}
+            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, scale: 0.95, y: 10, filter: "blur(4px)" }}
+            transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
+            className={className}
+        >
+            {children}
         </motion.div>
     );
 }
@@ -193,12 +204,12 @@ export function AnimatedRouteWrapper({
         <AnimatePresence mode="wait">
             <motion.div
                 key={pathKey}
-                initial={{ opacity: 0, y: 10, filter: "blur(5px)" }}
+                initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
+                exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
                 transition={{
-                    duration: 0.3,
-                    ease: "easeInOut",
+                    duration: 0.25,
+                    ease: [0.25, 1, 0.5, 1],
                 }}
                 className="flex-1 flex flex-col min-h-0 relative"
             >
