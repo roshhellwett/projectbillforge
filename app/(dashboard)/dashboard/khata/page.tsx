@@ -186,13 +186,14 @@ export default function KhataPage() {
       <StaggerItem className="glass-card p-6 overflow-hidden">
         <label className="block text-sm font-semibold text-[var(--foreground)]/80 mb-4">Select Customer</label>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-[var(--foreground)]/60 pointer-events-none" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-[var(--color-primary)]/60 pointer-events-none" size={18} />
           <input
             type="text"
             placeholder="Search customers..."
             value={customerSearch}
             onChange={(e) => setCustomerSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 glass-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
+            className="w-full pr-4 py-3.5 glass-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
+            style={{ paddingLeft: '2.5rem' }}
           />
         </div>
         <div className="mt-4 max-h-60 overflow-y-auto border border-[var(--border)] rounded-xl">
