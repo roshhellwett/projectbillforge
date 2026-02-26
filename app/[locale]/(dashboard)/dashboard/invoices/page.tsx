@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { getProducts } from "@/lib/actions/products";
 import { getCustomers } from "@/lib/actions/customers";
 import { getInvoices, createInvoice, cancelInvoice } from "@/lib/actions/invoices";

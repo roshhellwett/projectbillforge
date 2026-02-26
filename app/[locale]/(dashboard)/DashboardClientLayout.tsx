@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/routing";
 import BottomNavigation from "./BottomNavigation";
 import { KeyboardShortcutsHelp } from "@/lib/components/KeyboardShortcuts";
 import { CommandMenu } from "@/lib/components/CommandMenu";

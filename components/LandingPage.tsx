@@ -290,7 +290,7 @@ export default function LandingPage() {
                 <div className="absolute top-20 -left-64 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob"></div>
                 <div className="absolute top-40 -right-64 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob animation-delay-2000"></div>
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative pt-10">
+                <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-8 relative pt-10">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
 
                         {/* Hero Content */}
@@ -351,7 +351,7 @@ export default function LandingPage() {
                             {/* Main Phone Mockup */}
                             <motion.div
                                 animate={floatAnimation}
-                                className="relative z-20 w-[280px] h-[580px] bg-white rounded-[40px] shadow-2xl p-2 border-4 border-slate-100/50 backdrop-blur-sm"
+                                className="relative z-20 w-[280px] h-[580px] bg-white rounded-[40px] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.1),0_10px_20px_-5px_rgba(0,0,0,0.05)] p-2 border-4 border-slate-100/50 backdrop-blur-sm"
                             >
                                 <div className="absolute top-0 inset-x-0 h-6 flex justify-center">
                                     <div className="w-20 h-4 bg-slate-100 rounded-b-xl"></div>

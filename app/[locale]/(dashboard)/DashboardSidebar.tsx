@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
@@ -77,19 +76,22 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={`
-                  flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-sm
+                  flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-sm group relative overflow-hidden
                   ${isActive
-                    ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-                    : 'text-[var(--foreground)]/60 hover:bg-[var(--foreground)]/5 hover:text-[var(--foreground)]'
+                    ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/10 shadow-[0_2px_10px_rgba(59,130,246,0.05)]'
+                    : 'text-[var(--foreground)]/60 hover:bg-[var(--foreground)]/5 hover:text-[var(--foreground)] border border-transparent'
                   }
                 `}
               >
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[var(--color-primary)] rounded-r-full" />
+                )}
                 <FloatingIcon
                   icon={item.icon}
                   size={20}
                   isActive={isActive}
                   animationKey={`${item.href}-${pathname}`}
-                  className={isActive ? "text-[var(--color-primary)]" : "text-[var(--foreground)]/40"}
+                  className={isActive ? "text-[var(--color-primary)]" : "text-[var(--foreground)]/50 group-hover:text-[var(--foreground)]/80"}
                 />
                 <span>{item.label}</span>
               </Link>
@@ -98,16 +100,19 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
         </nav>
 
         {/* Support Section */}
-        <div className="p-3 shrink-0 mt-auto">
-          <div className="bg-[var(--color-primary)]/5 rounded-2xl p-3 text-center border border-[var(--color-primary)]/10">
-            <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mx-auto mb-2">
+        <div className="p-4 shrink-0 mt-auto">
+          <div className="bg-gradient-to-br from-[var(--color-primary)]/5 to-[var(--color-secondary)]/5 rounded-2xl p-4 text-center border border-[var(--color-primary)]/10 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-[var(--color-primary)]/10 rounded-full blur-xl pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 -mb-2 -ml-2 w-16 h-16 bg-[var(--color-secondary)]/10 rounded-full blur-xl pointer-events-none"></div>
+
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-b from-[var(--surface)] to-[var(--background)] border border-[var(--border)] text-[var(--color-primary)] flex items-center justify-center mx-auto mb-3 shadow-[0_2px_8px_rgba(0,0,0,0.04)] relative z-10">
               <BookOpen size={16} />
             </div>
-            <h3 className="font-semibold text-xs text-[var(--foreground)] mb-1">Need help?</h3>
-            <p className="text-[9px] text-[var(--foreground)]/50 mb-2 px-1">
+            <h3 className="font-semibold text-xs text-[var(--foreground)] mb-1 relative z-10">Need help?</h3>
+            <p className="text-[10px] text-[var(--foreground)]/60 mb-3 px-1 relative z-10">
               Problems while using BillForge?
             </p>
-            <a href="mailto:zenithopensource@icloud.com" className="block w-full py-1.5 bg-white dark:bg-slate-800 rounded-lg text-[10px] font-medium text-[var(--color-primary)] shadow-sm border border-[var(--border)] hover:bg-[var(--background)] transition-colors">
+            <a href="mailto:zenithopensource@icloud.com" className="block w-full py-2 bg-[var(--surface)] rounded-lg text-xs font-medium text-[var(--color-primary)] shadow-sm border border-[var(--color-primary)]/20 hover:border-[var(--color-primary)]/40 hover:shadow-md transition-all relative z-10">
               Contact Support
             </a>
           </div>

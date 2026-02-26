@@ -1,7 +1,7 @@
 import React from 'react';
 import { DollarSign, FileText, Users, AlertTriangle, TrendingUp, Package, BarChart3, Clock, ArrowUpRight, ArrowDownRight, ShoppingBag, Plus } from "lucide-react";
 import { InteractiveItem } from "@/lib/components/MotionWrapper";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 
 export async function WelcomeBannerServer({ salesPromise }: { salesPromise: Promise<any> }) {
     const salesResult = await salesPromise;
@@ -83,12 +83,12 @@ export async function OverviewCardsServer({ salesPromise }: { salesPromise: Prom
                                     <p className={`text-xs font-semibold truncate uppercase tracking-wider ${isGradient ? 'text-white/90' : 'text-[var(--foreground)]/60'}`}>{card.label}</p>
                                 </div>
                                 <p className={`text-2xl sm:text-3xl font-bold tracking-tight truncate ${isGradient ? 'text-white' : 'text-[var(--foreground)]'}`}>{card.value}</p>
-                                <div className="mt-3 flex items-center gap-1.5 opacity-80">
-                                    <div className="flex -space-x-1.5">
-                                        <div className={`w-5 h-5 rounded-full border border-white ${isGradient ? 'bg-white/20' : 'bg-[var(--color-primary)]/10'}`}></div>
-                                        <div className={`w-5 h-5 rounded-full border border-white ${isGradient ? 'bg-white/40' : 'bg-[var(--color-primary)]/30'}`}></div>
+                                <div className="mt-3 flex items-center gap-1.5 opacity-100">
+                                    <div className="flex -space-x-1.5 align-middle">
+                                        <div className={`w-5 h-5 rounded-full border border-[var(--surface)] ${isGradient ? 'bg-white/20' : 'bg-[var(--color-primary)]/10 shadow-sm'}`}></div>
+                                        <div className={`w-5 h-5 rounded-full border border-[var(--surface)] ${isGradient ? 'bg-white/40' : 'bg-[var(--color-primary)]/30 shadow-sm'}`}></div>
                                     </div>
-                                    <span className={`text-[9px] ${isGradient ? 'text-white' : 'text-[var(--foreground)]/50'}`}>Updated just now</span>
+                                    <span className={`text-[9px] font-medium ${isGradient ? 'text-white/90' : 'text-[var(--foreground)]/50'}`}>Updated just now</span>
                                 </div>
                             </div>
                         </InteractiveItem>
@@ -222,22 +222,22 @@ export async function RecentInvoicesServer({ recentPromise }: { recentPromise: P
                 <div className="space-y-2 sm:space-y-2.5">
                     {recentInvoices.map((inv: any) => (
                         <InteractiveItem key={inv.id}>
-                            <div className="flex items-center justify-between px-3 py-3 sm:px-4 sm:py-4 bg-white dark:bg-[var(--surface)] hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer">
-                                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                                    <div className={`p-1.5 sm:p-2 rounded-lg shrink-0 ${inv.paymentStatus === 'paid' ? 'bg-emerald-500/10' : 'bg-amber-500/10'}`}>
+                            <div className="flex items-center justify-between px-3 py-3 sm:px-4 sm:py-4 bg-white dark:bg-[var(--surface)] hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200 border-b border-slate-100/60 dark:border-slate-800/60 hover:shadow-sm cursor-pointer group">
+                                <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                                    <div className={`p-2 lg:p-2.5 rounded-xl shrink-0 transition-transform group-hover:scale-105 ${inv.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'}`}>
                                         {inv.paymentStatus === 'paid'
-                                            ? <ArrowDownRight size={16} style={{ color: '#10b981' }} />
-                                            : <ArrowUpRight size={16} style={{ color: '#f59e0b' }} />
+                                            ? <ArrowDownRight size={18} />
+                                            : <ArrowUpRight size={18} />
                                         }
                                     </div>
-                                    <div className="min-w-0">
-                                        <p className="font-semibold text-[var(--foreground)] text-xs sm:text-sm truncate">{inv.customerName}</p>
-                                        <p className="text-[10px] sm:text-xs text-[var(--foreground)]/35">{inv.invoiceNumber}</p>
+                                    <div className="min-w-0 pr-2">
+                                        <p className="font-semibold text-[var(--foreground)] text-sm group-hover:text-[var(--color-primary)] transition-colors truncate">{inv.customerName}</p>
+                                        <p className="text-[10px] sm:text-xs text-[var(--foreground)]/40 mt-0.5">{inv.invoiceNumber}</p>
                                     </div>
                                 </div>
-                                <div className="text-right shrink-0 ml-2 sm:ml-3">
-                                    <p className="font-bold text-xs sm:text-sm text-[var(--foreground)]">₹{Number(inv.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
-                                    <span className={`text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider ${inv.paymentStatus === 'paid' ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]'}`}>{inv.paymentStatus}</span>
+                                <div className="text-right shrink-0">
+                                    <p className="font-bold text-sm text-[var(--foreground)]">₹{Number(inv.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                    <span className={`inline-flex mt-1 items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${inv.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'}`}>{inv.paymentStatus}</span>
                                 </div>
                             </div>
                         </InteractiveItem>

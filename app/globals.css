@@ -462,9 +462,7 @@ body {
   .glass-card {
     border-radius: 1.25rem;
     /* Slightly reduce shadow spread on mobile to prevent clipping/noise */
-    box-shadow:
-      6px 6px 12px var(--shadow-neu-outer-dark),
-      -6px -6px 12px var(--shadow-neu-outer-light);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 
   .glass-overlay {
@@ -484,9 +482,7 @@ body {
   .glass-btn-primary {
     padding: 0.625rem 1.5rem;
     font-size: 0.875rem;
-    box-shadow:
-      4px 4px 8px var(--shadow-neu-outer-dark),
-      -4px -4px 8px var(--shadow-neu-outer-light);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { getCustomers } from "@/lib/actions/customers";
 import { getKhataStatement, createKhataTransaction, deleteKhataTransaction } from "@/lib/actions/khata";
 import { ConfirmDialog } from "@/lib/components/ui";
