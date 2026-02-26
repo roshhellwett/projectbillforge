@@ -785,7 +785,12 @@ export default function LandingPage() {
                     </div>
 
                     <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-                        <p>© {new Date().getFullYear()} BillForge Inc. All rights reserved.</p>
+                        <div className="text-center md:text-left">
+                            <p>© {new Date().getFullYear()} BillForge Inc. All rights reserved.</p>
+                            <p className="text-slate-500 mt-2 italic">
+                                If you are unhappy with our services so please leave a message on this mail <a href="mailto:zenithopensource@icloud.com" className="text-indigo-400 hover:underline">zenithopensource@icloud.com</a> regarding issues you faced
+                            </p>
+                        </div>
                         <div className="flex gap-4 sm:gap-6 mt-4 md:mt-0">
                             <Link href="https://github.com/roshhellwett" target="_blank" className="hover:text-white transition-colors cursor-pointer border-b border-transparent hover:border-white">GitHub</Link>
                             <span className="hover:text-white transition-colors cursor-pointer border-b border-transparent hover:border-white">Open Source License</span>

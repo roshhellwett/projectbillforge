@@ -396,7 +396,10 @@ export default function SettingsPage() {
           <p className="text-xs text-[var(--foreground)]/35 leading-relaxed">
             BillForge v1.0 · An open source billing platform for Indian businesses
           </p>
-          <p className="text-xs text-[var(--foreground)]/35 mt-1">
+          <p className="text-xs text-[var(--foreground)]/50 mt-3 italic max-w-md mx-auto">
+            If you are unhappy with our services so please leave a message on this mail <a href="mailto:zenithopensource@icloud.com" className="text-[var(--color-primary)] hover:underline">zenithopensource@icloud.com</a> regarding issues you faced
+          </p>
+          <p className="text-xs text-[var(--foreground)]/35 mt-4">
             Built with ❤️ by{" "}
             <a
               href="https://github.com/roshhellwett"
