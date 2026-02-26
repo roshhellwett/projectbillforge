@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { getBusinessProfile, updateBusinessProfile, resetAllKhataData } from "@/lib/actions/business";
 import { ConfirmDialog } from "@/lib/components/ui";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
+import { SignOutButton } from "../../signout-button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const defaultTerms = `1. Goods once sold cannot be returned or exchanged unless damaged or defective at the time of delivery.
 2. Payment is due within the agreed credit period.
@@ -365,6 +367,27 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      {/* Mobile Account Preferences (Theme & Sign Out) */}
+      <StaggerItem className="glass-card p-8 md:hidden">
+        <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">Account Preferences</h2>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between p-4 bg-[var(--foreground)]/5 rounded-xl border border-[var(--border)]">
+            <div>
+              <h3 className="font-medium text-[var(--foreground)]">Theme</h3>
+              <p className="text-xs text-[var(--foreground)]/60">Toggle dark mode</p>
+            </div>
+            <ThemeToggle />
+          </div>
+          <div className="flex items-center justify-between p-4 bg-[var(--foreground)]/5 rounded-xl border border-[var(--border)]">
+            <div>
+              <h3 className="font-medium text-[var(--foreground)]">Sign Out</h3>
+              <p className="text-xs text-[var(--foreground)]/60">End your session</p>
+            </div>
+            <SignOutButton />
+          </div>
+        </div>
+      </StaggerItem>
 
       {/* About */}
       <StaggerItem>
