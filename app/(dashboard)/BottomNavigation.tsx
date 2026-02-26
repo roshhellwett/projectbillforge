@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileText, Users, Package, Settings } from "lucide-react";
+import { LayoutDashboard, Receipt, Users, Package, BookOpen, Settings } from "lucide-react";
 
 interface BottomNavigationProps {
   currentPage?: string;
@@ -13,9 +13,10 @@ export default function BottomNavigation({ currentPage = "dashboard" }: BottomNa
 
   const navItems = [
     { href: "/dashboard", label: "Home", icon: LayoutDashboard },
-    { href: "/dashboard/invoices", label: "Invoices", icon: FileText },
+    { href: "/dashboard/invoices", label: "Invoices", icon: Receipt },
     { href: "/dashboard/customers", label: "Customers", icon: Users },
     { href: "/dashboard/products", label: "Products", icon: Package },
+    { href: "/dashboard/khata", label: "Khata", icon: BookOpen },
     { href: "/dashboard/settings", label: "Settings", icon: Settings },
   ];
 

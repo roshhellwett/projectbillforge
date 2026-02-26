@@ -199,8 +199,11 @@ export default function LandingPage() {
                             <span className="font-bold text-xl tracking-tight text-slate-900">BillForge</span>
                         </div>
 
-                        {/* Desktop Menu - Removed dead links */}
+                        {/* Desktop Menu */}
                         <div className="hidden md:flex items-center space-x-8">
+                            <Link href="#features" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Features</Link>
+                            <Link href="/dashboard/khata" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Khata Ledger</Link>
+                            <Link href="/dashboard/invoices" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Invoices</Link>
                         </div>
 
                         {/* Auth Buttons */}
@@ -241,7 +244,30 @@ export default function LandingPage() {
                             transition={{ duration: 0.2 }}
                             className="md:hidden bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-xl absolute w-full left-0 top-20 overflow-hidden"
                         >
-                            <div className="px-4 pt-2 pb-6 space-y-1">
+                            <div className="px-4 pt-2 pb-6 space-y-4">
+                                <div className="flex flex-col gap-2">
+                                    <Link
+                                        href="#features"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="px-3 py-2 text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                    >
+                                        Features
+                                    </Link>
+                                    <Link
+                                        href="/dashboard/khata"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="px-3 py-2 text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                    >
+                                        Khata Ledger
+                                    </Link>
+                                    <Link
+                                        href="/dashboard/invoices"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="px-3 py-2 text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                    >
+                                        Invoices
+                                    </Link>
+                                </div>
                                 <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-3 px-3">
                                     <Link href="/login" className="w-full text-center text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium py-2.5 rounded-xl border border-indigo-200 transition-all">Login</Link>
                                     <Link href="/register" className="w-full text-center bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-medium py-2.5 rounded-xl shadow-md shadow-indigo-200 transition-all transform hover:-translate-y-0.5">Sign Up</Link>
