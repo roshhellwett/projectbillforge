@@ -59,6 +59,127 @@ const floatAnimationDelayed = {
     }
 };
 
+// --- Testimonials Data ---
+const testimonials = [
+    {
+        name: "Rajesh Kumar",
+        role: "Kirana Store Owner, Delhi",
+        text: "BillForge has made handling daily credit (Udhaar) so much easier. I can now track every rupee with just a few taps on my phone.",
+        initials: "RK",
+        color: "bg-amber-100 text-amber-600"
+    },
+    {
+        name: "Priya Sharma",
+        role: "Hardware Merchant, Jaipur",
+        text: "Invoicing used to be a headache every month. Now, I generate professional GST-ready invoices in seconds. My customers love the speed!",
+        initials: "PS",
+        color: "bg-indigo-100 text-indigo-600"
+    },
+    {
+        name: "Arun Varma",
+        role: "Boutique Owner, Mumbai",
+        text: "The Khata management feature is a lifesaver. No more physical registers or lost records. It's clean, simple, and very effective.",
+        initials: "AV",
+        color: "bg-rose-100 text-rose-600"
+    },
+    {
+        name: "Sunita Devi",
+        role: "Grain Wholesaler, Punjab",
+        text: "Managing hundreds of transactions was impossible before BillForge. Now my business is organized and I have peace of mind.",
+        initials: "SD",
+        color: "bg-emerald-100 text-emerald-600"
+    },
+    {
+        name: "Vikram Singh",
+        role: "Electronics Retailer, Bangalore",
+        text: "The best part is how easy it is to use. No technical knowledge needed—it just works. Truly made for Indian small businesses.",
+        initials: "VS",
+        color: "bg-purple-100 text-purple-600"
+    }
+];
+
+const TestimonialSlider = () => {
+    const [index, setIndex] = useState(0);
+
+    React.useEffect(() => {
+        const timer = setInterval(() => {
+            setIndex((prev) => (prev + 1) % testimonials.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, []);
+
+    return (
+        <div className="relative max-w-4xl mx-auto min-h-[400px] flex items-center">
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full"
+                >
+                    {/* Visual Card */}
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-indigo-50/50 rounded-[3rem] transform rotate-3 scale-105 -z-10"></div>
+                        <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl shadow-indigo-100/50 border border-slate-100 relative text-center">
+                            <div className={`w-24 h-24 ${testimonials[index].color} rounded-full mx-auto mb-6 flex items-center justify-center font-bold text-3xl border-4 border-white shadow-xl`}>
+                                {testimonials[index].initials}
+                            </div>
+                            <h4 className="font-bold text-slate-800 text-xl mb-1">{testimonials[index].name}</h4>
+                            <p className="text-slate-500 text-sm mb-6">{testimonials[index].role}</p>
+
+                            <div className="flex justify-center gap-1.5 text-amber-400 mb-8">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} size={18} fill="currentColor" />
+                                ))}
+                            </div>
+
+                            {/* Mini UI Element */}
+                            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden text-left">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-2 h-2 rounded-full bg-white"></div>
+                                    <div className="w-8 h-1.5 bg-white/30 rounded-full"></div>
+                                </div>
+                                <div className="w-3/4 h-2 bg-white/20 rounded-full mb-2"></div>
+                                <div className="w-1/2 h-2 bg-white/20 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Review Text */}
+                    <div className="text-left">
+                        <div className="text-indigo-500 bg-indigo-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-sm">
+                            <MessageSquare size={32} fill="currentColor" className="opacity-80" />
+                        </div>
+                        <h3 className="text-2xl md:text-3xl font-bold text-slate-800 mb-8 leading-tight italic">
+                            "{testimonials[index].text}"
+                        </h3>
+                        <div className="flex items-center gap-4 border-t border-slate-100 pt-8">
+                            <span className="text-slate-500 font-medium">Verified Vendor</span>
+                            <div className="flex items-center gap-1 font-bold text-slate-800">
+                                <Star fill="#00b67a" color="#00b67a" size={20} /> Trustpilot 4.8/5
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            </AnimatePresence>
+
+            {/* Pagination Dots */}
+            <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex gap-3">
+                {testimonials.map((_, i) => (
+                    <button
+                        key={i}
+                        onClick={() => setIndex(i)}
+                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${index === i ? 'bg-indigo-600 w-8' : 'bg-slate-200 hover:bg-indigo-200'}`}
+                        aria-label={`Go to testimonial ${i + 1}`}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
 export default function LandingPage() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -553,78 +674,24 @@ export default function LandingPage() {
             </section>
 
             {/* ── Testimonials ── */}
-            <section className="py-24 bg-white border-t border-slate-100">
+            <section className="py-24 bg-white border-t border-slate-100 overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-
-                        {/* Decorative Image/Faces */}
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-indigo-50 rounded-[3rem] transform rotate-3 scale-105 -z-10"></div>
-                            <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 relative max-w-md mx-auto">
-                                <div className="absolute -top-6 left-10 w-12 h-12 bg-amber-50 rounded-full shadow-md flex items-center justify-center border border-slate-100 font-bold text-sm text-amber-600">
-                                    SJ
-                                </div>
-                                <div className="absolute top-1/2 -right-6 w-14 h-14 bg-cyan-50 rounded-full shadow-md flex items-center justify-center border border-slate-100 font-bold text-sm text-cyan-600">
-                                    PL
-                                </div>
-                                <div className="absolute -bottom-6 left-1/3 w-16 h-16 bg-rose-50 rounded-full shadow-md flex items-center justify-center border border-slate-100 font-bold text-sm text-rose-600">
-                                    RV
-                                </div>
-
-                                <div className="text-center pt-8 pb-4">
-                                    <div className="w-20 h-20 bg-indigo-100 rounded-full mx-auto mb-4 flex items-center justify-center text-indigo-600 font-bold text-2xl border-4 border-white shadow-inner">
-                                        RS
-                                    </div>
-                                    <h4 className="font-bold text-slate-800 text-lg">Ritesh Singh</h4>
-                                    <p className="text-slate-500 text-sm mb-4">Senior Executive, Tata Motors</p>
-
-                                    <div className="flex justify-center gap-1 mb-6 text-amber-400">
-                                        <Star size={16} fill="currentColor" />
-                                        <Star size={16} fill="currentColor" />
-                                        <Star size={16} fill="currentColor" />
-                                        <Star size={16} fill="currentColor" />
-                                        <Star size={16} fill="currentColor" />
-                                    </div>
-                                </div>
-
-                                {/* Decorative UI element */}
-                                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
-                                    <div className="absolute right-0 top-0 opacity-20 transform translate-x-4 -translate-y-4">
-                                        <Star size={64} fill="currentColor" />
-                                    </div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-2 h-2 rounded-full bg-white"></div>
-                                        <div className="w-2 h-2 rounded-full bg-white/50"></div>
-                                        <div className="w-2 h-2 rounded-full bg-white/50"></div>
-                                    </div>
-                                    <div className="w-3/4 h-2 bg-white/20 rounded-full mb-2"></div>
-                                    <div className="w-1/2 h-2 bg-white/20 rounded-full"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Testimonial Text */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
+                    <div className="text-center mb-16">
+                        <motion.h2
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
+                            className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4"
                         >
-                            <div className="text-indigo-500 bg-indigo-50 w-14 h-14 rounded-2xl flex items-center justify-center mb-8 shadow-sm">
-                                <MessageSquare size={28} fill="currentColor" className="opacity-80" />
-                            </div>
+                            Trusted by <span className="text-indigo-600">Local Vendors</span> Across India
+                        </motion.h2>
+                        <p className="text-slate-500 font-medium max-w-2xl mx-auto">
+                            Join thousands of business owners who are modernizing their daily operations with BillForge.
+                        </p>
+                    </div>
 
-                            <h3 className="text-3xl md:text-4xl font-bold text-slate-800 mb-8 leading-tight">
-                                "BillForge completely transformed how we run our daily operations. Invoicing takes seconds now, and our Khata is always perfectly balanced. Highly recommended!"
-                            </h3>
-
-                            <div className="flex items-center gap-4 border-t border-slate-100 pt-8">
-                                <span className="text-slate-500 font-medium">Rated 4.8/5 on</span>
-                                <div className="flex items-center gap-1 font-bold text-slate-800">
-                                    <Star fill="#00b67a" color="#00b67a" size={20} /> Trustpilot
-                                </div>
-                            </div>
-                        </motion.div>
+                    <div className="relative">
+                        <TestimonialSlider />
                     </div>
                 </div>
             </section>
