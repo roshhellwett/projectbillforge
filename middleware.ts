@@ -1,45 +1,44 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import createMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
-// Simple in-memory rate limiter (per-IP, resets on server restart)
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+// Initialize Redis client using Upstash REST
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 200; // 200 requests per minute per IP (supports 100+ concurrent users)
-const AUTH_MAX_REQUESTS = 30; // 30 auth attempts per minute per IP
+let redis: Redis | null = null;
+let authLimiter: Ratelimit | null = null;
+let generalLimiter: Ratelimit | null = null;
 
-function getRateLimit(ip: string, maxRequests: number): { allowed: boolean; remaining: number } {
-    const now = Date.now();
-    const entry = rateLimitMap.get(ip);
+const intlMiddleware = createMiddleware(routing);
 
-    if (!entry || now > entry.resetTime) {
-        rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-        return { allowed: true, remaining: maxRequests - 1 };
-    }
+if (redisUrl && redisToken) {
+    redis = new Redis({
+        url: redisUrl,
+        token: redisToken,
+    });
 
-    if (entry.count >= maxRequests) {
-        return { allowed: false, remaining: 0 };
-    }
+    // 30 auth attempts per minute per IP
+    authLimiter = new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(30, '60 s'),
+        prefix: 'billforge:mw:auth',
+    });
 
-    entry.count++;
-    return { allowed: true, remaining: maxRequests - entry.count };
+    // 200 requests per minute per IP
+    generalLimiter = new Ratelimit({
+        redis,
+        limiter: Ratelimit.slidingWindow(200, '60 s'),
+        prefix: 'billforge:mw:general',
+    });
 }
 
-// Periodic cleanup to prevent memory leak
-setInterval(() => {
-    const now = Date.now();
-    for (const [key, value] of rateLimitMap) {
-        if (now > value.resetTime) {
-            rateLimitMap.delete(key);
-        }
-    }
-}, 60 * 1000);
-
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     // Railway puts the real client IP as the FIRST entry in x-forwarded-for,
     // followed by any intermediate proxies - use the first hop to get the actual user IP.
-    // NOTE: The in-memory rateLimitMap resets on each Railway deploy/restart.
-    // For multi-instance setups, upgrade to Redis-backed rate limiting.
     const forwardedFor = request.headers.get('x-forwarded-for');
     const ip = forwardedFor
         ? forwardedFor.split(',').at(0)?.trim() // First hop is the real client IP
@@ -48,37 +47,42 @@ export function middleware(request: NextRequest) {
     const safeIp = ip ?? 'unknown';
 
     const path = request.nextUrl.pathname;
-    const isAuthRoute = path === '/login' || path === '/register' || path.startsWith('/api/auth');
+    const isAuthRoute = /^\/(en|hi|hi-en)?\/(login|register)/.test(path) || path.startsWith('/api/auth');
 
-    const maxRequests = isAuthRoute ? AUTH_MAX_REQUESTS : MAX_REQUESTS_PER_WINDOW;
-    const rateLimitKey = isAuthRoute ? `auth:${safeIp}` : `general:${safeIp}`;
-
-    const { allowed, remaining } = getRateLimit(rateLimitKey, maxRequests);
-
-    if (!allowed) {
-        return new NextResponse(
-            JSON.stringify({ error: 'Too many requests. Please try again later.' }),
-            {
-                status: 429,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Retry-After': '60',
-                    'X-RateLimit-Remaining': '0',
-                },
-            }
-        );
+    // If Redis is not configured, bypass rate limiting
+    if (!redis || !authLimiter || !generalLimiter) {
+        return intlMiddleware(request);
     }
 
-    const response = NextResponse.next();
-    response.headers.set('X-RateLimit-Remaining', String(remaining));
-    return response;
+    const limiter = isAuthRoute ? authLimiter : generalLimiter;
+    const identifier = isAuthRoute ? `auth:${safeIp}` : `general:${safeIp}`;
+
+    try {
+        const { success, remaining } = await limiter.limit(identifier);
+
+        if (!success) {
+            return new NextResponse(
+                JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+                {
+                    status: 429,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Retry-After': '60',
+                        'X-RateLimit-Remaining': '0',
+                    },
+                }
+            );
+        }
+
+        const response = intlMiddleware(request);
+        response.headers.set('X-RateLimit-Remaining', String(remaining));
+        return response;
+    } catch (e) {
+        // If Redis fails, allow the request to pass through
+        return intlMiddleware(request);
+    }
 }
 
 export const config = {
-    matcher: [
-        '/login',
-        '/register',
-        '/api/auth/:path*',
-        '/dashboard/:path*',
-    ],
+    matcher: ['/', '/(hi|en|hi-en)/:path*', '/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

@@ -90,6 +90,7 @@ export const invoices = pgTable('invoices', {
   sgst: numeric2('sgst').default(0),
   igst: numeric2('igst').default(0),
   total: numeric2('total').notNull().default(0),
+  amountPaid: numeric2('amount_paid').notNull().default(0),
   items: jsonb('items').$type<InvoiceItem[]>(),
   notes: text('notes'),
   paymentMode: text('payment_mode', { enum: ['cash', 'upi', 'khata'] }).default('cash'),

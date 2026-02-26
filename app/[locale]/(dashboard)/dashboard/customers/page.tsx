@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "@/lib/actions/customers";
 import { recalculateCustomerBalance } from "@/lib/actions/khata";
 import { ConfirmDialog, SkeletonCard } from "@/lib/components/ui";
+import { useTranslations } from "next-intl";
 import { Plus, Search, X, RefreshCw, Trash2, Edit2, Phone, Mail, MapPin } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
@@ -31,6 +32,7 @@ interface Customer {
 }
 
 export default function CustomersPage() {
+  const t = useTranslations('Customers');
   const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -164,15 +166,15 @@ export default function CustomersPage() {
     <StaggerContainer className="space-y-6">
       <FadeIn className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">Customers (Khata)</h1>
-          <p className="text-[var(--foreground)]/60 mt-1">Manage your khata customers</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">{t('title')}</h1>
+          <p className="text-[var(--foreground)]/60 mt-1">{t('subtitle')}</p>
         </div>
         <button
           onClick={openModal}
           className="glass-btn-primary flex items-center gap-2"
         >
           <Plus size={20} />
-          Add Customer
+          {t('addCustomer')}
         </button>
       </FadeIn>
 
@@ -191,7 +193,7 @@ export default function CustomersPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-[var(--color-primary)]/60 pointer-events-none" size={18} />
             <input
               type="text"
-              placeholder="Search customers..."
+              placeholder={t('searchCustomer')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pr-4 py-3 glass-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
@@ -207,7 +209,7 @@ export default function CustomersPage() {
             ))}
           </div>
         ) : filteredCustomers.length === 0 ? (
-          <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">No customers found</div>
+          <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">{t('noCustomers')}</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4 md:p-6">
             {filteredCustomers.map((customer) => (
@@ -247,7 +249,7 @@ export default function CustomersPage() {
                 </div>
                 <div className="pt-3 border-t border-[var(--border)]/30">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-[var(--foreground)]/60">Total Owed (Due)</span>
+                    <span className="text-[var(--foreground)]/60">{t('totalOwed')}</span>
                     <div className="flex items-center gap-1">
                       <span className={safeNum(customer.currentBalance) > 0 ? "font-semibold text-[var(--color-warning)]" : safeNum(customer.currentBalance) < 0 ? "font-semibold text-[var(--color-primary)]" : "font-medium text-[var(--foreground)]"}>
                         {safeNum(customer.currentBalance) < 0 ? '-' : ''}₹{fmt(customer.currentBalance)}
@@ -263,12 +265,12 @@ export default function CustomersPage() {
                     </div>
                   </div>
                   <div className="flex justify-between text-sm mt-1.5">
-                    <span className="text-[var(--foreground)]/60">Credit Limit</span>
+                    <span className="text-[var(--foreground)]/60">{t('creditLimit')}</span>
                     <span className="text-[var(--foreground)] font-medium">₹{fmt(customer.creditLimit)}</span>
                   </div>
                   {safeNum(customer.creditLimit) > 0 && (
                     <div className="flex justify-between text-sm mt-1.5">
-                      <span className="text-[var(--foreground)]/60">Available Credit</span>
+                      <span className="text-[var(--foreground)]/60">{t('availableCredit')}</span>
                       <span className="font-semibold text-[var(--color-success)]">
                         ₹{fmt(Math.max(0, safeNum(customer.creditLimit) - safeNum(customer.currentBalance)))}
                       </span>
@@ -285,7 +287,7 @@ export default function CustomersPage() {
         <div className="glass-overlay">
           <div className="glass-card glass-modal-panel max-w-lg">
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--border)]/50">
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">{editingCustomer ? "Edit Customer" : "Add Customer"}</h2>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">{editingCustomer ? t('editCustomer') : t('addCustomer')}</h2>
               <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
                 <X size={20} className="text-[var(--foreground)]/60" />
               </button>
@@ -294,7 +296,7 @@ export default function CustomersPage() {
               {error && <div className="p-3 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-xl text-sm font-medium border border-[var(--color-danger)]/20">{error}</div>}
 
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Customer Name *</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t('customerName')}</label>
                 <input
                   type="text"
                   required
@@ -306,7 +308,7 @@ export default function CustomersPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Phone</label>
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t('phone')}</label>
                   <input
                     type="tel"
                     value={formData.phone}
@@ -315,7 +317,7 @@ export default function CustomersPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Email</label>
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t('email')}</label>
                   <input
                     type="email"
                     value={formData.email}
@@ -326,7 +328,7 @@ export default function CustomersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">GSTIN</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t('gstin')}</label>
                 <input
                   type="text"
                   value={formData.gstin}
@@ -337,7 +339,7 @@ export default function CustomersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Address</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t('address')}</label>
                 <textarea
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -347,7 +349,7 @@ export default function CustomersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Credit Limit (₹)</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t('creditLimit')}</label>
                 <input
                   type="number"
                   min="0"
@@ -364,14 +366,14 @@ export default function CustomersPage() {
                   onClick={() => setShowModal(false)}
                   className="glass-btn-secondary flex-1"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
                   className="glass-btn-primary flex-1"
                 >
-                  {saving ? "Saving..." : editingCustomer ? "Update Customer" : "Create Customer"}
+                  {saving ? t('saving') : editingCustomer ? t('updateCustomer') : t('createCustomer')}
                 </button>
               </div>
             </form>

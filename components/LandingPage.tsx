@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import {
     CheckCircle2,
@@ -180,6 +182,7 @@ const TestimonialSlider = () => {
 };
 
 export default function LandingPage() {
+    const t = useTranslations('Landing');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
@@ -201,13 +204,14 @@ export default function LandingPage() {
 
                         {/* Desktop Menu */}
                         <div className="hidden md:flex items-center space-x-8">
-                            <Link href="#features" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Features</Link>
-                            <Link href="/dashboard/khata" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Khata Ledger</Link>
-                            <Link href="/dashboard/invoices" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Invoices</Link>
+                            <Link href="#features" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navFeatures')}</Link>
+                            <Link href="/dashboard/khata" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navKhata')}</Link>
+                            <Link href="/dashboard/invoices" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navInvoices')}</Link>
                         </div>
 
                         {/* Auth Buttons */}
                         <div className="hidden md:flex items-center space-x-4">
+                            <LanguageSwitcher />
                             <Link
                                 href="/login"
                                 className="text-slate-600 hover:text-indigo-600 font-medium text-sm px-4 py-2 transition-colors"
@@ -218,7 +222,7 @@ export default function LandingPage() {
                                 href="/register"
                                 className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-medium text-sm px-6 py-2.5 rounded-full shadow-md shadow-indigo-200 hover:shadow-lg hover:shadow-indigo-300 transition-all transform hover:-translate-y-0.5"
                             >
-                                Sign Up
+                                {t('navRegister')}
                             </Link>
                         </div>
 
@@ -249,28 +253,29 @@ export default function LandingPage() {
                                     <Link
                                         href="#features"
                                         onClick={() => setIsMobileMenuOpen(false)}
-                                        className="px-3 py-2 text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                        className="px-3 py-3 text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                                     >
-                                        Features
+                                        {t('navFeatures')}
                                     </Link>
                                     <Link
                                         href="/dashboard/khata"
                                         onClick={() => setIsMobileMenuOpen(false)}
-                                        className="px-3 py-2 text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                        className="px-3 py-3 text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                                     >
-                                        Khata Ledger
+                                        {t('navKhata')}
                                     </Link>
                                     <Link
                                         href="/dashboard/invoices"
                                         onClick={() => setIsMobileMenuOpen(false)}
-                                        className="px-3 py-2 text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                        className="px-3 py-3 text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                                     >
-                                        Invoices
+                                        {t('navInvoices')}
                                     </Link>
                                 </div>
-                                <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-3 px-3">
-                                    <Link href="/login" className="w-full text-center text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium py-2.5 rounded-xl border border-indigo-200 transition-all">Login</Link>
-                                    <Link href="/register" className="w-full text-center bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-medium py-2.5 rounded-xl shadow-md shadow-indigo-200 transition-all transform hover:-translate-y-0.5">Sign Up</Link>
+                                <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-4 px-3">
+                                    <LanguageSwitcher />
+                                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium py-3 rounded-xl border border-indigo-200 transition-all">{t('navLogin')}</Link>
+                                    <Link href="/register" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-medium py-3 rounded-xl shadow-md shadow-indigo-200 transition-all transform hover:-translate-y-0.5">{t('navRegister')}</Link>
                                 </div>
                             </div>
                         </motion.div>
@@ -310,21 +315,21 @@ export default function LandingPage() {
                                 variants={fadeInUp}
                                 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1] mb-6 text-center lg:text-left"
                             >
-                                Smart <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Billing & Invoicing</span>
+                                {t('heroTitle1')} <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">{t('heroTitle2')}</span>
                             </motion.h1>
 
                             <motion.p
                                 variants={fadeInUp}
                                 className="text-base sm:text-lg text-slate-600 mb-8 max-w-lg leading-relaxed text-center lg:text-left mx-auto lg:mx-0"
                             >
-                                Manage your business efficiently with BillForge. Generate invoices, track your Khata, manage products, and keep your customers happy—all in one place.
+                                {t('heroSubtitle')}
                             </motion.p>
 
                             <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
                                 <Link href="/register">
                                     <button className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-8 py-4 rounded-full font-semibold shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all transform hover:-translate-y-1 flex items-center gap-2 group whitespace-nowrap">
-                                        Get Into The Business
+                                        {t('ctaButton')}
                                         <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                     </button>
                                 </Link>

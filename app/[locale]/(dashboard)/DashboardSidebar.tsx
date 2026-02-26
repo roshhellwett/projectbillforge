@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   Users,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { SignOutButton } from "./signout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { FloatingIcon } from "@/lib/components/MotionWrapper";
 
 interface DashboardSidebarProps {
@@ -26,14 +28,15 @@ interface DashboardSidebarProps {
 
 export default function DashboardSidebar({ session }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations('Dashboard');
 
   const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/invoices", label: "Invoices", icon: Receipt },
-    { href: "/dashboard/customers", label: "Customers", icon: Users },
-    { href: "/dashboard/products", label: "Products", icon: Package },
-    { href: "/dashboard/khata", label: "Khata Ledger", icon: BookOpen },
-    { href: "/dashboard/settings", label: "Settings", icon: Settings },
+    { href: "/dashboard", label: t('home'), icon: LayoutDashboard },
+    { href: "/dashboard/invoices", label: t('invoices'), icon: Receipt },
+    { href: "/dashboard/customers", label: t('customers'), icon: Users },
+    { href: "/dashboard/products", label: t('products'), icon: Package },
+    { href: "/dashboard/khata", label: t('khata'), icon: BookOpen },
+    { href: "/dashboard/settings", label: t('settings'), icon: Settings },
   ];
 
   return (
@@ -56,7 +59,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
           >
             <span className="flex items-center gap-2">
               <Search size={14} className="opacity-50 group-hover:opacity-100 transition-opacity" />
-              Quick Search...
+              {t('searchPlaceholder')}
             </span>
             <kbd className="hidden sm:inline-flex items-center gap-1 font-sans text-[10px] px-1.5 py-0.5 rounded shadow-[0_1px_0_rgba(0,0,0,0.1)] bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)]/50">
               <span className="text-xs">⌘</span>K
@@ -95,24 +98,29 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
         </nav>
 
         {/* Support Section */}
-        <div className="p-4 shrink-0 mt-auto">
-          <div className="bg-[var(--color-primary)]/5 rounded-2xl p-4 text-center border border-[var(--color-primary)]/10">
-            <div className="w-12 h-12 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mx-auto mb-3">
-              <BookOpen size={20} />
+        <div className="p-3 shrink-0 mt-auto">
+          <div className="bg-[var(--color-primary)]/5 rounded-2xl p-3 text-center border border-[var(--color-primary)]/10">
+            <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mx-auto mb-2">
+              <BookOpen size={16} />
             </div>
-            <h3 className="font-semibold text-sm text-[var(--foreground)] mb-1">Need help?</h3>
-            <p className="text-[10px] text-[var(--foreground)]/50 mb-3 px-1">
-              Do you have any problems while using BillForge?
+            <h3 className="font-semibold text-xs text-[var(--foreground)] mb-1">Need help?</h3>
+            <p className="text-[9px] text-[var(--foreground)]/50 mb-2 px-1">
+              Problems while using BillForge?
             </p>
-            <a href="mailto:zenithopensource@icloud.com" className="block w-full py-2 bg-white dark:bg-slate-800 rounded-lg text-xs font-medium text-[var(--color-primary)] shadow-sm border border-[var(--border)] hover:bg-[var(--background)] transition-colors">
+            <a href="mailto:zenithopensource@icloud.com" className="block w-full py-1.5 bg-white dark:bg-slate-800 rounded-lg text-[10px] font-medium text-[var(--color-primary)] shadow-sm border border-[var(--border)] hover:bg-[var(--background)] transition-colors">
               Contact Support
             </a>
           </div>
 
           {/* Minimal Auth/Theme Row */}
-          <div className="flex items-center justify-between mt-4 px-2">
-            <SignOutButton />
-            <ThemeToggle />
+          <div className="flex items-center justify-between mt-3 gap-1 px-1">
+            <LanguageSwitcher compact />
+            <div className="flex items-center gap-1">
+              <div className="transform scale-[0.70] origin-center -mx-2 h-[28px] overflow-visible flex flex-col justify-center">
+                <ThemeToggle />
+              </div>
+              <SignOutButton iconOnly />
+            </div>
           </div>
         </div>
 

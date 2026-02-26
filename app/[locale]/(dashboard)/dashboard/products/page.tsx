@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "@/lib/actions/products";
 import { getBusinessProfile } from "@/lib/actions/business";
 import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
+import { useTranslations } from "next-intl";
 import { Plus, Search, Edit2, Trash2, X } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
@@ -37,6 +38,7 @@ const getDefaultUnits = (industry: IndustryType) => {
 };
 
 export default function ProductsPage() {
+  const t = useTranslations('Products');
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -183,15 +185,15 @@ export default function ProductsPage() {
     <StaggerContainer className="space-y-6">
       <FadeIn className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">Products</h1>
-          <p className="text-[var(--foreground)]/60 mt-1">Manage your product inventory</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">{t('title')}</h1>
+          <p className="text-[var(--foreground)]/60 mt-1">{t('subtitle')}</p>
         </div>
         <button
           onClick={openModal}
           className="glass-btn-primary flex items-center gap-2"
         >
           <Plus size={20} />
-          Add Product
+          {t('addProduct')}
         </button>
       </FadeIn>
 
@@ -201,7 +203,7 @@ export default function ProductsPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-[var(--color-primary)]/60 pointer-events-none" size={18} />
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder={t('searchProduct')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pr-4 py-3 glass-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
@@ -213,7 +215,7 @@ export default function ProductsPage() {
         {loading ? (
           <div className="p-4"><SkeletonTable rows={5} /></div>
         ) : filteredProducts.length === 0 ? (
-          <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">No products found</div>
+          <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">{t('noProducts')}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -222,9 +224,9 @@ export default function ProductsPage() {
                   <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Name</th>
                   <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">SKU</th>
                   <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">HSN</th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Rate</th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">GST %</th>
-                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Stock</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">{t('rate')}</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">{t('gstRate')}</th>
+                  <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">{t('stock')}</th>
                   <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">Actions</th>
                 </tr>
               </thead>
@@ -271,7 +273,7 @@ export default function ProductsPage() {
         <div className="glass-overlay">
           <div className="glass-card glass-modal-panel max-w-lg">
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--border)]/50">
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">{editingProduct ? "Edit Product" : "Add Product"}</h2>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">{editingProduct ? t('editProduct') : t('addProduct')}</h2>
               <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
                 <X size={20} className="text-[var(--foreground)]/60" />
               </button>
@@ -280,7 +282,7 @@ export default function ProductsPage() {
               {error && <div className="p-3 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-xl text-sm font-medium border border-[var(--color-danger)]/20">{error}</div>}
 
               <div>
-                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Product Name *</label>
+                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t('productName')}</label>
                 <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full glass-input" />
               </div>
 
@@ -310,13 +312,13 @@ export default function ProductsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">GST Rate (%)</label>
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t('gstRate')}</label>
                   <select value={formData.gstRate} onChange={(e) => setFormData({ ...formData, gstRate: e.target.value })} className="w-full glass-input">
                     {gstRates.map(r => <option key={r} value={r}>{r}%</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Initial Stock</label>
+                  <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Initial {t('stock')}</label>
                   <input type="number" min="0" step="any" value={formData.stockQuantity} onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })} className="w-full glass-input" />
                 </div>
               </div>
@@ -360,9 +362,9 @@ export default function ProductsPage() {
               )}
 
               <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="glass-btn-secondary flex-1">Cancel</button>
+                <button type="button" onClick={() => setShowModal(false)} className="glass-btn-secondary flex-1">{t('cancel')}</button>
                 <button type="submit" disabled={saving} className="glass-btn-primary flex-1">
-                  {saving ? "Saving..." : editingProduct ? "Update Product" : "Create Product"}
+                  {saving ? t('saving') : editingProduct ? t('updateProduct') : t('createProduct')}
                 </button>
               </div>
             </form>

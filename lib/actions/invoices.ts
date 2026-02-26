@@ -1,5 +1,7 @@
 "use server";
 
+import { Decimal } from 'decimal.js';
+
 import { db } from "@/lib/db";
 import { invoices, customers, products, khataTransactions, businesses } from "@/lib/schema";
 import { invoiceSchema, type InvoiceInput } from "@/lib/validations";
@@ -16,25 +18,30 @@ function generateInvoiceNumber(): string {
 }
 
 function calculateGST(itemRate: number, quantity: number, gstRate: number, isInterState: boolean) {
-  const amount = itemRate * quantity;
-  const gstAmount = amount * (gstRate / 100);
+  // Use Decimal for exact financial precision without float drift
+  const rate = new Decimal(itemRate);
+  const qty = new Decimal(quantity);
+  const gstPct = new Decimal(gstRate);
+
+  const amount = rate.times(qty);
+  const gstAmount = amount.times(gstPct).dividedBy(100);
 
   if (isInterState) {
     return {
-      amount,
+      amount: amount.toNumber(),
       cgst: 0,
       sgst: 0,
-      igst: gstAmount,
+      igst: gstAmount.toDecimalPlaces(2).toNumber(),
     };
   }
 
-  const cgst = gstAmount / 2;
-  const sgst = gstAmount / 2;
+  const cgst = gstAmount.dividedBy(2).toDecimalPlaces(2);
+  const sgst = gstAmount.dividedBy(2).toDecimalPlaces(2);
 
   return {
-    amount,
-    cgst,
-    sgst,
+    amount: amount.toDecimalPlaces(2).toNumber(),
+    cgst: cgst.toNumber(),
+    sgst: sgst.toNumber(),
     igst: 0,
   };
 }
@@ -75,17 +82,17 @@ export async function createInvoice(data: InvoiceInput) {
     const invoiceNumber = generateInvoiceNumber();
     const invoiceDate = data.invoiceDate;
 
-    let subtotal = 0;
-    let totalCgst = 0;
-    let totalSgst = 0;
-    let totalIgst = 0;
+    let subtotal = new Decimal(0);
+    let totalCgst = new Decimal(0);
+    let totalSgst = new Decimal(0);
+    let totalIgst = new Decimal(0);
 
     const processedItems = data.items.map(item => {
       const gst = calculateGST(item.rate, item.quantity, item.gstRate, data.isInterState || false);
-      subtotal += gst.amount;
-      totalCgst += gst.cgst;
-      totalSgst += gst.sgst;
-      totalIgst += gst.igst;
+      subtotal = subtotal.plus(gst.amount);
+      totalCgst = totalCgst.plus(gst.cgst);
+      totalSgst = totalSgst.plus(gst.sgst);
+      totalIgst = totalIgst.plus(gst.igst);
 
       return {
         productId: item.productId,
@@ -100,7 +107,7 @@ export async function createInvoice(data: InvoiceInput) {
       };
     });
 
-    const total = subtotal + totalCgst + totalSgst + totalIgst;
+    const total = subtotal.plus(totalCgst).plus(totalSgst).plus(totalIgst).toNumber();
     const paymentMode = data.paymentMode || 'cash';
     const paymentStatus = paymentMode === 'khata' ? 'unpaid' : 'paid';
 
@@ -114,15 +121,16 @@ export async function createInvoice(data: InvoiceInput) {
         customerGstin: data.customerGstin || null,
         customerAddress: data.customerAddress || null,
         invoiceDate,
-        subtotal,
-        cgst: totalCgst,
-        sgst: totalSgst,
-        igst: totalIgst,
+        subtotal: subtotal.toNumber(),
+        cgst: totalCgst.toNumber(),
+        sgst: totalSgst.toNumber(),
+        igst: totalIgst.toNumber(),
         total,
         items: processedItems,
         notes: data.notes || null,
         paymentMode,
         paymentStatus,
+        amountPaid: 0,
         status: 'active',
       }).returning();
 
@@ -156,16 +164,18 @@ export async function createInvoice(data: InvoiceInput) {
         if (customer.business_id !== session.id) {
           throw new Error("Customer does not belong to your business");
         }
-        const currentBalance = Number(customer.current_balance) || 0;
-        const creditLimit = Number(customer.credit_limit) || 0;
-        const newBalance = currentBalance + total;
-        const availableCredit = Math.max(0, creditLimit - currentBalance);
-        if (creditLimit > 0 && newBalance > creditLimit) {
-          throw new Error(`Transaction exceeds customer credit limit. Credit Limit: ${creditLimit.toFixed(2)}, Available: ${availableCredit.toFixed(2)}, Invoice Total: ${total.toFixed(2)}`);
+        const currentBalance = new Decimal(customer.current_balance || 0);
+        const creditLimit = new Decimal(customer.credit_limit || 0);
+        const invTotalStr = new Decimal(total);
+        const newBalance = currentBalance.plus(invTotalStr);
+        const availableCredit = Decimal.max(0, creditLimit.minus(currentBalance));
+
+        if (creditLimit.greaterThan(0) && newBalance.greaterThan(creditLimit)) {
+          throw new Error(`Transaction exceeds customer credit limit. Credit Limit: ${creditLimit.toFixed(2)}, Available: ${availableCredit.toFixed(2)}, Invoice Total: ${invTotalStr.toFixed(2)}`);
         }
         await tx.update(customers)
           .set({
-            currentBalance: newBalance,
+            currentBalance: newBalance.toNumber(),
             updatedAt: new Date(),
           })
           .where(eq(customers.id, data.customerId));
@@ -264,18 +274,22 @@ export async function cancelInvoice(id: string) {
         }
       }
 
-      if (invoice.customerId && invoice.paymentStatus === 'unpaid') {
+      if (invoice.customerId && invoice.paymentStatus !== 'paid') {
         const customerRows = await tx.execute(
           sql`SELECT id, current_balance FROM customers WHERE id = ${invoice.customerId} FOR UPDATE`
         ) as unknown as { id: string; current_balance: number | null }[];
         const customer = customerRows[0];
+
+        let orphanedPayment = new Decimal(invoice.amountPaid || 0);
+
         if (customer) {
-          const currentBalance = Number(customer.current_balance) || 0;
-          const newBalance = currentBalance - (Number(invoice.total) || 0);
-          // No Math.max(0) clamping — preserves true accounting balance
+          const currentBalance = new Decimal(customer.current_balance || 0);
+          const invTotalStr = new Decimal(invoice.total || 0);
+          const newBalance = currentBalance.minus(invTotalStr);
+
           await tx.update(customers)
             .set({
-              currentBalance: newBalance,
+              currentBalance: newBalance.toNumber(),
               updatedAt: new Date(),
             })
             .where(eq(customers.id, invoice.customerId));
@@ -290,6 +304,59 @@ export async function cancelInvoice(id: string) {
           note: `Invoice ${invoice.invoiceNumber} Cancelled - Reversal`,
           referenceInvoiceId: invoice.id,
         });
+
+        // ---------------------------------------------------------------------
+        // GOD-LEVEL ORPHANED PAYMENT CASCADE
+        // If the cancelled invoice possessed partial payments, we must take that 
+        // locked capital and re-invest it into the next oldest unpaid invoices 
+        // belonging to the customer, to correctly resolve the Ledger shift.
+        // ---------------------------------------------------------------------
+        if (orphanedPayment.greaterThan(0)) {
+          const pendingInvoicesRows = await tx.execute(
+            sql`SELECT id, total, amount_paid FROM invoices 
+                WHERE customer_id = ${invoice.customerId} 
+                AND business_id = ${session.id}
+                AND payment_status IN ('unpaid', 'partial')
+                AND status = 'active'
+                AND id != ${invoice.id}
+                ORDER BY invoice_date ASC, created_at ASC 
+                FOR UPDATE`
+          ) as unknown as { id: string; total: number | null; amount_paid: number | null }[];
+
+          for (const inv of pendingInvoicesRows) {
+            if (orphanedPayment.lessThanOrEqualTo(0)) break;
+
+            const invTotal = new Decimal(inv.total || 0);
+            const invPaid = new Decimal(inv.amount_paid || 0);
+            const amountDue = invTotal.minus(invPaid);
+
+            if (amountDue.lessThanOrEqualTo(0)) continue;
+
+            if (orphanedPayment.greaterThanOrEqualTo(amountDue)) {
+              // Fully pay this invoice
+              await tx.update(invoices)
+                .set({
+                  amountPaid: invTotal.toNumber(),
+                  paymentStatus: 'paid',
+                  updatedAt: new Date(),
+                })
+                .where(eq(invoices.id, inv.id));
+
+              orphanedPayment = orphanedPayment.minus(amountDue);
+            } else {
+              // Partially pay this invoice
+              await tx.update(invoices)
+                .set({
+                  amountPaid: invPaid.plus(orphanedPayment).toNumber(),
+                  paymentStatus: 'partial',
+                  updatedAt: new Date(),
+                })
+                .where(eq(invoices.id, inv.id));
+
+              orphanedPayment = new Decimal(0);
+            }
+          }
+        }
       }
     });
 

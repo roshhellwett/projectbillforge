@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getBusinessProfile, updateBusinessProfile, resetAllKhataData } from "@/lib/actions/business";
 import { ConfirmDialog } from "@/lib/components/ui";
+import { useTranslations } from "next-intl";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 import { SignOutButton } from "../../signout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -15,6 +16,7 @@ const defaultTerms = `1. Goods once sold cannot be returned or exchanged unless 
 5. E. & O.E.`;
 
 export default function SettingsPage() {
+  const t = useTranslations('Settings');
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -93,7 +95,7 @@ export default function SettingsPage() {
     if (result.error) {
       setMessage(result.error);
     } else {
-      setMessage("Business profile updated successfully!");
+      setMessage(t('successMessage'));
       router.refresh();
     }
     setSaving(false);
@@ -111,8 +113,8 @@ export default function SettingsPage() {
   return (
     <StaggerContainer className="space-y-6">
       <FadeIn>
-        <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">Settings</h1>
-        <p className="text-[var(--foreground)]/60 mt-1">Manage your business profile</p>
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">{t('title')}</h1>
+        <p className="text-[var(--foreground)]/60 mt-1">{t('subtitle')}</p>
       </FadeIn>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -127,7 +129,7 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">Business Name *</label>
+              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">{t('businessName')} *</label>
               <input
                 type="text"
                 required
@@ -138,7 +140,7 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">Phone Number *</label>
+              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">{t('phone')} *</label>
               <input
                 type="tel"
                 required
@@ -163,7 +165,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">Business Address *</label>
+              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">{t('address')} *</label>
               <textarea
                 required
                 value={formData.address}
@@ -175,7 +177,7 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">GSTIN</label>
+              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">{t('gstin')}</label>
               <input
                 type="text"
                 value={formData.gstin}
@@ -187,7 +189,7 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">State</label>
+              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">{t('state')}</label>
               <input
                 type="text"
                 value={formData.state}
@@ -198,7 +200,7 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">Pincode</label>
+              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">{t('pincode')}</label>
               <input
                 type="text"
                 value={formData.pincode}
@@ -216,13 +218,13 @@ export default function SettingsPage() {
               disabled={saving}
               className="glass-btn-primary px-8"
             >
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? t('saving') : t('saveChanges')}
             </button>
           </div>
         </StaggerItem>
 
         <StaggerItem className="glass-card p-8">
-          <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2">Default Terms & Conditions</h2>
+          <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2">{t('termsC')}</h2>
           <p className="text-sm text-[var(--foreground)]/60 mb-6">These terms will appear at the bottom of your invoices.</p>
 
           <textarea

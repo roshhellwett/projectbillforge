@@ -1,5 +1,7 @@
 "use server";
 
+import { Decimal } from 'decimal.js';
+
 import { db } from "@/lib/db";
 import { khataTransactions, customers, businesses, invoices } from "@/lib/schema";
 import { khataTransactionSchema, type KhataTransactionInput } from "@/lib/validations";
@@ -64,17 +66,19 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
         throw new Error("Customer not found");
       }
 
-      const currentBalance = Number(lockedCustomer.current_balance) || 0;
-      const creditLimit = Number(lockedCustomer.credit_limit) || 0;
+      const currentBalance = new Decimal(lockedCustomer.current_balance || 0);
+      const creditLimit = new Decimal(lockedCustomer.credit_limit || 0);
+
+      const amountToProcess = new Decimal(data.amount);
 
       const newBalance = data.type === 'credit'
-        ? currentBalance + data.amount
-        : currentBalance - data.amount;
+        ? currentBalance.plus(amountToProcess)
+        : currentBalance.minus(amountToProcess);
 
       // Credit limit enforcement: check BEFORE inserting
-      if (data.type === 'credit' && creditLimit > 0 && newBalance > creditLimit) {
-        const available = Math.max(0, creditLimit - currentBalance);
-        throw new Error(`Credit limit exceeded. Limit: ${creditLimit.toFixed(2)}, Current Owed: ${currentBalance.toFixed(2)}, Available: ${available.toFixed(2)}, Requested: ${data.amount.toFixed(2)}`);
+      if (data.type === 'credit' && creditLimit.greaterThan(0) && newBalance.greaterThan(creditLimit)) {
+        const available = Decimal.max(0, creditLimit.minus(currentBalance));
+        throw new Error(`Credit limit exceeded. Limit: ${creditLimit.toFixed(2)}, Current Owed: ${currentBalance.toFixed(2)}, Available: ${available.toFixed(2)}, Requested: ${amountToProcess.toFixed(2)}`);
       }
 
       // For payments (debit): allow overpayment, resulting in negative balance (credit in customer's favor)
@@ -89,9 +93,59 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
         note: data.note || null,
       }).returning();
 
+      // FIFO Invoice Auto-Settlement Logic
+      if (data.type === 'debit') {
+        let remainingPayment = amountToProcess;
+
+        // Fetch all unpaid or partially paid invoices for this customer, oldest first
+        const pendingInvoicesRows = await tx.execute(
+          sql`SELECT id, total, amount_paid FROM invoices 
+              WHERE customer_id = ${data.customerId} 
+              AND business_id = ${session.id}
+              AND payment_status IN ('unpaid', 'partial')
+              AND status = 'active'
+              ORDER BY invoice_date ASC, created_at ASC 
+              FOR UPDATE`
+        ) as unknown as { id: string; total: number | null; amount_paid: number | null }[];
+
+        for (const inv of pendingInvoicesRows) {
+          if (remainingPayment.lessThanOrEqualTo(0)) break;
+
+          const invTotal = new Decimal(inv.total || 0);
+          const invPaid = new Decimal(inv.amount_paid || 0);
+          const amountDue = invTotal.minus(invPaid);
+
+          if (amountDue.lessThanOrEqualTo(0)) continue; // Safety check
+
+          if (remainingPayment.greaterThanOrEqualTo(amountDue)) {
+            // Fully pay this invoice
+            await tx.update(invoices)
+              .set({
+                amountPaid: invTotal.toNumber(),
+                paymentStatus: 'paid',
+                updatedAt: new Date(),
+              })
+              .where(eq(invoices.id, inv.id));
+
+            remainingPayment = remainingPayment.minus(amountDue);
+          } else {
+            // Partially pay this invoice
+            await tx.update(invoices)
+              .set({
+                amountPaid: invPaid.plus(remainingPayment).toNumber(),
+                paymentStatus: 'partial',
+                updatedAt: new Date(),
+              })
+              .where(eq(invoices.id, inv.id));
+
+            remainingPayment = new Decimal(0);
+          }
+        }
+      }
+
       await tx.update(customers)
         .set({
-          currentBalance: newBalance,
+          currentBalance: newBalance.toNumber(),
           updatedAt: new Date(),
         })
         .where(eq(customers.id, data.customerId));
