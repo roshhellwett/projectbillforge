@@ -1,0 +1,218 @@
+/* b:\zenithopensourceprojects\projectbillforge\app\responsive-demo\page.module.css */
+
+/* 1. Fluid Spacing & Theming Variables */
+.container {
+  --hue-primary: 220;
+  --color-primary: hsl(var(--hue-primary), 80%, 50%);
+  --color-primary-hover: hsl(var(--hue-primary), 80%, 40%);
+  --color-bg: hsl(210, 20%, 98%);
+  --color-surface: rgba(255, 255, 255, 0.7);
+  --color-text: hsl(220, 20%, 20%);
+  --color-text-muted: hsl(220, 10%, 40%);
+  --color-border: rgba(255, 255, 255, 0.4);
+  
+  /* clamp(MIN, VAL, MAX) for fluid padding and gaps */
+  --space-xs: clamp(0.5rem, 1.5vw, 0.75rem);
+  --space-sm: clamp(0.75rem, 2vw, 1rem);
+  --space-md: clamp(1rem, 3vw, 1.5rem);
+  --space-lg: clamp(1.5rem, 5vw, 3rem);
+  --space-xl: clamp(2.5rem, 8vw, 5rem);
+  
+  /* Glassmorphism settings */
+  --glass-blur: blur(16px);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+  min-height: 100vh;
+  background: var(--color-bg);
+  /* Premium animated gradient background */
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+    radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+  background-size: cover;
+  background-attachment: fixed;
+  color: var(--color-text);
+  padding: var(--space-lg) var(--space-md);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  
+  /* Enforce Box-model globally inside this demo */
+  box-sizing: border-box;
+}
+
+.container *, .container *::before, .container *::after {
+  box-sizing: border-box;
+}
+
+/* Dark Mode Overrides */
+@media (prefers-color-scheme: dark) {
+  .container {
+    --color-bg: hsl(220, 20%, 10%);
+    --color-surface: rgba(20, 25, 35, 0.6);
+    --color-text: hsl(0, 0%, 98%);
+    --color-text-muted: hsl(220, 10%, 70%);
+    --color-border: rgba(255, 255, 255, 0.08);
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(253, 50%, 10%, 1) 0, transparent 50%), 
+      radial-gradient(at 50% 0%, hsla(225, 50%, 15%, 1) 0, transparent 50%), 
+      radial-gradient(at 100% 0%, hsla(339, 50%, 15%, 1) 0, transparent 50%);
+  }
+}
+
+/* Header Section */
+.header {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto var(--space-xl);
+}
+
+.title {
+  font-size: clamp(2rem, 6vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-sm);
+  background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* 2. The Auto-Scaling CSS Grid Main Layout */
+.grid {
+  display: grid;
+  /* Core of the tile fix:
+     - min(100%, 300px) ensures on tiny phones the tile takes 100% width instead of breaking.
+     - auto-fit allows automatic column wrapping on desktop. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-md);
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* 3. Fluid & Glassmorphic Tiles */
+.tile {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: var(--space-md);
+  box-shadow: var(--glass-shadow);
+  gap: var(--space-md);
+  
+  /* Micro-animations */
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+              box-shadow 0.4s ease, 
+              border-color 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dynamic Gradient Hover Effect */
+.tile::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.tile:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.tile:hover::before {
+  opacity: 1;
+}
+
+/* Tile Content */
+.tileContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Pushes button to bottom */
+  gap: var(--space-sm);
+}
+
+.tileIcon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-bottom: var(--space-xs);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.tileTitle {
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+  font-weight: 700;
+  color: #fff;
+}
+
+.tileText {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  flex-grow: 1;
+}
+
+/* 4. Touch Accessibility - Minimum 48x48 */
+.actionButton {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Touch sizing constraints */
+  min-height: 48px;
+  min-width: 48px;
+  padding: 0 1.5rem;
+  margin-top: auto;
+  
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 12px;
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+  
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.actionButton:hover,
+.actionButton:focus-visible {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
+}
+
+/* Active touch state */
+.actionButton:active {
+  transform: translateY(1px);
+}
