@@ -1,3 +1,13 @@
+![Repo Size](https://img.shields.io/github/repo-size/roshhellwett/projectbillforge?style=for-the-badge)
+
+![Stars](https://img.shields.io/github/stars/roshhellwett/projectbillforge?style=for-the-badge)
+
+![Forks](https://img.shields.io/github/forks/roshhellwett/projectbillforge?style=for-the-badge)
+
+![Issues](https://img.shields.io/github/issues/roshhellwett/projectbillforge?style=for-the-badge)
+
+![Language](https://img.shields.io/github/languages/top/roshhellwett/projectbillforge?style=for-the-badge)
+
 # PROJECT BILLFORGE
 
 A powerful and streamlined business management utility — designed to simplify invoicing, khata bookkeeping, and customer management for modern Indian businesses. BillForge brings professional automation, making business workflows faster and easier for local vendors and merchants.
