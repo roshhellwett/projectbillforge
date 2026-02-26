@@ -147,15 +147,14 @@ const TestimonialSlider = () => {
                         </div>
                     </div>
 
-                    {/* Review Text */}
-                    <div className="text-left">
-                        <div className="text-indigo-500 bg-indigo-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-sm">
+                    <div className="text-center md:text-left">
+                        <div className="text-indigo-500 bg-indigo-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-sm mx-auto md:mx-0">
                             <MessageSquare size={32} fill="currentColor" className="opacity-80" />
                         </div>
-                        <h3 className="text-2xl md:text-3xl font-bold text-slate-800 mb-8 leading-tight italic">
+                        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 mb-8 leading-tight italic">
                             "{testimonials[index].text}"
                         </h3>
-                        <div className="flex items-center gap-4 border-t border-slate-100 pt-8">
+                        <div className="flex items-center justify-center md:justify-start gap-4 border-t border-slate-100 pt-8">
                             <span className="text-slate-500 font-medium">Verified Vendor</span>
                             <div className="flex items-center gap-1 font-bold text-slate-800">
                                 <Star fill="#00b67a" color="#00b67a" size={20} /> Trustpilot 4.8/5
@@ -166,7 +165,7 @@ const TestimonialSlider = () => {
             </AnimatePresence>
 
             {/* Pagination Dots */}
-            <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex gap-3">
+            <div className="absolute -bottom-16 md:-bottom-12 left-1/2 -translate-x-1/2 flex gap-3">
                 {testimonials.map((_, i) => (
                     <button
                         key={i}
@@ -268,9 +267,9 @@ export default function LandingPage() {
                             initial="hidden"
                             animate="visible"
                             variants={staggerContainer}
-                            className="max-w-2xl"
+                            className="max-w-2xl mx-auto lg:mx-0"
                         >
-                            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-indigo-100 shadow-sm mb-6">
+                            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-indigo-100 shadow-sm mb-6 mx-auto lg:mx-0">
                                 <div className="flex items-center gap-1 text-amber-400">
                                     <Star size={14} fill="currentColor" />
                                     <Star size={14} fill="currentColor" />
@@ -283,7 +282,7 @@ export default function LandingPage() {
 
                             <motion.h1
                                 variants={fadeInUp}
-                                className="text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1] mb-6"
+                                className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1] mb-6 text-center lg:text-left"
                             >
                                 Smart <br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Billing & Invoicing</span>
@@ -291,12 +290,12 @@ export default function LandingPage() {
 
                             <motion.p
                                 variants={fadeInUp}
-                                className="text-lg text-slate-600 mb-8 max-w-lg leading-relaxed"
+                                className="text-base sm:text-lg text-slate-600 mb-8 max-w-lg leading-relaxed text-center lg:text-left mx-auto lg:mx-0"
                             >
                                 Manage your business efficiently with BillForge. Generate invoices, track your Khata, manage products, and keep your customers happy—all in one place.
                             </motion.p>
 
-                            <motion.div variants={fadeInUp} className="flex flex-wrap items-center gap-4">
+                            <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
                                 <Link href="/register">
                                     <button className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-8 py-4 rounded-full font-semibold shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all transform hover:-translate-y-1 flex items-center gap-2 group whitespace-nowrap">
                                         Get Into The Business
@@ -479,10 +478,10 @@ export default function LandingPage() {
                                     <Layout size={28} />
                                 </div>
 
-                                <div className="flex justify-between items-center mb-8 pl-8">
-                                    <h3 className="text-2xl font-bold text-slate-800">Latest Invoices</h3>
+                                <div className="flex justify-between items-center mb-8 pl-0 sm:pl-8">
+                                    <h3 className="text-xl sm:text-2xl font-bold text-slate-800">Latest Invoices</h3>
                                     <Link href="/dashboard/invoices">
-                                        <button className="text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 px-5 py-2.5 rounded-full transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5">
+                                        <button className="text-xs sm:text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5">
                                             + Add Invoice
                                         </button>
                                     </Link>
@@ -595,22 +594,22 @@ export default function LandingPage() {
             {/* ── Bottom Call to Action ── */}
             <section className="py-24 relative overflow-hidden bg-slate-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-[3rem] p-10 md:p-16 text-white relative overflow-hidden shadow-2xl shadow-indigo-200">
+                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-[2.5rem] md:rounded-[3rem] px-6 py-12 md:p-16 text-white relative overflow-hidden shadow-2xl shadow-indigo-200">
                         {/* Background pattern */}
                         <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none"
                             style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
-                            <div className="max-w-xl">
+                            <div className="max-w-xl text-center md:text-left mx-auto md:mx-0">
                                 <h2 className="text-3xl md:text-5xl font-extrabold mb-6 leading-tight">
                                     Ready? Let's Start with BillForge and Grow Your Business
                                 </h2>
-                                <p className="text-indigo-100 text-lg mb-8 leading-relaxed">
+                                <p className="text-indigo-100 text-base md:text-lg mb-8 leading-relaxed">
                                     Elevate your business operations with powerful invoicing, precise khata bookkeeping, and seamless customer management. Designed for modern Indian businesses.
                                 </p>
                                 <Link href="/register">
-                                    <button className="bg-white text-indigo-600 px-8 py-4 rounded-full font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2 whitespace-nowrap">
+                                    <button className="bg-white text-indigo-600 px-8 py-4 rounded-full font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2 whitespace-nowrap mx-auto md:mx-0">
                                         Get Into The Business
                                         <ArrowRight size={18} />
                                     </button>
