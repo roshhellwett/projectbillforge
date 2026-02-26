@@ -23,10 +23,6 @@ export const businessRegisterSchema = z.object({
   path: ["confirmPassword"],
 });
 
-export const businessLoginSchema = z.object({
-  email: z.string().email("Invalid email address").trim().toLowerCase(),
-  password: z.string().min(1, "Password is required"),
-});
 
 export const customerSchema = z.object({
   name: z.string().min(1, "Customer name is required").max(100).trim(),
@@ -94,9 +90,7 @@ export const businessProfileSchema = z.object({
 });
 
 export type BusinessRegisterInput = z.infer<typeof businessRegisterSchema>;
-export type BusinessLoginInput = z.infer<typeof businessLoginSchema>;
 export type CustomerInput = z.infer<typeof customerSchema>;
 export type ProductInput = z.infer<typeof productSchema>;
 export type InvoiceInput = z.infer<typeof invoiceSchema>;
 export type KhataTransactionInput = z.infer<typeof khataTransactionSchema>;
-export type BusinessProfileInput = z.infer<typeof businessProfileSchema>;

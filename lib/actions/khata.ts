@@ -108,6 +108,8 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
               FOR UPDATE`
         ) as unknown as { id: string; total: number | null; amount_paid: number | null }[];
 
+        const invoicesToUpdate: { id: string; amountPaid: number; status: 'paid' | 'partial' }[] = [];
+
         for (const inv of pendingInvoicesRows) {
           if (remainingPayment.lessThanOrEqualTo(0)) break;
 
@@ -118,28 +120,46 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
           if (amountDue.lessThanOrEqualTo(0)) continue; // Safety check
 
           if (remainingPayment.greaterThanOrEqualTo(amountDue)) {
-            // Fully pay this invoice
-            await tx.update(invoices)
-              .set({
-                amountPaid: invTotal.toNumber(),
-                paymentStatus: 'paid',
-                updatedAt: new Date(),
-              })
-              .where(eq(invoices.id, inv.id));
-
+            invoicesToUpdate.push({
+              id: inv.id,
+              amountPaid: invTotal.toNumber(),
+              status: 'paid'
+            });
             remainingPayment = remainingPayment.minus(amountDue);
           } else {
-            // Partially pay this invoice
-            await tx.update(invoices)
-              .set({
-                amountPaid: invPaid.plus(remainingPayment).toNumber(),
-                paymentStatus: 'partial',
-                updatedAt: new Date(),
-              })
-              .where(eq(invoices.id, inv.id));
-
+            invoicesToUpdate.push({
+              id: inv.id,
+              amountPaid: invPaid.plus(remainingPayment).toNumber(),
+              status: 'partial'
+            });
             remainingPayment = new Decimal(0);
           }
+        }
+
+        // Execute batch updates using CASE statement to avoid N+1 queries
+        if (invoicesToUpdate.length > 0) {
+          const ids = invoicesToUpdate.map(inv => inv.id);
+          const sqlIds = sql.join(ids.map(id => sql`${id}`), sql`, `);
+
+          // Build dynamic CASE queries
+          const amountPaidCases = sql.join(
+            invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.amountPaid}`),
+            sql` `
+          );
+
+          const statusCases = sql.join(
+            invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.status}`),
+            sql` `
+          );
+
+          await tx.execute(sql`
+            UPDATE invoices 
+            SET 
+              amount_paid = CASE ${amountPaidCases} END,
+              payment_status = CASE ${statusCases} END,
+              updated_at = NOW()
+            WHERE id IN (${sqlIds})
+          `);
         }
       }
 
@@ -161,25 +181,6 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
   }
 }
 
-export async function getKhataTransactions(customerId?: string) {
-  try {
-    const session = await requireBusinessSession();
-
-    const whereClause = customerId
-      ? and(eq(khataTransactions.businessId, session.id), eq(khataTransactions.customerId, customerId))
-      : eq(khataTransactions.businessId, session.id);
-
-    const transactions = await db.query.khataTransactions.findMany({
-      where: whereClause,
-      orderBy: (khataTransactions, { desc }) => [desc(khataTransactions.createdAt)],
-      limit: 500,
-    });
-
-    return { success: true, transactions };
-  } catch (error: any) {
-    return { error: error.message || "Failed to fetch transactions" };
-  }
-}
 
 export async function getKhataStatement(customerId: string) {
   try {

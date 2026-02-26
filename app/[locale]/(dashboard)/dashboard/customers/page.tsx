@@ -10,12 +10,12 @@ import { Plus, Search, X, RefreshCw, Trash2, Edit2, Phone, Mail, MapPin } from "
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
 // NaN-safe currency formatter
-const fmt = (v: any): string => {
+const fmt = (v: string | number | null | undefined): string => {
   const n = Number(v);
   if (isNaN(n) || !isFinite(n)) return '0.00';
   return Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
-const safeNum = (v: any): number => {
+const safeNum = (v: string | number | null | undefined): number => {
   const n = Number(v);
   return isNaN(n) || !isFinite(n) ? 0 : n;
 };

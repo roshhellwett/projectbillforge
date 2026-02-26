@@ -134,23 +134,6 @@ export async function getProducts() {
   }
 }
 
-export async function getProductById(id: string) {
-  try {
-    const session = await requireBusinessSession();
-
-    const product = await db.query.products.findFirst({
-      where: eq(products.id, id),
-    });
-
-    if (!product || product.businessId !== session.id) {
-      return { error: "Product not found" };
-    }
-
-    return { success: true, product };
-  } catch (error: any) {
-    return { error: error.message || "Failed to fetch product" };
-  }
-}
 
 export async function getLowStockProducts() {
   try {

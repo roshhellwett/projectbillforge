@@ -1,15 +1,16 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
 
-export async function getBusinessSession() {
+async function getBusinessSession() {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return null;
   }
+  const user = session.user as any;
   return {
-    id: session.user.id,
-    email: session.user.email!,
-    name: session.user.name!,
+    id: user.id,
+    email: user.email!,
+    name: user.name!,
   };
 }
 

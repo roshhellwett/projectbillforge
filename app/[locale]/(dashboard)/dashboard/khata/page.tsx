@@ -10,12 +10,12 @@ import { Plus, Search, X, ArrowUpCircle, ArrowDownCircle, Trash2, Lock } from "l
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
 // NaN-safe currency formatter — never shows ₹NaN to the user
-const fmt = (v: any): string => {
+const fmt = (v: string | number | null | undefined): string => {
   const n = Number(v);
   if (isNaN(n) || !isFinite(n)) return '0.00';
   return Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
-const safeNum = (v: any): number => {
+const safeNum = (v: string | number | null | undefined): number => {
   const n = Number(v);
   return isNaN(n) || !isFinite(n) ? 0 : n;
 };
@@ -25,6 +25,7 @@ interface Customer {
   name: string;
   phone: string | null;
   currentBalance: number | null;
+  creditLimit?: number | null;
 }
 
 interface Transaction {
@@ -32,8 +33,10 @@ interface Transaction {
   type: "credit" | "debit";
   amount: number;
   note: string | null;
-  createdAt: Date;
+  createdAt: Date | null;
   referenceInvoiceId: string | null;
+  status?: string | null;
+  runningBalance?: number;
 }
 
 export default function KhataPage() {
@@ -41,7 +44,7 @@ export default function KhataPage() {
   const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<string>("");
-  const [customer, setCustomer] = useState<any>(null);
+  const [customer, setCustomer] = useState<Customer | null>(null);
   const [statement, setStatement] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -81,9 +84,9 @@ export default function KhataPage() {
     const result = await getKhataStatement(customerId);
     if (result.success) {
       setCustomer(result.customer);
-      setStatement(result.statement.map((t: any) => ({
+      setStatement(result.statement.map((t: Transaction & { createdAt: Date | string | null }) => ({
         ...t,
-        createdAt: new Date(t.createdAt)
+        createdAt: t.createdAt ? new Date(t.createdAt) : new Date()
       })));
       setAccruedFines(result.accruedFines || 0);
       setTotalBalanceDue(result.totalBalanceDue || 0);
@@ -330,45 +333,45 @@ export default function KhataPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border)]/30">
-                    {statement.map((txn) => (
-                      <tr key={txn.id} className={`hover:bg-[var(--foreground)]/[0.02] transition-colors ${(txn as any).status === 'cancelled' ? 'opacity-50' : ''}`}>
+                    {statement.map((t) => (
+                      <tr key={t.id} className={`hover:bg-[var(--foreground)]/[0.02] transition-colors ${t.status === 'cancelled' ? 'opacity-50' : ''}`}>
                         <td className="px-5 py-4 text-sm text-[var(--foreground)]/70">
-                          {txn.createdAt.toLocaleDateString('en-IN')}
+                          {t.createdAt?.toLocaleDateString('en-IN') ?? '-'}
                         </td>
                         <td className="px-5 py-4">
-                          {(txn as any).status === 'cancelled' ? (
+                          {t.status === 'cancelled' ? (
                             <span className="flex items-center gap-1.5 text-sm font-medium text-[var(--foreground)]/40 line-through">
-                              {txn.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
-                              {t('cancelled')}
+                              {t.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
+                              Cancelled / Refunded
                             </span>
                           ) : (
-                            <span className={`flex items-center gap-1.5 text-sm font-medium ${txn.type === 'credit' ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
-                              {txn.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
-                              {txn.type === 'credit' ? t('sale') : t('paymentReceived')}
+                            <span className={`flex items-center gap-1.5 text-sm font-medium ${t.type === 'credit' ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
+                              {t.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
+                              {t.type === 'credit' ? 'Sale (Added to Khata)' : 'Payment Received'}
                             </span>
                           )}
                         </td>
-                        <td className="px-5 py-4 text-sm text-[var(--foreground)]/70">{(txn as any).status === 'cancelled' ? <span className="line-through">{txn.note || "-"}</span> : txn.note || "-"}</td>
+                        <td className="px-5 py-4 text-sm text-[var(--foreground)]/70">{t.status === 'cancelled' ? <span className="line-through">{t.note || "-"}</span> : t.note || "-"}</td>
                         <td className="px-5 py-4 text-right font-medium text-[var(--foreground)]">
-                          {(txn as any).status === 'cancelled' ? (
-                            <span className="line-through text-[var(--foreground)]/40">₹{fmt(txn.amount)}</span>
+                          {t.status === 'cancelled' ? (
+                            <span className="line-through text-[var(--foreground)]/40">₹{fmt(t.amount)}</span>
                           ) : (
-                            <span>₹{fmt(txn.amount)}</span>
+                            <span>₹{fmt(t.amount)}</span>
                           )}
                         </td>
                         <td className="px-5 py-4 text-right font-semibold">
-                          {(txn as any).status === 'cancelled' ? (
+                          {t.status === 'cancelled' ? (
                             <span className="text-[var(--foreground)]/40">-</span>
                           ) : (
-                            <span className={safeNum((txn as any).runningBalance) >= 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}>
-                              {safeNum((txn as any).runningBalance) < 0 ? '-' : ''}₹{fmt((txn as any).runningBalance)}
+                            <span className={safeNum(t.runningBalance) >= 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}>
+                              {safeNum(t.runningBalance) < 0 ? '-' : ''}₹{fmt(t.runningBalance)}
                             </span>
                           )}
                         </td>
                         <td className="px-5 py-4">
-                          {(txn as any).status === 'cancelled' ? (
+                          {t.status === 'cancelled' ? (
                             <span className="text-xs text-[var(--foreground)]/40">Cancelled</span>
-                          ) : txn.referenceInvoiceId ? (
+                          ) : t.referenceInvoiceId ? (
                             <div className="relative group">
                               <button
                                 className="p-1.5 text-[var(--foreground)]/20 cursor-not-allowed"
@@ -382,7 +385,7 @@ export default function KhataPage() {
                             </div>
                           ) : (
                             <button
-                              onClick={() => setDeleteId(txn.id)}
+                              onClick={() => setDeleteId(t.id)}
                               className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-colors"
                               aria-label="Delete transaction"
                             >

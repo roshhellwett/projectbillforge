@@ -104,39 +104,6 @@ export function InteractiveItem({
     );
 }
 
-export function AnimatedBackground() {
-    return (
-        <div className="gradient-mesh">
-            {/* Extra orb via motion for drift effect */}
-            <motion.div
-                animate={{
-                    x: ["0%", "30%", "-20%", "0%"],
-                    y: ["0%", "-25%", "25%", "0%"],
-                }}
-                transition={{
-                    duration: 35,
-                    repeat: Infinity,
-                    ease: "linear",
-                }}
-                className="absolute top-[25%] left-[25%] w-[45%] h-[45%] rounded-full blur-[120px]"
-                style={{ background: "var(--mesh-3)" }}
-            />
-            <motion.div
-                animate={{
-                    x: ["10%", "-20%", "15%", "10%"],
-                    y: ["-10%", "20%", "-15%", "-10%"],
-                }}
-                transition={{
-                    duration: 28,
-                    repeat: Infinity,
-                    ease: "linear",
-                }}
-                className="absolute top-[50%] right-[10%] w-[35%] h-[35%] rounded-full blur-[100px]"
-                style={{ background: "var(--mesh-4)" }}
-            />
-        </div>
-    );
-}
 
 export function FloatingIcon({
     icon: Icon,
@@ -171,26 +138,6 @@ export function FloatingIcon({
     );
 }
 
-/* ── Modal animation wrapper ── */
-export function ModalTransition({
-    children,
-    className = "",
-}: {
-    children: React.ReactNode;
-    className?: string;
-}) {
-    return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 20, filter: "blur(8px)" }}
-            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, scale: 0.95, y: 10, filter: "blur(4px)" }}
-            transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
-            className={className}
-        >
-            {children}
-        </motion.div>
-    );
-}
 
 export function AnimatedRouteWrapper({
     children,

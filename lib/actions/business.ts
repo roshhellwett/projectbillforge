@@ -73,25 +73,6 @@ export async function updateBusinessProfile(data: {
   }
 }
 
-export async function checkBusinessProfileComplete() {
-  try {
-    const session = await requireBusinessSession();
-
-    const business = await db.query.businesses.findFirst({
-      where: eq(businesses.id, session.id),
-    });
-
-    if (!business) {
-      return { complete: false, reason: "Business not found" };
-    }
-
-    const isComplete = !!(business.name && business.address && business.phone);
-
-    return { complete: isComplete, business };
-  } catch (error: any) {
-    return { complete: false, reason: error.message };
-  }
-}
 
 export async function resetAllKhataData(password: string) {
   try {

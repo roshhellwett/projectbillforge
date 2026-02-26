@@ -120,20 +120,3 @@ export async function getCustomers() {
   }
 }
 
-export async function getCustomerById(id: string) {
-  try {
-    const session = await requireBusinessSession();
-
-    const customer = await db.query.customers.findFirst({
-      where: eq(customers.id, id),
-    });
-
-    if (!customer || customer.businessId !== session.id) {
-      return { error: "Customer not found" };
-    }
-
-    return { success: true, customer };
-  } catch (error: any) {
-    return { error: error.message || "Failed to fetch customer" };
-  }
-}

@@ -12,7 +12,7 @@ interface KeyboardShortcut {
   description: string;
 }
 
-export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
+function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       const shortcut = shortcuts.find(

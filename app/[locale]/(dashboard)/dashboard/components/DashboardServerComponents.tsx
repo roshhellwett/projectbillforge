@@ -3,7 +3,54 @@ import { DollarSign, FileText, Users, AlertTriangle, TrendingUp, Package, BarCha
 import { InteractiveItem } from "@/lib/components/MotionWrapper";
 import { Link } from "@/i18n/routing";
 
-export async function WelcomeBannerServer({ salesPromise }: { salesPromise: Promise<any> }) {
+interface Customer {
+    id: string;
+    name: string;
+    currentBalance: number | null;
+}
+
+export async function TopReceivablesServer({ customersPromise }: { customersPromise: Promise<{ success?: boolean; customers?: Customer[] }> }) {
+    const customersResult = await customersPromise;
+    const customers = customersResult.success && customersResult.customers ? customersResult.customers : [];
+
+    const topCustomers = customers
+        .filter(c => c.currentBalance !== null && c.currentBalance > 0)
+        .sort((a, b) => (b.currentBalance ?? 0) - (a.currentBalance ?? 0))
+        .slice(0, 5);
+
+    return (
+        <div className="white-container p-5 sm:p-6 md:p-7 lg:p-8 h-full flex flex-col">
+            <h2 className="text-sm sm:text-base font-bold tracking-tight text-[var(--foreground)] mb-3 sm:mb-4">Top Receivables</h2>
+            {topCustomers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center flex-1 text-center text-[var(--foreground)]/50">
+                    <Users size={32} className="mb-2" />
+                    <p className="text-sm">No receivables found.</p>
+                </div>
+            ) : (
+                <div className="space-y-2 sm:space-y-3 flex-1">
+                    {topCustomers.map((customer) => (
+                        <div key={customer.id} className="flex items-center justify-between p-3 sm:p-4 bg-slate-50 dark:bg-slate-800/30 hover:bg-slate-100/80 dark:hover:bg-slate-800/50 transition-colors duration-200 border border-slate-100/50 dark:border-slate-700/30 rounded-xl sm:rounded-2xl">
+                            <div className="flex items-center gap-2 sm:gap-3">
+                                <div className="p-1.5 sm:p-2 bg-blue-600/10 rounded-lg">
+                                    <Users size={16} style={{ color: '#2563eb' }} />
+                                </div>
+                                <span className="text-xs sm:text-sm font-medium text-[var(--foreground)]/70 truncate max-w-[120px] sm:max-w-[150px]">{customer.name}</span>
+                            </div>
+                            <span className="text-sm sm:text-base font-bold text-[var(--foreground)]">
+                                ₹{(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+            <Link href="/dashboard/customers" className="mt-4 sm:mt-6 text-center text-xs sm:text-sm font-medium text-[var(--color-primary)] hover:underline">
+                View All Customers
+            </Link>
+        </div>
+    );
+}
+
+export async function WelcomeBannerServer({ salesPromise }: { salesPromise: Promise<{ success?: boolean; summary?: { totalInvoices: number } }> }) {
     const salesResult = await salesPromise;
     const summary = salesResult.success ? salesResult.summary : { totalInvoices: 0 };
 
@@ -14,7 +61,7 @@ export async function WelcomeBannerServer({ salesPromise }: { salesPromise: Prom
                     Welcome back to the business
                 </h1>
                 <p className="text-[var(--foreground)]/60 mt-1 text-sm md:text-base">
-                    You have {summary.totalInvoices} invoices processed so far.
+                    You have {summary?.totalInvoices ?? 0} invoices processed so far.
                 </p>
                 <Link href="/dashboard/invoices" className="mt-5 inline-flex items-center gap-2 px-6 py-2.5 bg-[#60a5fa] text-white text-sm font-medium rounded-full cursor-pointer hover:shadow-lg transition-all">
                     New Invoice
@@ -30,7 +77,7 @@ export async function WelcomeBannerServer({ salesPromise }: { salesPromise: Prom
     );
 }
 
-export async function OverviewCardsServer({ salesPromise }: { salesPromise: Promise<any> }) {
+export async function OverviewCardsServer({ salesPromise }: { salesPromise: Promise<{ success?: boolean; summary?: { todaySales: number; totalSales: number; totalInvoices: number; totalReceivable: number; } }> }) {
     const salesResult = await salesPromise;
     const summary = salesResult.success ? salesResult.summary : {
         todaySales: 0,
@@ -42,25 +89,25 @@ export async function OverviewCardsServer({ salesPromise }: { salesPromise: Prom
     const statCards = [
         {
             label: "Today's Sales",
-            value: `₹${summary.todaySales.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+            value: `₹${(summary?.todaySales ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
             icon: TrendingUp,
             gradClass: "grad-purple",
         },
         {
             label: "Total Sales",
-            value: `₹${summary.totalSales.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+            value: `₹${(summary?.totalSales ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
             icon: DollarSign,
             gradClass: "grad-blue",
         },
         {
             label: "Total Invoices",
-            value: summary.totalInvoices.toString(),
+            value: (summary?.totalInvoices ?? 0).toString(),
             icon: FileText,
             gradClass: "white-container border-none shadow-sm",
         },
         {
             label: "Receivables",
-            value: `₹${summary.totalReceivable.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+            value: `₹${(summary?.totalReceivable ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
             icon: Users,
             gradClass: "grad-pink",
         },
@@ -99,12 +146,12 @@ export async function OverviewCardsServer({ salesPromise }: { salesPromise: Prom
     );
 }
 
-export async function SalesTrendServer({ weeklyPromise }: { weeklyPromise: Promise<any> }) {
+export async function SalesTrendServer({ weeklyPromise }: { weeklyPromise: Promise<{ success?: boolean; days?: { date: string; label: string; total: number }[] }> }) {
     const weeklyResult = await weeklyPromise;
     const weeklyData = weeklyResult.success ? weeklyResult.days : [];
 
-    const weeklyMax = Math.max(...weeklyData.map((d: any) => d.total), 1);
-    const weeklyTotal = weeklyData.reduce((acc: number, d: any) => acc + d.total, 0);
+    const weeklyMax = weeklyData && weeklyData.length > 0 ? Math.max(...weeklyData.map((d) => d.total), 1) : 1;
+    const weeklyTotal = weeklyData && weeklyData.length > 0 ? weeklyData.reduce((acc, d) => acc + d.total, 0) : 0;
 
     return (
         <div className="white-container p-5 sm:p-6 md:p-7 lg:p-8 h-full flex flex-col">
@@ -131,7 +178,7 @@ export async function SalesTrendServer({ weeklyPromise }: { weeklyPromise: Promi
                     ))}
                 </div>
                 <div className="absolute inset-0 flex items-end gap-1 sm:gap-2 md:gap-3 px-0.5 sm:px-1">
-                    {weeklyData.map((day: any, i: number) => {
+                    {weeklyData?.map((day, i: number) => {
                         const pct = weeklyMax > 0 ? (day.total / weeklyMax) * 100 : 0;
                         const isToday = i === weeklyData.length - 1;
                         return (
@@ -165,15 +212,15 @@ export async function BusinessSnapshotServer({
     productsPromise,
     lowStockPromise
 }: {
-    salesPromise: Promise<any>,
-    productsPromise: Promise<any>,
-    lowStockPromise: Promise<any>
+    salesPromise: Promise<{ success?: boolean; summary?: any }>,
+    productsPromise: Promise<{ success?: boolean; products?: any[] }>,
+    lowStockPromise: Promise<{ success?: boolean; products?: { id: string; name: string; stockQuantity: number | null; lowStockThreshold: number | null }[] }>
 }) {
     const [salesResult, productsResult, lowStockResult] = await Promise.all([salesPromise, productsPromise, lowStockPromise]);
 
     const summary = salesResult.success ? salesResult.summary : { totalCustomers: 0, totalInvoices: 0 };
-    const totalProducts = productsResult.success ? productsResult.products.length : 0;
-    const lowStock = lowStockResult.success ? lowStockResult.products : [];
+    const totalProducts = productsResult.success ? (productsResult.products?.length || 0) : 0;
+    const lowStock = lowStockResult.success ? (lowStockResult.products || []) : [];
 
     return (
         <div className="white-container p-5 sm:p-6 md:p-7 lg:p-8 h-full flex flex-col">
@@ -183,7 +230,7 @@ export async function BusinessSnapshotServer({
                     { icon: Users, label: "Customers", value: summary.totalCustomers, color: "#2563eb", bg: "bg-blue-600/10" },
                     { icon: Package, label: "Products", value: totalProducts, color: "#6366f1", bg: "bg-indigo-500/10" },
                     { icon: FileText, label: "Invoices", value: summary.totalInvoices, color: "#f59e0b", bg: "bg-amber-500/10" },
-                    { icon: AlertTriangle, label: "Low Stock", value: lowStock.length, color: lowStock.length > 0 ? "#ef4444" : "#10b981", bg: lowStock.length > 0 ? "bg-red-500/10" : "bg-emerald-500/10" },
+                    { icon: AlertTriangle, label: "Low Stock", value: lowStock?.length || 0, color: (lowStock?.length || 0) > 0 ? "#ef4444" : "#10b981", bg: (lowStock?.length || 0) > 0 ? "bg-red-500/10" : "bg-emerald-500/10" },
                 ].map((item) => (
                     <div key={item.label} className="flex items-center justify-between p-3 sm:p-4 bg-slate-50 dark:bg-slate-800/30 hover:bg-slate-100/80 dark:hover:bg-slate-800/50 transition-colors duration-200 border border-slate-100/50 dark:border-slate-700/30 rounded-xl sm:rounded-2xl">
                         <div className="flex items-center gap-2 sm:gap-3">
@@ -200,7 +247,7 @@ export async function BusinessSnapshotServer({
     );
 }
 
-export async function RecentInvoicesServer({ recentPromise }: { recentPromise: Promise<any> }) {
+export async function RecentInvoicesServer({ recentPromise }: { recentPromise: Promise<{ success?: boolean; invoices?: any[] }> }) {
     const recentResult = await recentPromise;
     const recentInvoices = recentResult.success ? recentResult.invoices : [];
 
@@ -212,7 +259,7 @@ export async function RecentInvoicesServer({ recentPromise }: { recentPromise: P
                 </div>
                 <h2 className="text-sm sm:text-base font-bold tracking-tight text-[var(--foreground)]">Recent Invoices</h2>
             </div>
-            {recentInvoices.length === 0 ? (
+            {(!recentInvoices || recentInvoices.length === 0) ? (
                 <div className="text-center py-8 sm:py-10 md:py-12 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-700/30">
                     <ShoppingBag className="mx-auto mb-2 sm:mb-3 text-[var(--foreground)]/20" size={32} />
                     <p className="text-[var(--foreground)]/40 font-medium text-sm">No invoices yet</p>
@@ -220,7 +267,7 @@ export async function RecentInvoicesServer({ recentPromise }: { recentPromise: P
                 </div>
             ) : (
                 <div className="space-y-2 sm:space-y-2.5">
-                    {recentInvoices.map((inv: any) => (
+                    {recentInvoices?.map((inv) => (
                         <InteractiveItem key={inv.id}>
                             <div className="flex items-center justify-between px-3 py-3 sm:px-4 sm:py-4 bg-white dark:bg-[var(--surface)] hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200 border-b border-slate-100/60 dark:border-slate-800/60 hover:shadow-sm cursor-pointer group">
                                 <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
@@ -248,47 +295,9 @@ export async function RecentInvoicesServer({ recentPromise }: { recentPromise: P
     );
 }
 
-export async function TopReceivablesServer({ customersPromise }: { customersPromise: Promise<any> }) {
-    const customersResult = await customersPromise;
-    const customers = customersResult.success ? customersResult.customers : [];
-
-    const topReceivables = customers
-        .filter((c: any) => (c.currentBalance ?? 0) > 0)
-        .sort((a: any, b: any) => (b.currentBalance ?? 0) - (a.currentBalance ?? 0))
-        .slice(0, 5);
-
-    return (
-        <div className="white-container p-5 sm:p-6 md:p-7 lg:p-8 h-full flex flex-col">
-            <h2 className="text-sm sm:text-base font-bold tracking-tight text-[var(--foreground)] mb-4 sm:mb-5">Top Receivables</h2>
-            {topReceivables.length === 0 ? (
-                <div className="text-center py-8 sm:py-10 md:py-12 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-700/30">
-                    <Users className="mx-auto mb-2 sm:mb-3 text-[var(--foreground)]/20" size={32} />
-                    <p className="text-[var(--foreground)]/40 font-medium text-sm">No outstanding balances</p>
-                </div>
-            ) : (
-                <div className="space-y-2 sm:space-y-2.5">
-                    {topReceivables.map((customer: any) => (
-                        <InteractiveItem key={customer.id}>
-                            <div className="flex items-center justify-between px-3 py-3 sm:px-4 sm:py-4 bg-white dark:bg-[var(--surface)] hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer">
-                                <div>
-                                    <p className="font-semibold text-[var(--foreground)] text-xs sm:text-sm">{customer.name}</p>
-                                    <p className="text-[10px] sm:text-xs text-[var(--foreground)]/35">{customer.phone || "No phone"}</p>
-                                </div>
-                                <div className="badge badge-warning text-[10px] sm:text-xs">
-                                    ₹{(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                                </div>
-                            </div>
-                        </InteractiveItem>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-}
-
-export async function LowStockAlertsServer({ lowStockPromise }: { lowStockPromise: Promise<any> }) {
+export async function LowStockAlertsServer({ lowStockPromise }: { lowStockPromise: Promise<{ success?: boolean; products?: { id: string; name: string; stockQuantity: number | null; lowStockThreshold: number | null }[] }> }) {
     const lowStockResult = await lowStockPromise;
-    const lowStock = lowStockResult.success ? lowStockResult.products : [];
+    const lowStock = lowStockResult.success ? (lowStockResult.products || []) : [];
 
     return (
         <div className="glass-card p-4 sm:p-5 md:p-7">
@@ -298,13 +307,13 @@ export async function LowStockAlertsServer({ lowStockPromise }: { lowStockPromis
                 </div>
                 Low Stock Alerts
             </h2>
-            {lowStock.length === 0 ? (
+            {(!lowStock || lowStock.length === 0) ? (
                 <div className="text-center py-8 glass-light rounded-xl">
                     <p className="text-[var(--color-success)] font-medium text-sm">✓ All products are well stocked</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {lowStock.map((product: any) => (
+                    {lowStock?.map((product) => (
                         <InteractiveItem key={product.id}>
                             <div className="flex items-center justify-between p-3.5 glass-light rounded-xl border border-red-500/10 hover:bg-red-500/5 transition-colors cursor-pointer">
                                 <div>

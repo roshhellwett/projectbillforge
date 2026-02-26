@@ -1,0 +1,5 @@
+lib/actions/invoices.ts(391,5): error TS2554: Expected 2 arguments, but got 1.
+lib/actions/invoices.ts(392,5): error TS2554: Expected 2 arguments, but got 1.
+lib/actions/invoices.ts(393,5): error TS2554: Expected 2 arguments, but got 1.
+lib/actions/invoices.ts(394,5): error TS2554: Expected 2 arguments, but got 1.
+lib/actions/invoices.ts(395,5): error TS2554: Expected 2 arguments, but got 1.

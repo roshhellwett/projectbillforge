@@ -7,7 +7,7 @@ import { invoices, customers, products, khataTransactions, businesses } from "@/
 import { invoiceSchema, type InvoiceInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq, and, gt, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 
 function generateInvoiceNumber(): string {
   const date = new Date();
@@ -134,23 +134,50 @@ export async function createInvoice(data: InvoiceInput) {
         status: 'active',
       }).returning();
 
-      for (const item of processedItems) {
+      if (processedItems.length > 0) {
+        // Aggregate required quantities by productId to handle duplicate items
+        const productProps = new Map<string, { qty: number; name: string }>();
+        for (const item of processedItems) {
+          const existing = productProps.get(item.productId);
+          if (existing) {
+            existing.qty += item.quantity;
+          } else {
+            productProps.set(item.productId, { qty: item.quantity, name: item.productName });
+          }
+        }
+
+        const productIds = Array.from(productProps.keys());
+        const sqlIds = sql.join(productIds.map(id => sql`${id}`), sql`, `);
+
+        // Lock required products
         const productRows = await tx.execute(
-          sql`SELECT id, name, stock_quantity FROM products WHERE id = ${item.productId} FOR UPDATE`
+          sql`SELECT id, name, stock_quantity FROM products WHERE id IN (${sqlIds}) FOR UPDATE`
         ) as unknown as { id: string; name: string; stock_quantity: number | null }[];
-        const product = productRows[0];
-        if (!product) {
-          throw new Error(`Product not found: ${item.productName}`);
+
+        // Validate stock
+        for (const [id, props] of productProps.entries()) {
+          const product = productRows.find(p => p.id === id);
+          if (!product) {
+            throw new Error(`Product not found: ${props.name}`);
+          }
+          if ((product.stock_quantity ?? 0) < props.qty) {
+            throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stock_quantity ?? 0}, Required: ${props.qty}`);
+          }
         }
-        if ((product.stock_quantity ?? 0) < item.quantity) {
-          throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stock_quantity}, Required: ${item.quantity}`);
-        }
-        await tx.update(products)
-          .set({
-            stockQuantity: (product.stock_quantity ?? 0) - item.quantity,
-            updatedAt: new Date(),
-          })
-          .where(eq(products.id, item.productId));
+
+        // Bulk update
+        const quantityCases = sql.join(
+          Array.from(productProps.entries()).map(([id, props]) => sql`WHEN id = ${id} THEN stock_quantity - ${props.qty}`),
+          sql` `
+        );
+
+        await tx.execute(sql`
+          UPDATE products
+          SET 
+            stock_quantity = CASE ${quantityCases} ELSE stock_quantity END,
+            updated_at = NOW()
+          WHERE id IN (${sqlIds})
+        `);
       }
 
       if (data.customerId && paymentMode === 'khata') {
@@ -218,24 +245,6 @@ export async function getInvoices() {
   }
 }
 
-export async function getInvoiceById(id: string) {
-  try {
-    const session = await requireBusinessSession();
-
-    const invoice = await db.query.invoices.findFirst({
-      where: eq(invoices.id, id),
-    });
-
-    if (!invoice || invoice.businessId !== session.id) {
-      return { error: "Invoice not found" };
-    }
-
-    return { success: true, invoice };
-  } catch (error: any) {
-    return { error: error.message || "Failed to fetch invoice" };
-  }
-}
-
 export async function cancelInvoice(id: string) {
   try {
     const session = await requireBusinessSession();
@@ -257,21 +266,25 @@ export async function cancelInvoice(id: string) {
         .set({ status: 'cancelled', updatedAt: new Date() })
         .where(eq(invoices.id, id));
 
-      if (invoice.items) {
-        for (const item of invoice.items) {
-          const productRows = await tx.execute(
-            sql`SELECT id, stock_quantity FROM products WHERE id = ${item.productId} FOR UPDATE`
-          ) as unknown as { id: string; stock_quantity: number | null }[];
-          const product = productRows[0];
-          if (product) {
-            await tx.update(products)
-              .set({
-                stockQuantity: (product.stock_quantity ?? 0) + item.quantity,
-                updatedAt: new Date(),
-              })
-              .where(eq(products.id, item.productId));
-          }
-        }
+      if (invoice.items && invoice.items.length > 0) {
+        // Collect product IDs and quantities to restore
+        const productIds = invoice.items.map(item => item.productId);
+        const sqlIds = sql.join(productIds.map(id => sql`${id}`), sql`, `);
+
+        // Build CASE statement for quantity increments
+        const quantityCases = sql.join(
+          invoice.items.map(item => sql`WHEN id = ${item.productId} THEN stock_quantity + ${item.quantity}`),
+          sql` `
+        );
+
+        // Bulk update products
+        await tx.execute(sql`
+          UPDATE products
+          SET 
+            stock_quantity = CASE ${quantityCases} ELSE stock_quantity END,
+            updated_at = NOW()
+          WHERE id IN (${sqlIds})
+        `);
       }
 
       if (invoice.customerId && invoice.paymentStatus !== 'paid') {
@@ -323,6 +336,8 @@ export async function cancelInvoice(id: string) {
                 FOR UPDATE`
           ) as unknown as { id: string; total: number | null; amount_paid: number | null }[];
 
+          const invoicesToUpdate: { id: string; amountPaid: number; status: 'paid' | 'partial' }[] = [];
+
           for (const inv of pendingInvoicesRows) {
             if (orphanedPayment.lessThanOrEqualTo(0)) break;
 
@@ -333,28 +348,45 @@ export async function cancelInvoice(id: string) {
             if (amountDue.lessThanOrEqualTo(0)) continue;
 
             if (orphanedPayment.greaterThanOrEqualTo(amountDue)) {
-              // Fully pay this invoice
-              await tx.update(invoices)
-                .set({
-                  amountPaid: invTotal.toNumber(),
-                  paymentStatus: 'paid',
-                  updatedAt: new Date(),
-                })
-                .where(eq(invoices.id, inv.id));
-
+              invoicesToUpdate.push({
+                id: inv.id,
+                amountPaid: invTotal.toNumber(),
+                status: 'paid'
+              });
               orphanedPayment = orphanedPayment.minus(amountDue);
             } else {
-              // Partially pay this invoice
-              await tx.update(invoices)
-                .set({
-                  amountPaid: invPaid.plus(orphanedPayment).toNumber(),
-                  paymentStatus: 'partial',
-                  updatedAt: new Date(),
-                })
-                .where(eq(invoices.id, inv.id));
-
+              invoicesToUpdate.push({
+                id: inv.id,
+                amountPaid: invPaid.plus(orphanedPayment).toNumber(),
+                status: 'partial'
+              });
               orphanedPayment = new Decimal(0);
             }
+          }
+
+          // Execute batch updates avoiding N+1
+          if (invoicesToUpdate.length > 0) {
+            const ids = invoicesToUpdate.map(inv => inv.id);
+            const sqlIds = sql.join(ids.map(id => sql`${id}`), sql`, `);
+
+            const amountPaidCases = sql.join(
+              invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.amountPaid}`),
+              sql` `
+            );
+
+            const statusCases = sql.join(
+              invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.status}`),
+              sql` `
+            );
+
+            await tx.execute(sql`
+              UPDATE invoices 
+              SET 
+                amount_paid = CASE ${amountPaidCases} END,
+                payment_status = CASE ${statusCases} END,
+                updated_at = NOW()
+              WHERE id IN (${sqlIds})
+            `);
           }
         }
       }
@@ -363,6 +395,7 @@ export async function cancelInvoice(id: string) {
     revalidatePath('/dashboard/invoices');
     revalidatePath('/dashboard/khata');
     revalidatePath('/dashboard');
+
     return { success: true };
   } catch (error: any) {
     return { error: error.message || "Failed to cancel invoice" };
@@ -378,63 +411,73 @@ export async function getSalesSummary() {
     today.setHours(0, 0, 0, 0);
     const todayStr = today.toISOString().split('T')[0];
 
-    const [todaySalesResult] = await db
-      .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
-      .from(invoices)
-      .where(
-        and(
-          eq(invoices.businessId, businessId),
-          eq(invoices.status, 'active'),
-          eq(invoices.paymentStatus, 'paid'),
-          sql`${invoices.invoiceDate} >= ${todayStr}`
-        )
-      );
+    const getCachedSummary = unstable_cache(
+      async (bId: string, tStr: string) => {
+        const [todaySalesResult] = await db
+          .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
+          .from(invoices)
+          .where(
+            and(
+              eq(invoices.businessId, businessId),
+              eq(invoices.status, 'active'),
+              eq(invoices.paymentStatus, 'paid'),
+              sql`${invoices.invoiceDate} >= ${todayStr}`
+            )
+          );
 
-    const [totalSalesResult] = await db
-      .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
-      .from(invoices)
-      .where(
-        and(
-          eq(invoices.businessId, businessId),
-          eq(invoices.status, 'active'),
-          eq(invoices.paymentStatus, 'paid')
-        )
-      );
+        const [totalSalesResult] = await db
+          .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
+          .from(invoices)
+          .where(
+            and(
+              eq(invoices.businessId, businessId),
+              eq(invoices.status, 'active'),
+              eq(invoices.paymentStatus, 'paid')
+            )
+          );
 
-    const [invoicesCountResult] = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(invoices)
-      .where(
-        and(
-          eq(invoices.businessId, businessId),
-          eq(invoices.status, 'active')
-        )
-      );
+        const [invoicesCountResult] = await db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(invoices)
+          .where(
+            and(
+              eq(invoices.businessId, businessId),
+              eq(invoices.status, 'active')
+            )
+          );
 
-    const [customersCountResult] = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(customers)
-      .where(eq(customers.businessId, businessId));
+        const [customersCountResult] = await db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(customers)
+          .where(eq(customers.businessId, businessId));
 
-    const [receivableResult] = await db
-      .select({ total: sql<number>`COALESCE(SUM(${customers.currentBalance}), 0)` })
-      .from(customers)
-      .where(
-        and(
-          eq(customers.businessId, businessId),
-          sql`${customers.currentBalance} > 0`
-        )
-      );
+        const [receivableResult] = await db
+          .select({ total: sql<number>`COALESCE(SUM(${customers.currentBalance}), 0)` })
+          .from(customers)
+          .where(
+            and(
+              eq(customers.businessId, businessId),
+              sql`${customers.currentBalance} > 0`
+            )
+          );
+
+        return {
+          todaySales: Number(todaySalesResult.total),
+          totalSales: Number(totalSalesResult.total),
+          totalInvoices: Number(invoicesCountResult.count),
+          totalCustomers: Number(customersCountResult.count),
+          totalReceivable: Number(receivableResult?.total ?? 0),
+        };
+      },
+      ['dashboard-sales-summary'],
+      { tags: ['dashboard_sales', `business_sales_${businessId}`], revalidate: 3600 }
+    );
+
+    const summary = await getCachedSummary(businessId, todayStr);
 
     return {
       success: true,
-      summary: {
-        todaySales: Number(todaySalesResult.total),
-        totalSales: Number(totalSalesResult.total),
-        totalInvoices: Number(invoicesCountResult.count),
-        totalCustomers: Number(customersCountResult.count),
-        totalReceivable: Number(receivableResult.total),
-      }
+      summary
     };
   } catch (error: any) {
     return { error: error.message || "Failed to fetch sales summary" };
@@ -444,15 +487,24 @@ export async function getSalesSummary() {
 export async function getRecentInvoices(limit = 5) {
   try {
     const session = await requireBusinessSession();
+    const businessId = session.id;
 
-    const invoiceList = await db.query.invoices.findMany({
-      where: and(
-        eq(invoices.businessId, session.id),
-        eq(invoices.status, 'active')
-      ),
-      orderBy: (invoices, { desc }) => [desc(invoices.createdAt)],
-      limit,
-    });
+    const getCachedRecentInvoices = unstable_cache(
+      async (bId: string, limitNum: number) => {
+        return await db.query.invoices.findMany({
+          where: and(
+            eq(invoices.businessId, bId),
+            eq(invoices.status, 'active')
+          ),
+          orderBy: (invoices, { desc }) => [desc(invoices.createdAt)],
+          limit: limitNum,
+        });
+      },
+      ['dashboard-recent-invoices'],
+      { tags: ['dashboard_recent', `business_invoices_${businessId}`], revalidate: 3600 }
+    );
+
+    const invoiceList = await getCachedRecentInvoices(businessId, limit);
 
     return { success: true, invoices: invoiceList };
   } catch (error: any) {
@@ -465,32 +517,40 @@ export async function getWeeklySalesData() {
     const session = await requireBusinessSession();
     const businessId = session.id;
 
-    // Get sales totals for each of the last 7 days
-    const days: { date: string; label: string; total: number }[] = [];
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const getCachedWeeklySales = unstable_cache(
+      async (bId: string) => {
+        const days: { date: string; label: string; total: number }[] = [];
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const dateStr = d.toISOString().split('T')[0];
 
-      const [result] = await db
-        .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
-        .from(invoices)
-        .where(
-          and(
-            eq(invoices.businessId, businessId),
-            eq(invoices.status, 'active'),
-            sql`${invoices.invoiceDate} = ${dateStr}`
-          )
-        );
+          const [result] = await db
+            .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
+            .from(invoices)
+            .where(
+              and(
+                eq(invoices.businessId, bId),
+                eq(invoices.status, 'active'),
+                sql`${invoices.invoiceDate} = ${dateStr}`
+              )
+            );
 
-      days.push({
-        date: dateStr,
-        label: dayNames[d.getDay()],
-        total: Number(result.total),
-      });
-    }
+          days.push({
+            date: dateStr,
+            label: dayNames[d.getDay()],
+            total: Number(result.total),
+          });
+        }
+        return days;
+      },
+      ['dashboard-weekly-sales'],
+      { tags: ['dashboard_sales', `business_weekly_sales_${businessId}`], revalidate: 3600 }
+    );
+
+    const days = await getCachedWeeklySales(businessId);
 
     return { success: true, days };
   } catch (error: any) {
