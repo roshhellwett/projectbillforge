@@ -467,6 +467,16 @@ body {
       -6px -6px 12px var(--shadow-neu-outer-light);
   }
 
+  .glass-overlay {
+    padding-bottom: 6rem;
+    /* Make room for the bottom navigation */
+  }
+
+  .glass-modal-panel {
+    max-height: calc(100svh - 8rem);
+    /* Use svh for mobile viewports, reserve space for nav + top padding */
+  }
+
   .glass-heavy {
     border-radius: 1.25rem;
   }
