@@ -60,13 +60,30 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
     const [selectedProduct, setSelectedProduct] = useState("");
     const [itemQuantity, setItemQuantity] = useState("");
     const [isInterState, setIsInterState] = useState(false);
+    const [clientError, setClientError] = useState("");
 
     const addItem = () => {
+        setClientError("");
         if (!selectedProduct) return;
         const product = products.find(p => p.id === selectedProduct);
         if (!product) return;
 
         const qty = parseFloat(itemQuantity) || 1;
+        if (!Number.isFinite(qty) || qty <= 0) {
+            setClientError("Quantity must be greater than zero.");
+            return;
+        }
+
+        const existingQty = items
+            .filter(item => item.productId === selectedProduct)
+            .reduce((sum, item) => sum + item.quantity, 0);
+        const availableStock = product.stockQuantity ?? 0;
+
+        if (qty + existingQty > availableStock) {
+            setClientError(`Insufficient stock for ${product.name}. Available: ${availableStock}`);
+            return;
+        }
+
         const amount = product.rate * qty;
         const gstRate = product.gstRate ?? 0;
         const gstAmount = amount * (gstRate / 100);
@@ -143,6 +160,11 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setClientError("");
+        if (formData.paymentMode === 'khata' && !formData.customerId) {
+            setClientError("Please select a customer for Khata invoices.");
+            return;
+        }
         onSubmit(formData, items, isInterState);
     };
 
@@ -157,7 +179,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-                    {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
+                    {(error || clientError) && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error || clientError}</div>}
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div>

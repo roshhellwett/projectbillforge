@@ -23,7 +23,7 @@ function calculateGST(itemRate: number, quantity: number, gstRate: number, isInt
   const qty = new Decimal(quantity);
   const gstPct = new Decimal(gstRate);
 
-  const amount = rate.times(qty);
+  const amount = rate.times(qty).toDecimalPlaces(2);
   const gstAmount = amount.times(gstPct).dividedBy(100);
 
   if (isInterState) {
@@ -39,7 +39,7 @@ function calculateGST(itemRate: number, quantity: number, gstRate: number, isInt
   const sgst = gstAmount.dividedBy(2).toDecimalPlaces(2);
 
   return {
-    amount: amount.toDecimalPlaces(2).toNumber(),
+    amount: amount.toNumber(),
     cgst: cgst.toNumber(),
     sgst: sgst.toNumber(),
     igst: 0,
@@ -110,6 +110,7 @@ export async function createInvoice(data: InvoiceInput) {
     const total = subtotal.plus(totalCgst).plus(totalSgst).plus(totalIgst).toNumber();
     const paymentMode = data.paymentMode || 'cash';
     const paymentStatus = paymentMode === 'khata' ? 'unpaid' : 'paid';
+    const amountPaid = paymentMode === 'khata' ? 0 : total;
 
     const invoice = await db.transaction(async (tx) => {
       const [newInvoice] = await tx.insert(invoices).values({
@@ -130,9 +131,22 @@ export async function createInvoice(data: InvoiceInput) {
         notes: data.notes || null,
         paymentMode,
         paymentStatus,
-        amountPaid: 0,
+        amountPaid,
         status: 'active',
       }).returning();
+
+      if (data.customerId) {
+        const customerRows = await tx.execute(
+          sql`SELECT id, business_id FROM customers WHERE id = ${data.customerId} FOR UPDATE`
+        ) as unknown as { id: string; business_id: string }[];
+        const customer = customerRows[0];
+        if (!customer) {
+          throw new Error("Customer not found");
+        }
+        if (customer.business_id !== session.id) {
+          throw new Error("Customer does not belong to your business");
+        }
+      }
 
       if (processedItems.length > 0) {
         // Aggregate required quantities by productId to handle duplicate items
@@ -267,13 +281,18 @@ export async function cancelInvoice(id: string) {
         .where(eq(invoices.id, id));
 
       if (invoice.items && invoice.items.length > 0) {
-        // Collect product IDs and quantities to restore
-        const productIds = invoice.items.map(item => item.productId);
+        // Aggregate quantities by product to avoid duplicate-ID CASE overwrite issues
+        const productProps = new Map<string, number>();
+        for (const item of invoice.items) {
+          productProps.set(item.productId, (productProps.get(item.productId) ?? 0) + item.quantity);
+        }
+
+        const productIds = Array.from(productProps.keys());
         const sqlIds = sql.join(productIds.map(id => sql`${id}`), sql`, `);
 
         // Build CASE statement for quantity increments
         const quantityCases = sql.join(
-          invoice.items.map(item => sql`WHEN id = ${item.productId} THEN stock_quantity + ${item.quantity}`),
+          Array.from(productProps.entries()).map(([id, qty]) => sql`WHEN id = ${id} THEN stock_quantity + ${qty}`),
           sql` `
         );
 
@@ -418,10 +437,10 @@ export async function getSalesSummary() {
           .from(invoices)
           .where(
             and(
-              eq(invoices.businessId, businessId),
+              eq(invoices.businessId, bId),
               eq(invoices.status, 'active'),
               eq(invoices.paymentStatus, 'paid'),
-              sql`${invoices.invoiceDate} >= ${todayStr}`
+              sql`${invoices.invoiceDate} >= ${tStr}`
             )
           );
 
@@ -430,7 +449,7 @@ export async function getSalesSummary() {
           .from(invoices)
           .where(
             and(
-              eq(invoices.businessId, businessId),
+              eq(invoices.businessId, bId),
               eq(invoices.status, 'active'),
               eq(invoices.paymentStatus, 'paid')
             )
@@ -441,7 +460,7 @@ export async function getSalesSummary() {
           .from(invoices)
           .where(
             and(
-              eq(invoices.businessId, businessId),
+              eq(invoices.businessId, bId),
               eq(invoices.status, 'active')
             )
           );
@@ -449,14 +468,14 @@ export async function getSalesSummary() {
         const [customersCountResult] = await db
           .select({ count: sql<number>`COUNT(*)` })
           .from(customers)
-          .where(eq(customers.businessId, businessId));
+          .where(eq(customers.businessId, bId));
 
         const [receivableResult] = await db
           .select({ total: sql<number>`COALESCE(SUM(${customers.currentBalance}), 0)` })
           .from(customers)
           .where(
             and(
-              eq(customers.businessId, businessId),
+              eq(customers.businessId, bId),
               sql`${customers.currentBalance} > 0`
             )
           );
@@ -530,13 +549,14 @@ export async function getWeeklySalesData() {
           const [result] = await db
             .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
             .from(invoices)
-            .where(
-              and(
-                eq(invoices.businessId, bId),
-                eq(invoices.status, 'active'),
-                sql`${invoices.invoiceDate} = ${dateStr}`
-              )
-            );
+          .where(
+            and(
+              eq(invoices.businessId, bId),
+              eq(invoices.status, 'active'),
+              eq(invoices.paymentStatus, 'paid'),
+              sql`${invoices.invoiceDate} = ${dateStr}`
+            )
+          );
 
           days.push({
             date: dateStr,
