@@ -537,7 +537,10 @@ export default function KhataPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPaymentData({ ...paymentData, amount: String(Math.round(safeNum(customer?.currentBalance) / 2)) })}
+                    onClick={() => {
+                      const half = safeNum(customer?.currentBalance) / 2;
+                      setPaymentData({ ...paymentData, amount: half.toFixed(2) });
+                    }}
                     className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded"
                   >
                     Pay Half

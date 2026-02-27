@@ -11,13 +11,13 @@ import { revalidatePath } from "next/cache";
 
 // Calculate late fees using pre-fetched data (no extra DB queries)
 function calculateLateFeesFromData(
-  invoice: { invoiceDate: string; paymentStatus: string | null; total: number | null },
+  invoice: { invoiceDate: string; paymentStatus: string | null; total: number | null; amountPaid?: number | null },
   business: { redemptionPeriodDays: number | null; finePercentage: number | null; fineFrequencyDays: number | null }
 ): number {
   if (!business.redemptionPeriodDays || !business.finePercentage || !business.fineFrequencyDays) {
     return 0;
   }
-  if (invoice.paymentStatus !== 'unpaid') {
+  if (invoice.paymentStatus !== 'unpaid' && invoice.paymentStatus !== 'partial') {
     return 0;
   }
 
@@ -35,8 +35,10 @@ function calculateLateFeesFromData(
   const finePercentage = Number(business.finePercentage) || 2;
   const finePeriods = Math.floor(daysOverdue / fineFrequencyDays);
   const invoiceTotal = Number(invoice.total) || 0;
+  const invoicePaid = Number(invoice.amountPaid) || 0;
+  const outstanding = Math.max(0, invoiceTotal - invoicePaid);
 
-  return Math.round(invoiceTotal * (finePercentage / 100) * finePeriods * 100) / 100;
+  return Math.round(outstanding * (finePercentage / 100) * finePeriods * 100) / 100;
 }
 
 export async function createKhataTransaction(data: KhataTransactionInput) {
@@ -209,7 +211,7 @@ export async function getKhataStatement(customerId: string) {
       where: and(
         eq(invoices.customerId, customerId),
         eq(invoices.businessId, session.id),
-        eq(invoices.paymentStatus, 'unpaid'),
+        sql`${invoices.paymentStatus} IN ('unpaid', 'partial')`,
         eq(invoices.status, 'active')
       ),
     });
