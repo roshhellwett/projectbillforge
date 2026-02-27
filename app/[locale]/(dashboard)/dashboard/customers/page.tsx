@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "@/lib/actions/customers";
 import { recalculateCustomerBalance } from "@/lib/actions/khata";
 import { ConfirmDialog, SkeletonCard } from "@/lib/components/ui";

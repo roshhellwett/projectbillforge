@@ -9,6 +9,26 @@ interface Customer {
     currentBalance: number | null;
 }
 
+interface SalesSummary {
+    todaySales: number;
+    totalSales: number;
+    totalInvoices: number;
+    totalCustomers: number;
+    totalReceivable: number;
+}
+
+interface ProductSummary {
+    id: string;
+}
+
+interface RecentInvoice {
+    id: string;
+    customerName: string;
+    invoiceNumber: string;
+    total: number | null;
+    paymentStatus: string | null;
+}
+
 export async function TopReceivablesServer({ customersPromise }: { customersPromise: Promise<{ success?: boolean; customers?: Customer[] }> }) {
     const customersResult = await customersPromise;
     const customers = customersResult.success && customersResult.customers ? customersResult.customers : [];
@@ -212,13 +232,15 @@ export async function BusinessSnapshotServer({
     productsPromise,
     lowStockPromise
 }: {
-    salesPromise: Promise<{ success?: boolean; summary?: any }>,
-    productsPromise: Promise<{ success?: boolean; products?: any[] }>,
+    salesPromise: Promise<{ success?: boolean; summary?: SalesSummary }>,
+    productsPromise: Promise<{ success?: boolean; products?: ProductSummary[] }>,
     lowStockPromise: Promise<{ success?: boolean; products?: { id: string; name: string; stockQuantity: number | null; lowStockThreshold: number | null }[] }>
 }) {
     const [salesResult, productsResult, lowStockResult] = await Promise.all([salesPromise, productsPromise, lowStockPromise]);
 
-    const summary = salesResult.success ? salesResult.summary : { totalCustomers: 0, totalInvoices: 0 };
+    const summary = salesResult.success
+        ? (salesResult.summary ?? { totalCustomers: 0, totalInvoices: 0, todaySales: 0, totalSales: 0, totalReceivable: 0 })
+        : { totalCustomers: 0, totalInvoices: 0, todaySales: 0, totalSales: 0, totalReceivable: 0 };
     const totalProducts = productsResult.success ? (productsResult.products?.length || 0) : 0;
     const lowStock = lowStockResult.success ? (lowStockResult.products || []) : [];
 
@@ -247,7 +269,7 @@ export async function BusinessSnapshotServer({
     );
 }
 
-export async function RecentInvoicesServer({ recentPromise }: { recentPromise: Promise<{ success?: boolean; invoices?: any[] }> }) {
+export async function RecentInvoicesServer({ recentPromise }: { recentPromise: Promise<{ success?: boolean; invoices?: RecentInvoice[] }> }) {
     const recentResult = await recentPromise;
     const recentInvoices = recentResult.success ? recentResult.invoices : [];
 

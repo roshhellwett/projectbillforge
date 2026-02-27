@@ -6,8 +6,20 @@ import { db } from "@/lib/db";
 import { invoices, customers, products, khataTransactions, businesses } from "@/lib/schema";
 import { invoiceSchema, type InvoiceInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq, and, gt, sql } from "drizzle-orm";
-import { revalidatePath, unstable_cache } from "next/cache";
+import { eq, and, desc, sql } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
+import { revalidateLocalizedPaths } from "@/lib/revalidate";
+import { allocatePaymentAcrossInvoices } from "@/lib/accounting";
+
+const INDIA_TIME_ZONE = "Asia/Kolkata";
+
+function getIndiaDateString(date: Date = new Date()): string {
+  return date.toLocaleDateString("en-CA", { timeZone: INDIA_TIME_ZONE });
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 
 function generateInvoiceNumber(): string {
   const date = new Date();
@@ -235,12 +247,10 @@ export async function createInvoice(data: InvoiceInput) {
       return newInvoice;
     });
 
-    revalidatePath('/dashboard/invoices');
-    revalidatePath('/dashboard/khata');
-    revalidatePath('/dashboard');
+    revalidateLocalizedPaths(['/dashboard/invoices', '/dashboard/khata', '/dashboard']);
     return { success: true, invoice };
-  } catch (error: any) {
-    return { error: error.message || "Failed to create invoice" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to create invoice") };
   }
 }
 
@@ -250,12 +260,12 @@ export async function getInvoices() {
 
     const invoiceList = await db.query.invoices.findMany({
       where: eq(invoices.businessId, session.id),
-      orderBy: (invoices, { desc }) => [desc(invoices.createdAt)],
+      orderBy: [desc(invoices.createdAt)],
     });
 
     return { success: true, invoices: invoiceList };
-  } catch (error: any) {
-    return { error: error.message || "Failed to fetch invoices" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to fetch invoices") };
   }
 }
 
@@ -306,7 +316,7 @@ export async function cancelInvoice(id: string) {
         `);
       }
 
-      if (invoice.customerId && invoice.paymentStatus !== 'paid') {
+      if (invoice.customerId && invoice.paymentMode === 'khata') {
         const customerRows = await tx.execute(
           sql`SELECT id, current_balance FROM customers WHERE id = ${invoice.customerId} FOR UPDATE`
         ) as unknown as { id: string; current_balance: number | null }[];
@@ -355,33 +365,9 @@ export async function cancelInvoice(id: string) {
                 FOR UPDATE`
           ) as unknown as { id: string; total: number | null; amount_paid: number | null }[];
 
-          const invoicesToUpdate: { id: string; amountPaid: number; status: 'paid' | 'partial' }[] = [];
-
-          for (const inv of pendingInvoicesRows) {
-            if (orphanedPayment.lessThanOrEqualTo(0)) break;
-
-            const invTotal = new Decimal(inv.total || 0);
-            const invPaid = new Decimal(inv.amount_paid || 0);
-            const amountDue = invTotal.minus(invPaid);
-
-            if (amountDue.lessThanOrEqualTo(0)) continue;
-
-            if (orphanedPayment.greaterThanOrEqualTo(amountDue)) {
-              invoicesToUpdate.push({
-                id: inv.id,
-                amountPaid: invTotal.toNumber(),
-                status: 'paid'
-              });
-              orphanedPayment = orphanedPayment.minus(amountDue);
-            } else {
-              invoicesToUpdate.push({
-                id: inv.id,
-                amountPaid: invPaid.plus(orphanedPayment).toNumber(),
-                status: 'partial'
-              });
-              orphanedPayment = new Decimal(0);
-            }
-          }
+          const allocation = allocatePaymentAcrossInvoices(pendingInvoicesRows, orphanedPayment);
+          const invoicesToUpdate = allocation.updates;
+          orphanedPayment = new Decimal(allocation.remaining);
 
           // Execute batch updates avoiding N+1
           if (invoicesToUpdate.length > 0) {
@@ -411,13 +397,11 @@ export async function cancelInvoice(id: string) {
       }
     });
 
-    revalidatePath('/dashboard/invoices');
-    revalidatePath('/dashboard/khata');
-    revalidatePath('/dashboard');
+    revalidateLocalizedPaths(['/dashboard/invoices', '/dashboard/khata', '/dashboard']);
 
     return { success: true };
-  } catch (error: any) {
-    return { error: error.message || "Failed to cancel invoice" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to cancel invoice") };
   }
 }
 
@@ -426,9 +410,7 @@ export async function getSalesSummary() {
     const session = await requireBusinessSession();
     const businessId = session.id;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = getIndiaDateString();
 
     const getCachedSummary = unstable_cache(
       async (bId: string, tStr: string) => {
@@ -437,10 +419,9 @@ export async function getSalesSummary() {
           .from(invoices)
           .where(
             and(
-              eq(invoices.businessId, businessId),
+              eq(invoices.businessId, bId),
               eq(invoices.status, 'active'),
-              eq(invoices.paymentStatus, 'paid'),
-              sql`${invoices.invoiceDate} >= ${todayStr}`
+              eq(invoices.invoiceDate, tStr)
             )
           );
 
@@ -449,9 +430,8 @@ export async function getSalesSummary() {
           .from(invoices)
           .where(
             and(
-              eq(invoices.businessId, businessId),
-              eq(invoices.status, 'active'),
-              eq(invoices.paymentStatus, 'paid')
+              eq(invoices.businessId, bId),
+              eq(invoices.status, 'active')
             )
           );
 
@@ -460,7 +440,7 @@ export async function getSalesSummary() {
           .from(invoices)
           .where(
             and(
-              eq(invoices.businessId, businessId),
+              eq(invoices.businessId, bId),
               eq(invoices.status, 'active')
             )
           );
@@ -468,7 +448,7 @@ export async function getSalesSummary() {
         const [customersCountResult] = await db
           .select({ count: sql<number>`COUNT(*)` })
           .from(customers)
-          .where(eq(customers.businessId, businessId));
+          .where(eq(customers.businessId, bId));
 
         const [receivableResult] = await db
           .select({ total: sql<number>`COALESCE(SUM(${customers.currentBalance}), 0)` })
@@ -498,8 +478,8 @@ export async function getSalesSummary() {
       success: true,
       summary
     };
-  } catch (error: any) {
-    return { error: error.message || "Failed to fetch sales summary" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to fetch sales summary") };
   }
 }
 
@@ -515,7 +495,7 @@ export async function getRecentInvoices(limit = 5) {
             eq(invoices.businessId, bId),
             eq(invoices.status, 'active')
           ),
-          orderBy: (invoices, { desc }) => [desc(invoices.createdAt)],
+          orderBy: [desc(invoices.createdAt)],
           limit: limitNum,
         });
       },
@@ -526,8 +506,8 @@ export async function getRecentInvoices(limit = 5) {
     const invoiceList = await getCachedRecentInvoices(businessId, limit);
 
     return { success: true, invoices: invoiceList };
-  } catch (error: any) {
-    return { error: error.message || "Failed to fetch recent invoices" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to fetch recent invoices") };
   }
 }
 
@@ -539,12 +519,15 @@ export async function getWeeklySalesData() {
     const getCachedWeeklySales = unstable_cache(
       async (bId: string) => {
         const days: { date: string; label: string; total: number }[] = [];
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
         for (let i = 6; i >= 0; i--) {
           const d = new Date();
           d.setDate(d.getDate() - i);
-          const dateStr = d.toISOString().split('T')[0];
+          const dateStr = getIndiaDateString(d);
+          const label = new Intl.DateTimeFormat('en-US', {
+            weekday: 'short',
+            timeZone: INDIA_TIME_ZONE,
+          }).format(d);
 
           const [result] = await db
             .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
@@ -559,7 +542,7 @@ export async function getWeeklySalesData() {
 
           days.push({
             date: dateStr,
-            label: dayNames[d.getDay()],
+            label,
             total: Number(result.total),
           });
         }
@@ -572,7 +555,7 @@ export async function getWeeklySalesData() {
     const days = await getCachedWeeklySales(businessId);
 
     return { success: true, days };
-  } catch (error: any) {
-    return { error: error.message || "Failed to fetch weekly sales data" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to fetch weekly sales data") };
   }
 }

@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { Search, LayoutDashboard, FileText, Users, Package, Settings, LogOut, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { signOut } from "next-auth/react";
+import { useLocale } from "next-intl";
 
 interface Action {
     id: string;
@@ -18,6 +19,7 @@ interface Action {
 }
 
 export function CommandMenu() {
+    const locale = useLocale();
     const router = useRouter();
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState("");
@@ -108,7 +110,7 @@ export function CommandMenu() {
             name: "Sign out",
             icon: LogOut,
             keywords: ["logout", "exit", "leave"],
-            perform: () => signOut({ callbackUrl: "/login" }),
+            perform: () => signOut({ callbackUrl: `/${locale}/login` }),
             color: "#ef4444",
             bgColor: "bg-red-500/10 dark:bg-red-500/15",
         },

@@ -4,8 +4,12 @@ import { db } from "@/lib/db";
 import { products } from "@/lib/schema";
 import { productSchema, type ProductInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq, sql, and } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { eq, sql, and, desc } from "drizzle-orm";
+import { revalidateLocalizedPaths } from "@/lib/revalidate";
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export async function createProduct(data: ProductInput) {
   try {
@@ -37,11 +41,10 @@ export async function createProduct(data: ProductInput) {
       isActive: true,
     }).returning();
 
-    revalidatePath('/dashboard/products');
-    revalidatePath('/dashboard');
+    revalidateLocalizedPaths(['/dashboard/products', '/dashboard']);
     return { success: true, product };
-  } catch (error: any) {
-    return { error: error.message || "Failed to create product" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to create product") };
   }
 }
 
@@ -87,11 +90,10 @@ export async function updateProduct(id: string, data: Partial<ProductInput>) {
       .where(and(eq(products.id, id), eq(products.businessId, session.id)))
       .returning();
 
-    revalidatePath('/dashboard/products');
-    revalidatePath('/dashboard');
+    revalidateLocalizedPaths(['/dashboard/products', '/dashboard']);
     return { success: true, product };
-  } catch (error: any) {
-    return { error: error.message || "Failed to update product" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to update product") };
   }
 }
 
@@ -111,11 +113,10 @@ export async function deleteProduct(id: string) {
       .where(and(eq(products.id, id), eq(products.businessId, session.id)))
       .returning();
 
-    revalidatePath('/dashboard/products');
-    revalidatePath('/dashboard');
+    revalidateLocalizedPaths(['/dashboard/products', '/dashboard']);
     return { success: true };
-  } catch (error: any) {
-    return { error: error.message || "Failed to delete product" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to delete product") };
   }
 }
 
@@ -125,12 +126,12 @@ export async function getProducts() {
 
     const productList = await db.query.products.findMany({
       where: eq(products.businessId, session.id),
-      orderBy: (products, { desc }) => [desc(products.createdAt)],
+      orderBy: [desc(products.createdAt)],
     });
 
     return { success: true, products: productList };
-  } catch (error: any) {
-    return { error: error.message || "Failed to fetch products" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to fetch products") };
   }
 }
 
@@ -147,7 +148,7 @@ export async function getLowStockProducts() {
       );
 
     return { success: true, products: lowStock };
-  } catch (error: any) {
-    return { error: error.message || "Failed to fetch low stock products" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to fetch low stock products") };
   }
 }

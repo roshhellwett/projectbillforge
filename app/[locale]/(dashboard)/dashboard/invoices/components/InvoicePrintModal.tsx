@@ -47,6 +47,28 @@ interface InvoicePrintModalProps {
     onClose: () => void;
 }
 
+function escapeHtml(value: string): string {
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+function getItemTotals(items: InvoiceItem[]) {
+    return items.reduce(
+        (acc, item) => {
+            acc.subtotal += item.amount;
+            acc.cgst += item.cgst;
+            acc.sgst += item.sgst;
+            acc.igst += item.igst;
+            return acc;
+        },
+        { subtotal: 0, cgst: 0, sgst: 0, igst: 0 }
+    );
+}
+
 export function InvoicePrintModal({
     invoice,
     businessProfile,
@@ -54,12 +76,36 @@ export function InvoicePrintModal({
     onFormatChange,
     onClose
 }: InvoicePrintModalProps) {
+    const invoiceItems = invoice.items ?? [];
+    const itemTotals = getItemTotals(invoiceItems);
+    const hasIgst = invoiceItems.some((item) => item.igst > 0);
+    const safeTotal = Number(invoice.total ?? 0).toFixed(2);
+    const safeAmountPaid = Number(invoice.amountPaid ?? 0).toFixed(2);
 
     const handlePrintThermal = () => {
+        const safeBusinessName = escapeHtml(businessProfile.name);
+        const safeBusinessAddress = businessProfile.address ? escapeHtml(businessProfile.address).replace(/\n/g, "<br>") : "";
+        const safeBusinessPhone = businessProfile.phone ? escapeHtml(businessProfile.phone) : "";
+        const safeBusinessGstin = businessProfile.gstin ? escapeHtml(businessProfile.gstin) : "";
+        const safeInvoiceDate = invoice.invoiceDate.toLocaleDateString("en-IN");
+        const safeInvoiceNumber = escapeHtml(invoice.invoiceNumber);
+        const safeCustomerName = escapeHtml(invoice.customerName);
+        const thermalItemsRows = invoiceItems.map((item) => `
+                <tr>
+                  <td colspan="4" class="font-bold pb-0">${escapeHtml(item.productName)}</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td class="text-right">${Number(item.quantity)}</td>
+                  <td class="text-right">${Number(item.rate).toFixed(2)}</td>
+                  <td class="text-right">${Number(item.amount).toFixed(2)}</td>
+                </tr>
+              `).join("");
+
         const printWindow = window.open('', '_blank');
         if (printWindow) {
             printWindow.document.write(`
-        <html><head><title>Receipt ${invoice.invoiceNumber}</title>
+        <html><head><title>Receipt ${safeInvoiceNumber}</title>
         <style>
           @page { margin: 0; }
           body { font-family: 'Courier New', Courier, monospace; margin: 0; padding: 10px; width: 80mm; font-size: 12px; color: #000; }
@@ -80,16 +126,16 @@ export function InvoicePrintModal({
           .grid-2 { display: grid; grid-template-columns: 1fr 1fr; }
         </style></head><body>
           <div class="text-center mb-4">
-            <h2 class="font-bold" style="font-size: 16px; margin: 0 0 4px 0;">${businessProfile.name}</h2>
-            ${businessProfile.address ? `<div>${businessProfile.address}</div>` : ''}
-            ${businessProfile.phone ? `<div>Ph: ${businessProfile.phone}</div>` : ''}
-            ${businessProfile.gstin ? `<div>GSTIN: ${businessProfile.gstin}</div>` : ''}
+            <h2 class="font-bold" style="font-size: 16px; margin: 0 0 4px 0;">${safeBusinessName}</h2>
+            ${safeBusinessAddress ? `<div>${safeBusinessAddress}</div>` : ''}
+            ${safeBusinessPhone ? `<div>Ph: ${safeBusinessPhone}</div>` : ''}
+            ${safeBusinessGstin ? `<div>GSTIN: ${safeBusinessGstin}</div>` : ''}
           </div>
           
           <div class="border-b">
-            <div><span class="font-bold">Date:</span> ${invoice.invoiceDate.toLocaleDateString('en-IN')}</div>
-            <div><span class="font-bold">Inv No:</span> ${invoice.invoiceNumber}</div>
-            <div><span class="font-bold">To:</span> ${invoice.customerName}</div>
+            <div><span class="font-bold">Date:</span> ${safeInvoiceDate}</div>
+            <div><span class="font-bold">Inv No:</span> ${safeInvoiceNumber}</div>
+            <div><span class="font-bold">To:</span> ${safeCustomerName}</div>
           </div>
 
           <table class="w-full mb-2">
@@ -102,32 +148,22 @@ export function InvoicePrintModal({
               </tr>
             </thead>
             <tbody>
-              ${invoice.items?.map(item => `
-                <tr>
-                  <td colspan="4" class="font-bold pb-0">${item.productName}</td>
-                </tr>
-                <tr>
-                  <td></td>
-                  <td class="text-right">${item.quantity}</td>
-                  <td class="text-right">${item.rate.toFixed(2)}</td>
-                  <td class="text-right">${item.amount.toFixed(2)}</td>
-                </tr>
-              `).join('')}
+              ${thermalItemsRows}
             </tbody>
           </table>
 
           <div class="border-t">
             <div class="grid-2">
               <div>Subtotal:</div>
-              <div class="text-right">${invoice.items?.reduce((s, i) => s + i.amount, 0).toFixed(2)}</div>
+              <div class="text-right">${itemTotals.subtotal.toFixed(2)}</div>
             </div>
             <div class="grid-2">
               <div>GST:</div>
-              <div class="text-right">${invoice.items?.reduce((s, i) => s + i.cgst + i.sgst + i.igst, 0).toFixed(2)}</div>
+              <div class="text-right">${(itemTotals.cgst + itemTotals.sgst + itemTotals.igst).toFixed(2)}</div>
             </div>
             <div class="grid-2 font-bold mt-2" style="font-size: 14px;">
               <div>Total:</div>
-              <div class="text-right">Rs. ${(invoice.total ?? 0).toFixed(2)}</div>
+              <div class="text-right">Rs. ${safeTotal}</div>
             </div>
           </div>
 
@@ -144,10 +180,34 @@ export function InvoicePrintModal({
     };
 
     const handlePrintA4 = () => {
+        const safeBusinessName = escapeHtml(businessProfile.name);
+        const safeBusinessAddress = businessProfile.address ? escapeHtml(businessProfile.address).replace(/\n/g, "<br>") : "";
+        const safeBusinessPhone = businessProfile.phone ? escapeHtml(businessProfile.phone) : "";
+        const safeBusinessGstin = businessProfile.gstin ? escapeHtml(businessProfile.gstin) : "";
+        const safeInvoiceDate = invoice.invoiceDate.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+        const safeInvoiceNumber = escapeHtml(invoice.invoiceNumber);
+        const safeCustomerName = escapeHtml(invoice.customerName);
+        const safeCustomerAddress = invoice.customerAddress ? escapeHtml(invoice.customerAddress).replace(/\n/g, "<br>") : "";
+        const safeCustomerGstin = invoice.customerGstin ? escapeHtml(invoice.customerGstin) : "";
+        const safeInvoiceNotes = invoice.notes ? escapeHtml(invoice.notes).replace(/\n/g, "<br>") : "";
+        const safeTerms = businessProfile.termsAndConditions ? escapeHtml(businessProfile.termsAndConditions).replace(/\n/g, "<br>") : "";
+        const a4ItemsRows = invoiceItems.map((item, i) => `
+                  <tr>
+                    <td class="text-center" style="color: #64748b;">${i + 1}</td>
+                    <td class="text-left font-semibold">${escapeHtml(item.productName)}</td>
+                    <td class="text-right">${Number(item.quantity)}</td>
+                    <td class="text-right">₹${Number(item.rate).toFixed(2)}</td>
+                    <td class="text-right" style="color: #64748b; font-size: 12px;">
+                      ${item.igst > 0 ? `IGST (${item.gstRate}%)<br>₹${Number(item.igst).toFixed(2)}` : `C+S (${item.gstRate}%)<br>₹${(Number(item.cgst) + Number(item.sgst)).toFixed(2)}`}
+                    </td>
+                    <td class="text-right font-semibold">₹${(Number(item.amount) + Number(item.cgst) + Number(item.sgst) + Number(item.igst)).toFixed(2)}</td>
+                  </tr>
+                `).join("");
+
         const printWindow = window.open('', '_blank');
         if (printWindow) {
             printWindow.document.write(`
-        <html><head><title>Invoice ${invoice.invoiceNumber}</title>
+        <html><head><title>Invoice ${safeInvoiceNumber}</title>
         <style>
           @page { size: A4; margin: 20mm; }
           body { font-family: 'Inter', -apple-system, sans-serif; margin: 0; padding: 0; color: #1e293b; background: #fff; }
@@ -185,16 +245,16 @@ export function InvoicePrintModal({
           <div class="invoice-box">
             <div class="header">
               <div class="header-left">
-                <h1>${businessProfile.name}</h1>
-                ${businessProfile.address ? `<p>${businessProfile.address.replace(/\n/g, '<br>')}</p>` : ''}
-                ${businessProfile.phone ? `<p>Phone: ${businessProfile.phone}</p>` : ''}
-                ${businessProfile.gstin ? `<p>GSTIN: ${businessProfile.gstin}</p>` : ''}
+                <h1>${safeBusinessName}</h1>
+                ${safeBusinessAddress ? `<p>${safeBusinessAddress}</p>` : ''}
+                ${safeBusinessPhone ? `<p>Phone: ${safeBusinessPhone}</p>` : ''}
+                ${safeBusinessGstin ? `<p>GSTIN: ${safeBusinessGstin}</p>` : ''}
               </div>
               <div class="header-right">
                 <h2>INVOICE</h2>
                 <div class="invoice-details">
-                  <p><strong>Inv No:</strong> ${invoice.invoiceNumber}</p>
-                  <p><strong>Date:</strong> ${invoice.invoiceDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                  <p><strong>Inv No:</strong> ${safeInvoiceNumber}</p>
+                  <p><strong>Date:</strong> ${safeInvoiceDate}</p>
                   ${invoice.paymentMode === 'khata' ? '<p><strong>Type:</strong> Khata (Credit)</p>' : ''}
                 </div>
               </div>
@@ -202,9 +262,9 @@ export function InvoicePrintModal({
 
             <div class="bill-to">
               <h3>Billed To</h3>
-              <p class="font-semibold" style="font-size: 18px; color: #0f172a;">${invoice.customerName}</p>
-              ${invoice.customerAddress ? `<p style="color: #475569;">${invoice.customerAddress.replace(/\n/g, '<br>')}</p>` : ''}
-              ${invoice.customerGstin ? `<p style="color: #475569; margin-top: 8px;"><strong>GSTIN:</strong> ${invoice.customerGstin}</p>` : ''}
+              <p class="font-semibold" style="font-size: 18px; color: #0f172a;">${safeCustomerName}</p>
+              ${safeCustomerAddress ? `<p style="color: #475569;">${safeCustomerAddress}</p>` : ''}
+              ${safeCustomerGstin ? `<p style="color: #475569; margin-top: 8px;"><strong>GSTIN:</strong> ${safeCustomerGstin}</p>` : ''}
             </div>
 
             <table>
@@ -219,68 +279,57 @@ export function InvoicePrintModal({
                 </tr>
               </thead>
               <tbody>
-                ${invoice.items?.map((item, i) => `
-                  <tr>
-                    <td class="text-center" style="color: #64748b;">${i + 1}</td>
-                    <td class="text-left font-semibold">${item.productName}</td>
-                    <td class="text-right">${item.quantity}</td>
-                    <td class="text-right">₹${item.rate.toFixed(2)}</td>
-                    <td class="text-right" style="color: #64748b; font-size: 12px;">
-                      ${item.igst > 0 ? `IGST (${item.gstRate}%)<br>₹${item.igst.toFixed(2)}` : `C+S (${item.gstRate}%)<br>₹${(item.cgst + item.sgst).toFixed(2)}`}
-                    </td>
-                    <td class="text-right font-semibold">₹${(item.amount + item.cgst + item.sgst + item.igst).toFixed(2)}</td>
-                  </tr>
-                `).join('')}
+                ${a4ItemsRows}
               </tbody>
             </table>
 
             <div class="summary">
               <div class="summary-row">
                 <span>Subtotal</span>
-                <span>₹${invoice.items?.reduce((s, i) => s + i.amount, 0).toFixed(2)}</span>
+                <span>₹${itemTotals.subtotal.toFixed(2)}</span>
               </div>
-              ${invoice.items?.some(i => i.igst > 0) ? `
+              ${hasIgst ? `
                 <div class="summary-row">
                   <span>IGST</span>
-                  <span>₹${invoice.items?.reduce((s, i) => s + i.igst, 0).toFixed(2)}</span>
+                  <span>₹${itemTotals.igst.toFixed(2)}</span>
                 </div>
               ` : `
                 <div class="summary-row">
                   <span>CGST</span>
-                  <span>₹${invoice.items?.reduce((s, i) => s + i.cgst, 0).toFixed(2)}</span>
+                  <span>₹${itemTotals.cgst.toFixed(2)}</span>
                 </div>
                 <div class="summary-row">
                   <span>SGST</span>
-                  <span>₹${invoice.items?.reduce((s, i) => s + i.sgst, 0).toFixed(2)}</span>
+                  <span>₹${itemTotals.sgst.toFixed(2)}</span>
                 </div>
               `}
               <div class="summary-row total">
                 <span>Total Amount</span>
-                <span>₹${(invoice.total ?? 0).toFixed(2)}</span>
+                <span>₹${safeTotal}</span>
               </div>
               
               <div style="text-align: right; margin-top: 15px;">
                 ${invoice.paymentStatus === 'paid' ? `<span class="badge badge-paid">Fully Paid</span>` : ''}
                 ${invoice.paymentStatus === 'unpaid' ? `<span class="badge badge-unpaid">Unpaid / Khata</span>` : ''}
-                ${invoice.paymentStatus === 'partial' ? `<span class="badge badge-partial">Partially Paid (₹${invoice.amountPaid})</span>` : ''}
+                ${invoice.paymentStatus === 'partial' ? `<span class="badge badge-partial">Partially Paid (₹${safeAmountPaid})</span>` : ''}
               </div>
             </div>
 
             <div class="footer">
-              ${invoice.notes ? `
+              ${safeInvoiceNotes ? `
                 <div class="notes">
                   <strong>Notes:</strong>
-                  ${invoice.notes}
+                  ${safeInvoiceNotes}
                 </div>
               ` : ''}
-              ${businessProfile.termsAndConditions ? `
+              ${safeTerms ? `
                 <div class="notes">
                   <strong>Terms & Conditions:</strong>
-                  ${businessProfile.termsAndConditions.replace(/\n/g, '<br>')}
+                  ${safeTerms}
                 </div>
               ` : ''}
               <div style="text-align: right; margin-top: 50px;">
-                <p style="margin: 0; font-weight: 600; color: #000;">For ${businessProfile.name}</p>
+                <p style="margin: 0; font-weight: 600; color: #000;">For ${safeBusinessName}</p>
                 <div style="margin-top: 40px; border-top: 1px solid #94a3b8; width: 150px; display: inline-block;"></div>
                 <p style="margin: 5px 0 0 0; color: #64748b; font-size: 11px;">Authorized Signatory</p>
               </div>
@@ -375,7 +424,7 @@ export function InvoicePrintModal({
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {invoice.items?.map((item, i) => (
+                                    {invoiceItems.map((item, i) => (
                                         <tr key={i}>
                                             <td className="py-3 px-4 text-sm text-slate-500 dark:text-slate-400 text-center">{i + 1}</td>
                                             <td className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">{item.productName}</td>
@@ -398,22 +447,22 @@ export function InvoicePrintModal({
                                 <div className="w-80">
                                     <div className="flex justify-between py-2 text-sm text-slate-600 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
                                         <span>Subtotal</span>
-                                        <span className="font-medium text-slate-900 dark:text-slate-300">₹{invoice.items?.reduce((s, i) => s + i.amount, 0).toFixed(2)}</span>
+                                        <span className="font-medium text-slate-900 dark:text-slate-300">₹{itemTotals.subtotal.toFixed(2)}</span>
                                     </div>
-                                    {invoice.items?.some(i => i.igst > 0) ? (
+                                    {hasIgst ? (
                                         <div className="flex justify-between py-2 text-sm text-slate-600 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
                                             <span>IGST</span>
-                                            <span className="font-medium text-slate-900 dark:text-slate-300">₹{invoice.items?.reduce((s, i) => s + i.igst, 0).toFixed(2)}</span>
+                                            <span className="font-medium text-slate-900 dark:text-slate-300">₹{itemTotals.igst.toFixed(2)}</span>
                                         </div>
                                     ) : (
                                         <>
                                             <div className="flex justify-between py-2 text-sm text-slate-600 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
                                                 <span>CGST</span>
-                                                <span className="font-medium text-slate-900 dark:text-slate-300">₹{invoice.items?.reduce((s, i) => s + i.cgst, 0).toFixed(2)}</span>
+                                                <span className="font-medium text-slate-900 dark:text-slate-300">₹{itemTotals.cgst.toFixed(2)}</span>
                                             </div>
                                             <div className="flex justify-between py-2 text-sm text-slate-600 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
                                                 <span>SGST</span>
-                                                <span className="font-medium text-slate-900 dark:text-slate-300">₹{invoice.items?.reduce((s, i) => s + i.sgst, 0).toFixed(2)}</span>
+                                                <span className="font-medium text-slate-900 dark:text-slate-300">₹{itemTotals.sgst.toFixed(2)}</span>
                                             </div>
                                         </>
                                     )}
@@ -429,7 +478,7 @@ export function InvoicePrintModal({
                                             <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs font-bold uppercase tracking-wider rounded border border-yellow-200 dark:border-yellow-800/50">Unpaid / Khata</span>
                                         )}
                                         {invoice.paymentStatus === 'partial' && (
-                                            <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold uppercase tracking-wider rounded border border-blue-200 dark:border-blue-800/50">Partially Paid (₹{invoice.amountPaid})</span>
+                                            <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold uppercase tracking-wider rounded border border-blue-200 dark:border-blue-800/50">Partially Paid (₹{safeAmountPaid})</span>
                                         )}
                                     </div>
                                 </div>
@@ -482,7 +531,7 @@ export function InvoicePrintModal({
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {invoice.items?.map((item, i) => (
+                                    {invoiceItems.map((item, i) => (
                                         <React.Fragment key={i}>
                                             <tr>
                                                 <td colSpan={4} className="pt-2 font-bold">{item.productName}</td>
@@ -501,11 +550,11 @@ export function InvoicePrintModal({
                             <div className="border-t-2 border-dashed border-slate-300 pt-3 text-xs">
                                 <div className="flex justify-between mb-1">
                                     <span>Subtotal:</span>
-                                    <span>{invoice.items?.reduce((s, i) => s + i.amount, 0).toFixed(2)}</span>
+                                    <span>{itemTotals.subtotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between mb-2 pb-2 border-b border-dashed border-slate-200">
                                     <span>GST:</span>
-                                    <span>{invoice.items?.reduce((s, i) => s + i.cgst + i.sgst + i.igst, 0).toFixed(2)}</span>
+                                    <span>{(itemTotals.cgst + itemTotals.sgst + itemTotals.igst).toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between font-bold text-sm mb-4">
                                     <span>Total:</span>

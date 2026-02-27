@@ -46,6 +46,7 @@ interface InvoiceItem {
 interface Invoice {
   id: string;
   invoiceNumber: string;
+  customerId?: string | null;
   customerName: string;
   invoiceDate: Date;
   total: number | null;
@@ -67,6 +68,25 @@ interface BusinessProfile {
   state: string;
   pincode: string | null;
   termsAndConditions: string | null;
+}
+
+interface InvoiceFormData {
+  customerId: string;
+  customerName: string;
+  customerGstin: string;
+  customerAddress: string;
+  invoiceDate: string;
+  notes: string;
+  paymentMode: "cash" | "upi" | "khata";
+}
+
+interface InvoiceServerRow extends Omit<Invoice, "invoiceDate"> {
+  invoiceDate: string;
+}
+
+interface CreateInvoiceResult {
+  error?: string;
+  redirectToSettings?: boolean;
 }
 
 export default function InvoicesPage() {
@@ -116,7 +136,7 @@ export default function InvoicesPage() {
     ]);
     if (productsResult.success) setProducts(productsResult.products);
     if (customersResult.success) setCustomers(customersResult.customers);
-    if (invoicesResult.success) setInvoices(invoicesResult.invoices.map(inv => ({
+    if (invoicesResult.success) setInvoices(invoicesResult.invoices.map((inv: InvoiceServerRow) => ({
       ...inv,
       invoiceDate: new Date(inv.invoiceDate)
     })));
@@ -150,7 +170,7 @@ export default function InvoicesPage() {
     }
   };
 
-  const handleCreateSubmit = async (formDataPayload: any, itemsPayload: InvoiceItem[], isInterStatePayload: boolean) => {
+  const handleCreateSubmit = async (formDataPayload: InvoiceFormData, itemsPayload: InvoiceItem[], isInterStatePayload: boolean) => {
     if (itemsPayload.length === 0) {
       setError("Add at least one item");
       return;
@@ -173,14 +193,15 @@ export default function InvoicesPage() {
       isInterState: isInterStatePayload,
     });
 
-    if (result.error) {
-      if ((result as any).redirectToSettings) {
-        setError(result.error);
-        if (confirm(result.error + " Go to Settings now?")) {
+    const typedResult = result as CreateInvoiceResult;
+    if (typedResult.error) {
+      if (typedResult.redirectToSettings) {
+        setError(typedResult.error);
+        if (confirm(typedResult.error + " Go to Settings now?")) {
           router.push("/dashboard/settings");
         }
       } else {
-        setError(result.error);
+        setError(typedResult.error);
       }
     } else {
       setShowNewInvoice(false);
@@ -318,7 +339,9 @@ export default function InvoicesPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            const customer = customers.find(c => c.name === invoice.customerName);
+                            const customer = customers.find(c =>
+                              (invoice.customerId && c.id === invoice.customerId) || c.name === invoice.customerName
+                            );
                             handleWhatsAppShare(invoice, customer?.phone || null);
                           }}
                           className="p-1.5 sm:p-2 text-[var(--foreground)]/40 hover:text-[#25D366] hover:bg-[#25D366]/10 rounded-lg transition-colors"

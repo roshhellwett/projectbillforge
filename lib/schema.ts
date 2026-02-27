@@ -68,7 +68,7 @@ export const products = pgTable('products', {
   gstRate: numeric5('gst_rate').default(0),
   stockQuantity: numeric2('stock_quantity').default(0),
   lowStockThreshold: numeric2('low_stock_threshold').default(0),
-  metadata: jsonb('metadata').$type<Record<string, any>>(),
+  metadata: jsonb('metadata').$type<Record<string, unknown>>(),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),

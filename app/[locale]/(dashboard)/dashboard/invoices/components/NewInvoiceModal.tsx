@@ -33,11 +33,21 @@ interface InvoiceItem {
     igst: number;
 }
 
+interface InvoiceFormData {
+    customerId: string;
+    customerName: string;
+    customerGstin: string;
+    customerAddress: string;
+    invoiceDate: string;
+    notes: string;
+    paymentMode: "cash" | "upi" | "khata";
+}
+
 interface NewInvoiceModalProps {
     customers: Customer[];
     products: Product[];
     onClose: () => void;
-    onSubmit: (formData: any, items: InvoiceItem[], isInterState: boolean) => Promise<void>;
+    onSubmit: (formData: InvoiceFormData, items: InvoiceItem[], isInterState: boolean) => Promise<void>;
     saving: boolean;
     error: string;
 }

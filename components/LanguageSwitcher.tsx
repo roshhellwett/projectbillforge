@@ -3,6 +3,7 @@
 import { useLocale } from 'next-intl';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { ChangeEvent, useTransition } from 'react';
+import { routing } from '@/i18n/routing';
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     const [isPending, startTransition] = useTransition();
@@ -11,9 +12,8 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     const pathname = usePathname();
 
     function onSelectChange(event: ChangeEvent<HTMLSelectElement>) {
-        const nextLocale = event.target.value;
+        const nextLocale = event.target.value as (typeof routing.locales)[number];
         startTransition(() => {
-            // @ts-ignore
             router.replace(pathname, { locale: nextLocale });
         });
     }

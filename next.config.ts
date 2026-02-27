@@ -4,6 +4,10 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: process.cwd(),
+  turbopack: {
+    root: process.cwd(),
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "2mb",
@@ -35,12 +39,13 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               process.env.NODE_ENV === "development"
-                ? "script-src 'self' 'unsafe-eval' 'unsafe-inline'"
-                : "script-src 'self' 'unsafe-inline'",
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // Tailwind + Google Fonts
+                ? "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com"
+                : "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+              "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
-              "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self'",
+              "font-src 'self' data:",
+              "connect-src 'self' https://challenges.cloudflare.com",
+              "frame-src https://challenges.cloudflare.com",
               "frame-ancestors 'none'",
             ].join("; "),
           },
@@ -51,4 +56,3 @@ const nextConfig: NextConfig = {
 };
 
 export default withNextIntl(nextConfig);
-

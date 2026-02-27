@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { getBusinessProfile, updateBusinessProfile, resetAllKhataData } from "@/lib/actions/business";
 import { ConfirmDialog } from "@/lib/components/ui";
 import { useTranslations } from "next-intl";
@@ -14,6 +14,12 @@ const defaultTerms = `1. Goods once sold cannot be returned or exchanged unless 
 3. Interest @24% p.a. will be charged on overdue payments.
 4. All disputes are subject to local jurisdiction only.
 5. E. & O.E.`;
+
+type IndustryType = "mobile" | "pharmacy" | "kirana" | "garments" | "electronics" | "custom";
+
+function isIndustryType(value: string): value is IndustryType {
+  return ["mobile", "pharmacy", "kirana", "garments", "electronics", "custom"].includes(value);
+}
 
 export default function SettingsPage() {
   const t = useTranslations('Settings');
@@ -36,7 +42,7 @@ export default function SettingsPage() {
     redemptionPeriodDays: 30,
     finePercentage: 2,
     fineFrequencyDays: 7,
-    industryType: "custom" as "mobile" | "pharmacy" | "kirana" | "garments" | "electronics" | "custom",
+    industryType: "custom" as IndustryType,
   });
 
   useEffect(() => {
@@ -67,7 +73,9 @@ export default function SettingsPage() {
         redemptionPeriodDays: result.business.redemptionPeriodDays || 30,
         finePercentage: Number(result.business.finePercentage) || 2,
         fineFrequencyDays: result.business.fineFrequencyDays || 7,
-        industryType: (result.business.industryType as any) || "custom",
+        industryType: result.business.industryType && isIndustryType(result.business.industryType)
+          ? result.business.industryType
+          : "custom",
       });
     }
     setLoading(false);
@@ -155,7 +163,7 @@ export default function SettingsPage() {
               <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">Industry Type</label>
               <select
                 value={formData.industryType}
-                onChange={(e) => setFormData({ ...formData, industryType: e.target.value as any })}
+                onChange={(e) => setFormData({ ...formData, industryType: isIndustryType(e.target.value) ? e.target.value : "custom" })}
                 className="w-full px-5 py-3.5 glass-input text-[var(--foreground)] transition-all font-medium focus:ring-0"
               >
                 {industryOptions.map(opt => (
@@ -282,7 +290,7 @@ export default function SettingsPage() {
           <div className="mt-6 p-5 bg-[var(--color-primary)]/10 rounded-2xl border-l-4 border-[var(--color-primary)] glass-card">
             <p className="text-sm font-medium text-[var(--foreground)]/80">
               <span className="font-bold text-[var(--color-primary)] mr-2">Example:</span> With {formData.redemptionPeriodDays} days grace, {formData.finePercentage}% per {formData.fineFrequencyDays} days -
-              A ₹10,000 invoice overdue by 44 days would incur: ₹{Math.round(10000 * (formData.finePercentage / 100) * Math.floor((44 - formData.redemptionPeriodDays) / formData.fineFrequencyDays) * 100) / 100} in fines.
+              A ₹10,000 invoice overdue by 44 days would incur: ₹{Math.round(10000 * (formData.finePercentage / 100) * Math.max(0, Math.floor((44 - formData.redemptionPeriodDays) / formData.fineFrequencyDays)) * 100) / 100} in fines.
             </p>
           </div>
         </StaggerItem>
@@ -290,8 +298,8 @@ export default function SettingsPage() {
         <StaggerItem className="glass-card p-8 border border-[var(--color-danger)]/10">
           <h2 className="text-xl font-bold text-[var(--color-danger)] mb-2">Danger Zone</h2>
           <p className="text-sm font-medium text-[var(--foreground)]/60 mb-6">
-            This will permanently delete all invoices, transactions, and reset all customer Khata balances to zero.
-            This action cannot be undone.
+            This will cancel all invoices and Khata transactions, and reset all customer balances to zero.
+            This action cannot be undone for accounting records.
           </p>
           <button
             type="button"
@@ -308,7 +316,7 @@ export default function SettingsPage() {
           <div className="glass-heavy glass-modal-panel max-w-md p-6">
             <h2 className="text-lg font-semibold text-red-600 mb-2">Reset All Khata Data</h2>
             <p className="text-sm text-[var(--foreground)]/60 mb-4">
-              This will permanently delete ALL invoices and transactions, and reset ALL customer balances to zero.
+              This will cancel ALL invoices and transactions, and reset ALL customer balances to zero.
               Your business profile will be preserved. This cannot be undone.
             </p>
             <div className="mb-4">

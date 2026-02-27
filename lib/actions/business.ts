@@ -6,7 +6,11 @@ import { businessProfileSchema } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq } from "drizzle-orm";
 import { compare } from "bcryptjs";
-import { revalidatePath } from "next/cache";
+import { revalidateLocalizedPaths } from "@/lib/revalidate";
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export async function getBusinessProfile() {
   try {
@@ -21,8 +25,8 @@ export async function getBusinessProfile() {
     }
 
     return { success: true, business };
-  } catch (error: any) {
-    return { error: error.message || "Failed to fetch business profile" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to fetch business profile") };
   }
 }
 
@@ -47,7 +51,20 @@ export async function updateBusinessProfile(data: {
       return { error: validation.error.errors[0].message };
     }
 
-    const updateData: any = { updatedAt: new Date() };
+    const updateData: {
+      updatedAt: Date;
+      name?: string;
+      gstin?: string | null;
+      address?: string | null;
+      phone?: string | null;
+      state?: string;
+      pincode?: string | null;
+      termsAndConditions?: string | null;
+      redemptionPeriodDays?: number;
+      finePercentage?: number;
+      fineFrequencyDays?: number;
+      industryType?: "mobile" | "pharmacy" | "kirana" | "garments" | "electronics" | "custom";
+    } = { updatedAt: new Date() };
     if (data.name !== undefined) updateData.name = data.name;
     if (data.gstin !== undefined) updateData.gstin = data.gstin || null;
     if (data.address !== undefined) updateData.address = data.address || null;
@@ -64,12 +81,10 @@ export async function updateBusinessProfile(data: {
       .set(updateData)
       .where(eq(businesses.id, session.id));
 
-    revalidatePath('/dashboard/settings');
-    revalidatePath('/dashboard');
-    revalidatePath('/dashboard/invoices');
+    revalidateLocalizedPaths(['/dashboard/settings', '/dashboard', '/dashboard/invoices']);
     return { success: true };
-  } catch (error: any) {
-    return { error: error.message || "Failed to update business profile" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to update business profile") };
   }
 }
 
@@ -109,13 +124,15 @@ export async function resetAllKhataData(password: string) {
         .where(eq(customers.businessId, businessId));
     });
 
-    revalidatePath('/dashboard');
-    revalidatePath('/dashboard/khata');
-    revalidatePath('/dashboard/invoices');
-    revalidatePath('/dashboard/customers');
-    revalidatePath('/dashboard/products');
+    revalidateLocalizedPaths([
+      '/dashboard',
+      '/dashboard/khata',
+      '/dashboard/invoices',
+      '/dashboard/customers',
+      '/dashboard/products',
+    ]);
     return { success: true, message: "All Khata data has been reset. All invoices and transactions marked as cancelled, balances zeroed." };
-  } catch (error: any) {
-    return { error: error.message || "Failed to reset Khata data" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to reset Khata data") };
   }
 }

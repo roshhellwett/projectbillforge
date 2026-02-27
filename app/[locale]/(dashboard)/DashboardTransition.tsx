@@ -1,7 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { AnimatedRouteWrapper } from "@/lib/components/MotionWrapper";
+import { usePathname } from "@/i18n/routing";
 
 export default function DashboardTransition({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "@/lib/actions/products";
 import { getBusinessProfile } from "@/lib/actions/business";
 import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
@@ -19,7 +19,7 @@ interface Product {
   gstRate: number | null;
   stockQuantity: number | null;
   lowStockThreshold: number | null;
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
   isActive: boolean | null;
 }
 
@@ -139,7 +139,7 @@ export default function ProductsPage() {
       stockQuantity: product.stockQuantity?.toString() ?? "",
       lowStockThreshold: product.lowStockThreshold?.toString() ?? "",
     });
-    setMetadata(product.metadata || {});
+    setMetadata(normalizeMetadata(product.metadata));
     setShowModal(true);
   };
 
@@ -382,3 +382,9 @@ export default function ProductsPage() {
     </StaggerContainer>
   );
 }
+  const normalizeMetadata = (value: Record<string, unknown> | null): Record<string, string> => {
+    if (!value) return {};
+    return Object.fromEntries(
+      Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string")
+    );
+  };

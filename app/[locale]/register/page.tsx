@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import Link from "next/link";
+import { Link, useRouter } from "@/i18n/routing";
 import Script from "next/script";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { registerBusiness } from "@/lib/actions/auth";
 import { Mail, Lock, Building2, ArrowRight, Eye, EyeOff, Phone, MapPin, Hash } from "lucide-react";
 
 export default function RegisterPage() {
   const t = useTranslations('Auth');
+  const locale = useLocale();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -82,7 +82,7 @@ export default function RegisterPage() {
   };
 
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/dashboard" });
+    signIn("google", { callbackUrl: `/${locale}/dashboard` });
   };
 
   const update = (field: string, value: string) =>

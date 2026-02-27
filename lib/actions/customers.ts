@@ -1,11 +1,15 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { customers, khataTransactions } from "@/lib/schema";
+import { customers, khataTransactions, invoices } from "@/lib/schema";
 import { customerSchema, type CustomerInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq, and } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { eq, and, desc, sql } from "drizzle-orm";
+import { revalidateLocalizedPaths } from "@/lib/revalidate";
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}
 
 export async function createCustomer(data: CustomerInput) {
   try {
@@ -28,11 +32,10 @@ export async function createCustomer(data: CustomerInput) {
       currentBalance: 0,
     }).returning();
 
-    revalidatePath('/dashboard/customers');
-    revalidatePath('/dashboard/khata');
+    revalidateLocalizedPaths(['/dashboard/customers', '/dashboard/khata']);
     return { success: true, customer };
-  } catch (error: any) {
-    return { error: error.message || "Failed to create customer" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to create customer") };
   }
 }
 
@@ -58,11 +61,10 @@ export async function updateCustomer(id: string, data: Partial<CustomerInput>) {
       .where(and(eq(customers.id, id), eq(customers.businessId, session.id)))
       .returning();
 
-    revalidatePath('/dashboard/customers');
-    revalidatePath('/dashboard/khata');
+    revalidateLocalizedPaths(['/dashboard/customers', '/dashboard/khata']);
     return { success: true, customer };
-  } catch (error: any) {
-    return { error: error.message || "Failed to update customer" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to update customer") };
   }
 }
 
@@ -79,25 +81,32 @@ export async function deleteCustomer(id: string) {
       return { error: "Customer not found" };
     }
 
-    if ((customer.currentBalance ?? 0) !== 0) {
+    const currentBalance = Number(customer.currentBalance ?? 0);
+    if (Math.abs(currentBalance) > 0.0049) {
       return { error: "Action blocked: Cannot delete customer with a non-zero Khata balance. Please settle dues first." };
     }
 
-    // Keep financial records intact: only cancel manually added khata entries.
-    await db.update(khataTransactions)
-      .set({ status: 'cancelled' })
-      .where(and(eq(khataTransactions.customerId, id), eq(khataTransactions.businessId, session.id), eq(khataTransactions.status, 'active')));
+    const [invoiceHistory] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(invoices)
+      .where(and(eq(invoices.customerId, id), eq(invoices.businessId, session.id)));
 
-    // Do not hard-delete customer row; this preserves invoice and ledger history.
-    await db.update(customers)
-      .set({ updatedAt: new Date() })
+    const [khataHistory] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(khataTransactions)
+      .where(and(eq(khataTransactions.customerId, id), eq(khataTransactions.businessId, session.id)));
+
+    if (Number(invoiceHistory?.count ?? 0) > 0 || Number(khataHistory?.count ?? 0) > 0) {
+      return { error: "Cannot delete customer with invoice or Khata history. Keep the customer for audit records." };
+    }
+
+    await db.delete(customers)
       .where(and(eq(customers.id, id), eq(customers.businessId, session.id)));
 
-    revalidatePath('/dashboard/customers');
-    revalidatePath('/dashboard/khata');
+    revalidateLocalizedPaths(['/dashboard/customers', '/dashboard/khata']);
     return { success: true };
-  } catch (error: any) {
-    return { error: error.message || "Failed to delete customer" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to delete customer") };
   }
 }
 
@@ -107,11 +116,11 @@ export async function getCustomers() {
 
     const customerList = await db.query.customers.findMany({
       where: eq(customers.businessId, session.id),
-      orderBy: (customers, { desc }) => [desc(customers.createdAt)],
+      orderBy: [desc(customers.createdAt)],
     });
 
     return { success: true, customers: customerList };
-  } catch (error: any) {
-    return { error: error.message || "Failed to fetch customers" };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to fetch customers") };
   }
 }

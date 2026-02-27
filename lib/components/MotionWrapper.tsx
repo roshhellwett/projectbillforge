@@ -114,7 +114,7 @@ export function FloatingIcon({
     icon: React.ElementType;
     isActive: boolean;
     animationKey: string;
-    [x: string]: any;
+    [x: string]: unknown;
 }) {
     return (
         <motion.div
@@ -133,7 +133,7 @@ export function FloatingIcon({
             }}
             className="flex items-center justify-center"
         >
-            <Icon {...props} />
+            <Icon {...(props as Record<string, unknown>)} />
         </motion.div>
     );
 }
