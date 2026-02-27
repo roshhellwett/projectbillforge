@@ -79,23 +79,19 @@ export async function deleteCustomer(id: string) {
       return { error: "Customer not found" };
     }
 
-    if ((customer.currentBalance ?? 0) > 0) {
-      return { error: "Action blocked: Cannot delete customer with an outstanding Khata balance. Please settle dues first." };
+    if ((customer.currentBalance ?? 0) !== 0) {
+      return { error: "Action blocked: Cannot delete customer with a non-zero Khata balance. Please settle dues first." };
     }
 
-    // Soft-delete: cancel transactions and mark invoices as orphaned, but preserve records
+    // Keep financial records intact: only cancel manually added khata entries.
     await db.update(khataTransactions)
       .set({ status: 'cancelled' })
-      .where(eq(khataTransactions.customerId, id));
+      .where(and(eq(khataTransactions.customerId, id), eq(khataTransactions.businessId, session.id), eq(khataTransactions.status, 'active')));
 
-    // Soft-delete the customer by setting balance to 0 and removing from active queries
-    // We keep the row for invoice reference integrity
+    // Do not hard-delete customer row; this preserves invoice and ledger history.
     await db.update(customers)
-      .set({ currentBalance: 0, updatedAt: new Date() })
-      .where(eq(customers.id, id));
-
-    await db.delete(customers)
-      .where(eq(customers.id, id));
+      .set({ updatedAt: new Date() })
+      .where(and(eq(customers.id, id), eq(customers.businessId, session.id)));
 
     revalidatePath('/dashboard/customers');
     revalidatePath('/dashboard/khata');
@@ -119,4 +115,3 @@ export async function getCustomers() {
     return { error: error.message || "Failed to fetch customers" };
   }
 }
-
