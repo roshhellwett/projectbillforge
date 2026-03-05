@@ -191,7 +191,7 @@ export async function getKhataStatement(customerId: string) {
       };
     });
 
-    let runningBalance = 0;
+    let runningBalance = new Decimal(0);
 
     const sortedTransactions = [...transactions].sort((a, b) =>
       new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
@@ -201,11 +201,11 @@ export async function getKhataStatement(customerId: string) {
 
     for (const t of sortedTransactions) {
       if (t.type === 'credit') {
-        runningBalance += t.amount;
+        runningBalance = runningBalance.plus(t.amount);
       } else {
-        runningBalance -= t.amount;
+        runningBalance = runningBalance.minus(t.amount);
       }
-      transactionBalances[t.id] = runningBalance;
+      transactionBalances[t.id] = runningBalance.toDecimalPlaces(2).toNumber();
     }
 
     const statement = statementWithAll.map((t) => {

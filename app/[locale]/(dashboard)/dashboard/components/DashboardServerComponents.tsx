@@ -305,7 +305,7 @@ export async function RecentInvoicesServer({ recentPromise }: { recentPromise: P
                                     </div>
                                 </div>
                                 <div className="text-right shrink-0">
-                                    <p className="font-bold text-sm text-[var(--foreground)]">₹{Number(inv.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                    <p className="font-bold text-sm text-[var(--foreground)]">₹{Number(inv.total ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
                                     <span className={`inline-flex mt-1 items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${inv.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'}`}>{inv.paymentStatus}</span>
                                 </div>
                             </div>

@@ -37,6 +37,13 @@ const getDefaultUnits = (industry: IndustryType) => {
   }
 };
 
+const normalizeMetadata = (value: Record<string, unknown> | null): Record<string, string> => {
+  if (!value) return {};
+  return Object.fromEntries(
+    Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string")
+  );
+};
+
 export default function ProductsPage() {
   const t = useTranslations('Products');
   const router = useRouter();
@@ -382,9 +389,3 @@ export default function ProductsPage() {
     </StaggerContainer>
   );
 }
-  const normalizeMetadata = (value: Record<string, unknown> | null): Record<string, string> => {
-    if (!value) return {};
-    return Object.fromEntries(
-      Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string")
-    );
-  };

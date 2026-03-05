@@ -99,22 +99,7 @@ export default function InvoicesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showNewInvoice, setShowNewInvoice] = useState(false);
-  const [isInterState, setIsInterState] = useState(false);
   const [printFormat, setPrintFormat] = useState<"a4" | "thermal">("a4");
-
-  const [formData, setFormData] = useState({
-    customerId: "",
-    customerName: "",
-    customerGstin: "",
-    customerAddress: "",
-    invoiceDate: new Date().toISOString().split('T')[0],
-    notes: "",
-    paymentMode: "cash" as "cash" | "upi" | "khata",
-  });
-
-  const [items, setItems] = useState<InvoiceItem[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState("");
-  const [itemQuantity, setItemQuantity] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [cancelId, setCancelId] = useState<string | null>(null);
@@ -155,20 +140,6 @@ export default function InvoicesPage() {
   };
 
 
-  const handleCustomerChange = (customerId: string) => {
-    const customer = customers.find(c => c.id === customerId);
-    if (customer) {
-      setFormData({
-        ...formData,
-        customerId,
-        customerName: customer.name,
-        customerGstin: customer.gstin || "",
-        customerAddress: customer.address || "",
-      });
-    } else {
-      setFormData({ ...formData, customerId, customerName: "", customerGstin: "", customerAddress: "" });
-    }
-  };
 
   const handleCreateSubmit = async (formDataPayload: InvoiceFormData, itemsPayload: InvoiceItem[], isInterStatePayload: boolean) => {
     if (itemsPayload.length === 0) {

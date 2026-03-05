@@ -52,6 +52,9 @@ interface NewInvoiceModalProps {
     error: string;
 }
 
+// Round to 2 decimal places to match server-side Decimal.js precision
+const round2 = (n: number): number => Math.round(n * 100) / 100;
+
 export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving, error }: NewInvoiceModalProps) {
     const t = useTranslations('Invoices');
     const router = useRouter();
@@ -77,16 +80,16 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
         if (!product) return;
 
         const qty = parseFloat(itemQuantity) || 1;
-        const amount = product.rate * qty;
+        const amount = round2(product.rate * qty);
         const gstRate = product.gstRate ?? 0;
         const gstAmount = amount * (gstRate / 100);
 
         let cgst = 0, sgst = 0, igst = 0;
         if (isInterState) {
-            igst = gstAmount;
+            igst = round2(gstAmount);
         } else {
-            cgst = gstAmount / 2;
-            sgst = gstAmount / 2;
+            cgst = round2(gstAmount / 2);
+            sgst = round2(gstAmount / 2);
         }
 
         const newItem: InvoiceItem = {
@@ -115,9 +118,9 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
         setItems(prevItems => prevItems.map(item => {
             const gstAmount = item.amount * (item.gstRate / 100);
             if (checked) {
-                return { ...item, cgst: 0, sgst: 0, igst: gstAmount };
+                return { ...item, cgst: 0, sgst: 0, igst: round2(gstAmount) };
             } else {
-                return { ...item, cgst: gstAmount / 2, sgst: gstAmount / 2, igst: 0 };
+                return { ...item, cgst: round2(gstAmount / 2), sgst: round2(gstAmount / 2), igst: 0 };
             }
         }));
     };

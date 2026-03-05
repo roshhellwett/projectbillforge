@@ -455,7 +455,7 @@ export async function getSalesSummary() {
           .from(customers)
           .where(
             and(
-              eq(customers.businessId, businessId),
+              eq(customers.businessId, bId),
               sql`${customers.currentBalance} > 0`
             )
           );

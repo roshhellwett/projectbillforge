@@ -27,6 +27,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error">("success");
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [resetPassword, setResetPassword] = useState("");
@@ -101,8 +102,10 @@ export default function SettingsPage() {
     });
 
     if (result.error) {
+      setMessageType("error");
       setMessage(result.error);
     } else {
+      setMessageType("success");
       setMessage(t('successMessage'));
       router.refresh();
     }
@@ -130,7 +133,7 @@ export default function SettingsPage() {
           <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">Business Profile</h2>
 
           {message && (
-            <div className={`mb-6 p-4 rounded-xl text-sm font-medium ${message.includes("success") ? "bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20" : "bg-[var(--color-danger)]/10 text-[var(--color-danger)] border border-[var(--color-danger)]/20"}`}>
+            <div className={`mb-6 p-4 rounded-xl text-sm font-medium ${messageType === "success" ? "bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20" : "bg-[var(--color-danger)]/10 text-[var(--color-danger)] border border-[var(--color-danger)]/20"}`}>
               {message}
             </div>
           )}
@@ -290,7 +293,7 @@ export default function SettingsPage() {
           <div className="mt-6 p-5 bg-[var(--color-primary)]/10 rounded-2xl border-l-4 border-[var(--color-primary)] glass-card">
             <p className="text-sm font-medium text-[var(--foreground)]/80">
               <span className="font-bold text-[var(--color-primary)] mr-2">Example:</span> With {formData.redemptionPeriodDays} days grace, {formData.finePercentage}% per {formData.fineFrequencyDays} days -
-              A ₹10,000 invoice overdue by 44 days would incur: ₹{Math.round(10000 * (formData.finePercentage / 100) * Math.max(0, Math.floor((44 - formData.redemptionPeriodDays) / formData.fineFrequencyDays)) * 100) / 100} in fines.
+              A ₹10,000 invoice overdue by 44 days would incur: ₹{(10000 * (formData.finePercentage / 100) * Math.max(0, Math.floor((44 - formData.redemptionPeriodDays) / formData.fineFrequencyDays))).toFixed(2)} in fines.
             </p>
           </div>
         </StaggerItem>
