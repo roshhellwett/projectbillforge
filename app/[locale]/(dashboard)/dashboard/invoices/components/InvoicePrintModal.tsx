@@ -1,5 +1,6 @@
 import React from "react";
 import { X, Printer } from "lucide-react";
+import { formatCurrency, formatDate, formatReceiptDate } from "@/lib/formatters";
 
 interface InvoiceItem {
     productId: string;
@@ -87,7 +88,7 @@ export function InvoicePrintModal({
         const safeBusinessAddress = businessProfile.address ? escapeHtml(businessProfile.address).replace(/\n/g, "<br>") : "";
         const safeBusinessPhone = businessProfile.phone ? escapeHtml(businessProfile.phone) : "";
         const safeBusinessGstin = businessProfile.gstin ? escapeHtml(businessProfile.gstin) : "";
-        const safeInvoiceDate = invoice.invoiceDate.toLocaleDateString("en-IN");
+        const safeInvoiceDate = formatDate(invoice.invoiceDate);
         const safeInvoiceNumber = escapeHtml(invoice.invoiceNumber);
         const safeCustomerName = escapeHtml(invoice.customerName);
         const thermalItemsRows = invoiceItems.map((item) => `
@@ -155,15 +156,15 @@ export function InvoicePrintModal({
           <div class="border-t">
             <div class="grid-2">
               <div>Subtotal:</div>
-              <div class="text-right">${itemTotals.subtotal.toFixed(2)}</div>
+              <div class="text-right">${formatCurrency(itemTotals.subtotal)}</div>
             </div>
             <div class="grid-2">
               <div>GST:</div>
-              <div class="text-right">${(itemTotals.cgst + itemTotals.sgst + itemTotals.igst).toFixed(2)}</div>
+              <div class="text-right">${formatCurrency(itemTotals.cgst + itemTotals.sgst + itemTotals.igst)}</div>
             </div>
             <div class="grid-2 font-bold mt-2" style="font-size: 14px;">
               <div>Total:</div>
-              <div class="text-right">Rs. ${safeTotal}</div>
+              <div class="text-right">${formatCurrency(invoice.total)}</div>
             </div>
           </div>
 
@@ -184,7 +185,7 @@ export function InvoicePrintModal({
         const safeBusinessAddress = businessProfile.address ? escapeHtml(businessProfile.address).replace(/\n/g, "<br>") : "";
         const safeBusinessPhone = businessProfile.phone ? escapeHtml(businessProfile.phone) : "";
         const safeBusinessGstin = businessProfile.gstin ? escapeHtml(businessProfile.gstin) : "";
-        const safeInvoiceDate = invoice.invoiceDate.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+        const safeInvoiceDate = formatReceiptDate(invoice.invoiceDate);
         const safeInvoiceNumber = escapeHtml(invoice.invoiceNumber);
         const safeCustomerName = escapeHtml(invoice.customerName);
         const safeCustomerAddress = invoice.customerAddress ? escapeHtml(invoice.customerAddress).replace(/\n/g, "<br>") : "";
@@ -196,11 +197,11 @@ export function InvoicePrintModal({
                     <td class="text-center" style="color: #64748b;">${i + 1}</td>
                     <td class="text-left font-semibold">${escapeHtml(item.productName)}</td>
                     <td class="text-right">${Number(item.quantity)}</td>
-                    <td class="text-right">₹${Number(item.rate).toFixed(2)}</td>
+                    <td class="text-right">${formatCurrency(item.rate)}</td>
                     <td class="text-right" style="color: #64748b; font-size: 12px;">
-                      ${item.igst > 0 ? `IGST (${item.gstRate}%)<br>₹${Number(item.igst).toFixed(2)}` : `C+S (${item.gstRate}%)<br>₹${(Number(item.cgst) + Number(item.sgst)).toFixed(2)}`}
+                      ${item.igst > 0 ? `IGST (${item.gstRate}%)<br>${formatCurrency(item.igst)}` : `C+S (${item.gstRate}%)<br>${formatCurrency(item.cgst + item.sgst)}`}
                     </td>
-                    <td class="text-right font-semibold">₹${(Number(item.amount) + Number(item.cgst) + Number(item.sgst) + Number(item.igst)).toFixed(2)}</td>
+                    <td class="text-right font-semibold">${formatCurrency(item.amount + item.cgst + item.sgst + item.igst)}</td>
                   </tr>
                 `).join("");
 
@@ -286,32 +287,32 @@ export function InvoicePrintModal({
             <div class="summary">
               <div class="summary-row">
                 <span>Subtotal</span>
-                <span>₹${itemTotals.subtotal.toFixed(2)}</span>
+                <span>${formatCurrency(itemTotals.subtotal)}</span>
               </div>
               ${hasIgst ? `
                 <div class="summary-row">
                   <span>IGST</span>
-                  <span>₹${itemTotals.igst.toFixed(2)}</span>
+                  <span>${formatCurrency(itemTotals.igst)}</span>
                 </div>
               ` : `
                 <div class="summary-row">
                   <span>CGST</span>
-                  <span>₹${itemTotals.cgst.toFixed(2)}</span>
+                  <span>${formatCurrency(itemTotals.cgst)}</span>
                 </div>
                 <div class="summary-row">
                   <span>SGST</span>
-                  <span>₹${itemTotals.sgst.toFixed(2)}</span>
+                  <span>${formatCurrency(itemTotals.sgst)}</span>
                 </div>
               `}
               <div class="summary-row total">
                 <span>Total Amount</span>
-                <span>₹${safeTotal}</span>
+                <span>${formatCurrency(invoice.total)}</span>
               </div>
               
               <div style="text-align: right; margin-top: 15px;">
                 ${invoice.paymentStatus === 'paid' ? `<span class="badge badge-paid">Fully Paid</span>` : ''}
                 ${invoice.paymentStatus === 'unpaid' ? `<span class="badge badge-unpaid">Unpaid / Khata</span>` : ''}
-                ${invoice.paymentStatus === 'partial' ? `<span class="badge badge-partial">Partially Paid (₹${safeAmountPaid})</span>` : ''}
+                ${invoice.paymentStatus === 'partial' ? `<span class="badge badge-partial">Partially Paid (${formatCurrency(invoice.amountPaid)})</span>` : ''}
               </div>
             </div>
 
@@ -397,7 +398,7 @@ export function InvoicePrintModal({
                                     <h2 className="text-3xl font-extrabold text-blue-600 dark:text-blue-500 uppercase tracking-wider mb-4">INVOICE</h2>
                                     <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg inline-block text-left border border-slate-100 dark:border-slate-700">
                                         <p className="text-sm mb-1"><strong className="text-slate-700 dark:text-slate-300 inline-block w-20">Inv No:</strong> <span className="text-slate-900 dark:text-white font-medium">{invoice.invoiceNumber}</span></p>
-                                        <p className="text-sm"><strong className="text-slate-700 dark:text-slate-300 inline-block w-20">Date:</strong> <span className="text-slate-900 dark:text-white font-medium">{invoice.invoiceDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span></p>
+                                        <p className="text-sm"><strong className="text-slate-700 dark:text-slate-300 inline-block w-20">Date:</strong> <span className="text-slate-900 dark:text-white font-medium">{formatReceiptDate(invoice.invoiceDate)}</span></p>
                                         {invoice.paymentMode === 'khata' && (
                                             <p className="text-sm mt-1 text-orange-600 dark:text-orange-400 font-medium">Khata (Credit) Payment</p>
                                         )}
@@ -429,15 +430,15 @@ export function InvoicePrintModal({
                                             <td className="py-3 px-4 text-sm text-slate-500 dark:text-slate-400 text-center">{i + 1}</td>
                                             <td className="py-3 px-4 text-sm font-semibold text-slate-900 dark:text-white">{item.productName}</td>
                                             <td className="py-3 px-4 text-sm text-right text-slate-700 dark:text-slate-300">{item.quantity}</td>
-                                            <td className="py-3 px-4 text-sm text-right text-slate-700 dark:text-slate-300">₹{item.rate.toFixed(2)}</td>
+                                            <td className="py-3 px-4 text-sm text-right text-slate-700 dark:text-slate-300">{formatCurrency(item.rate)}</td>
                                             <td className="py-3 px-4 text-xs text-right text-slate-500 dark:text-slate-400">
                                                 {item.igst > 0 ? (
-                                                    <>IGST ({item.gstRate}%)<br />₹{item.igst.toFixed(2)}</>
+                                                    <>IGST ({item.gstRate}%)<br />{formatCurrency(item.igst)}</>
                                                 ) : (
-                                                    <>C+S ({item.gstRate}%)<br />₹{(item.cgst + item.sgst).toFixed(2)}</>
+                                                    <>C+S ({item.gstRate}%)<br />{formatCurrency(item.cgst + item.sgst)}</>
                                                 )}
                                             </td>
-                                            <td className="py-3 px-4 text-sm text-right font-bold text-slate-900 dark:text-white">₹{(item.amount + item.cgst + item.sgst + item.igst).toFixed(2)}</td>
+                                            <td className="py-3 px-4 text-sm text-right font-bold text-slate-900 dark:text-white">{formatCurrency(item.amount + item.cgst + item.sgst + item.igst)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -516,7 +517,7 @@ export function InvoicePrintModal({
                             </div>
 
                             <div className="border-b-2 border-dashed border-slate-300 pb-3 mb-3 text-xs leading-loose">
-                                <div><span className="font-bold inline-block w-16">Date:</span> {invoice.invoiceDate.toLocaleDateString('en-IN')}</div>
+                                <div><span className="font-bold inline-block w-16">Date:</span> {formatDate(invoice.invoiceDate)}</div>
                                 <div><span className="font-bold inline-block w-16">Inv No:</span> {invoice.invoiceNumber}</div>
                                 <div><span className="font-bold inline-block w-16">To:</span> {invoice.customerName}</div>
                             </div>

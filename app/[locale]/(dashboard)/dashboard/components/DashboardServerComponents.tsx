@@ -1,6 +1,7 @@
 import React from 'react';
 import { DollarSign, FileText, Users, AlertTriangle, TrendingUp, Package, BarChart3, Clock, ArrowUpRight, ArrowDownRight, ShoppingBag, Plus } from "lucide-react";
 import { InteractiveItem } from "@/lib/components/MotionWrapper";
+import { formatCurrency } from "@/lib/formatters";
 import { Link } from "@/i18n/routing";
 
 interface Customer {
@@ -57,7 +58,7 @@ export async function TopReceivablesServer({ customersPromise }: { customersProm
                                 <span className="text-xs sm:text-sm font-medium text-[var(--foreground)]/70 truncate max-w-[120px] sm:max-w-[150px]">{customer.name}</span>
                             </div>
                             <span className="text-sm sm:text-base font-bold text-[var(--foreground)]">
-                                ₹{(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                {formatCurrency(customer.currentBalance)}
                             </span>
                         </div>
                     ))}
@@ -109,13 +110,13 @@ export async function OverviewCardsServer({ salesPromise }: { salesPromise: Prom
     const statCards = [
         {
             label: "Today's Sales",
-            value: `₹${(summary?.todaySales ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+            value: formatCurrency(summary?.todaySales),
             icon: TrendingUp,
             gradClass: "grad-purple",
         },
         {
             label: "Total Sales",
-            value: `₹${(summary?.totalSales ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+            value: formatCurrency(summary?.totalSales),
             icon: DollarSign,
             gradClass: "grad-blue",
         },
@@ -127,7 +128,7 @@ export async function OverviewCardsServer({ salesPromise }: { salesPromise: Prom
         },
         {
             label: "Receivables",
-            value: `₹${(summary?.totalReceivable ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+            value: formatCurrency(summary?.totalReceivable),
             icon: Users,
             gradClass: "grad-pink",
         },
@@ -187,7 +188,7 @@ export async function SalesTrendServer({ weeklyPromise }: { weeklyPromise: Promi
                 </div>
                 <div className="text-right">
                     <p className="text-[9px] sm:text-[10px] font-medium text-[var(--foreground)]/40 uppercase tracking-wider">Weekly Total</p>
-                    <p className="text-sm sm:text-lg font-bold text-[var(--foreground)]">₹{weeklyTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-sm sm:text-lg font-bold text-[var(--foreground)]">{formatCurrency(weeklyTotal)}</p>
                 </div>
             </div>
 
@@ -305,7 +306,7 @@ export async function RecentInvoicesServer({ recentPromise }: { recentPromise: P
                                     </div>
                                 </div>
                                 <div className="text-right shrink-0">
-                                    <p className="font-bold text-sm text-[var(--foreground)]">₹{Number(inv.total ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                                    <p className="font-bold text-sm text-[var(--foreground)]">{formatCurrency(inv.total)}</p>
                                     <span className={`inline-flex mt-1 items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${inv.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'}`}>{inv.paymentStatus}</span>
                                 </div>
                             </div>

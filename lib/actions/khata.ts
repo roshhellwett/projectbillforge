@@ -93,14 +93,16 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
           const ids = invoicesToUpdate.map(inv => inv.id);
           const sqlIds = sql.join(ids.map(id => sql`${id}`), sql`, `);
 
-          // Build dynamic CASE queries
+          // Build dynamic CASE queries — cast values to match column types
+          // Drizzle's sql`` sends JS values as text parameters; PostgreSQL
+          // requires explicit casts for numeric/enum columns in CASE expressions.
           const amountPaidCases = sql.join(
-            invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.amountPaid}`),
+            invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.amountPaid}::numeric`),
             sql` `
           );
 
           const statusCases = sql.join(
-            invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.status}`),
+            invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.status}::text`),
             sql` `
           );
 

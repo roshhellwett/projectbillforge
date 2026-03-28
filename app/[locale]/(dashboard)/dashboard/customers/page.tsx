@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/routing";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "@/lib/actions/customers";
 import { recalculateCustomerBalance } from "@/lib/actions/khata";
+import { formatCurrency } from "@/lib/formatters";
 import { ConfirmDialog, SkeletonCard } from "@/lib/components/ui";
 import { useTranslations } from "next-intl";
 import { Plus, Search, X, RefreshCw, Trash2, Edit2, Phone, Mail, MapPin } from "lucide-react";
@@ -13,7 +14,7 @@ import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWr
 const fmt = (v: string | number | null | undefined): string => {
   const n = Number(v);
   if (isNaN(n) || !isFinite(n)) return '0.00';
-  return Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return formatCurrency(Math.abs(n)).replace('₹', '').trim();
 };
 const safeNum = (v: string | number | null | undefined): number => {
   const n = Number(v);
@@ -284,7 +285,7 @@ export default function CustomersPage() {
       </StaggerItem>
 
       {showModal && (
-        <div className="glass-overlay">
+        <div className="glass-overlay" onKeyDown={(e) => { if (e.key === 'Escape') setShowModal(false); }}>
           <div className="glass-card glass-modal-panel max-w-lg">
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--border)]/50">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">{editingCustomer ? t('editCustomer') : t('addCustomer')}</h2>
@@ -314,6 +315,8 @@ export default function CustomersPage() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full glass-input"
+                    pattern="^[6-9]\d{9}$"
+                    title="10-digit Indian mobile number starting with 6-9"
                   />
                 </div>
                 <div>
@@ -332,9 +335,11 @@ export default function CustomersPage() {
                 <input
                   type="text"
                   value={formData.gstin}
-                  onChange={(e) => setFormData({ ...formData, gstin: e.target.value })}
-                  className="w-full glass-input"
+                  onChange={(e) => setFormData({ ...formData, gstin: e.target.value?.toUpperCase() })}
+                  className="w-full glass-input uppercase"
                   placeholder="27AABCU9603R1ZM"
+                  pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$"
+                  title="Valid 15-character GSTIN"
                 />
               </div>
 
@@ -387,7 +392,7 @@ export default function CustomersPage() {
         message={(() => {
           const customer = customers.find(c => c.id === deleteId);
           if (customer && (customer.currentBalance ?? 0) > 0) {
-            return `Cannot delete this customer. They have an outstanding balance of ₹${(customer.currentBalance ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}. Please settle the dues first.`;
+            return `Cannot delete this customer. They have an outstanding balance of ${formatCurrency(customer.currentBalance)}. Please settle the dues first.`;
           }
           return "Are you sure you want to delete this customer? This action cannot be undone and will also delete all their transactions.";
         })()}

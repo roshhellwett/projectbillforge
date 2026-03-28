@@ -20,24 +20,6 @@ export function getLoginRateLimiter(): Ratelimit | null {
     return loginLimiter;
 }
 
-// ── Rate Limiter for API Routes ──
-// Allows 30 requests per 10 seconds per IP
-let apiLimiter: Ratelimit | null = null;
-
-export function getApiRateLimiter(): Ratelimit | null {
-    const redis = getRedis();
-    if (!redis) return null;
-
-    if (!apiLimiter) {
-        apiLimiter = new Ratelimit({
-            redis,
-            limiter: Ratelimit.slidingWindow(30, "10 s"),
-            prefix: "billforge:api",
-        });
-    }
-
-    return apiLimiter;
-}
 
 /** Check rate limit — returns { success, remaining } or allows if Redis unavailable */
 export async function checkRateLimit(

@@ -17,4 +17,3 @@ export function getRedis(): Redis | null {
 
     return redis;
 }
-

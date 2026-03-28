@@ -157,6 +157,8 @@ export default function ProductsPage() {
     if (result.success) {
       loadData();
       router.refresh();
+    } else if (result.error) {
+      setError(result.error);
     }
     setDeleting(false);
     setDeleteId(null);
@@ -203,6 +205,15 @@ export default function ProductsPage() {
           {t('addProduct')}
         </button>
       </FadeIn>
+
+      {error && !showModal && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+          {error}
+          <button onClick={() => setError("")} className="float-right text-red-500 hover:text-red-700">
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       <StaggerItem className="glass-card overflow-hidden">
         <div className="p-4 md:p-6 border-b border-[var(--border)]/50">
@@ -277,7 +288,7 @@ export default function ProductsPage() {
       </StaggerItem>
 
       {showModal && (
-        <div className="glass-overlay">
+        <div className="glass-overlay" onKeyDown={(e) => { if (e.key === 'Escape') setShowModal(false); }}>
           <div className="glass-card glass-modal-panel max-w-lg">
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--border)]/50">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">{editingProduct ? t('editProduct') : t('addProduct')}</h2>
@@ -313,7 +324,7 @@ export default function ProductsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Rate (₹) *</label>
-                  <input type="number" step="0.01" min="0" required value={formData.rate} onChange={(e) => setFormData({ ...formData, rate: e.target.value })} className="w-full glass-input" />
+                  <input type="number" step="0.01" min="0.01" required value={formData.rate} onChange={(e) => setFormData({ ...formData, rate: e.target.value })} className="w-full glass-input" />
                 </div>
               </div>
 
@@ -339,7 +350,7 @@ export default function ProductsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">IMEI Number</label>
-                    <input type="text" value={metadata.imei || ""} onChange={(e) => setMetadata({ ...metadata, imei: e.target.value })} className="w-full glass-input" placeholder="15 digit IMEI" />
+                    <input type="text" value={metadata.imei || ""} onChange={(e) => setMetadata({ ...metadata, imei: e.target.value })} className="w-full glass-input" placeholder="15 digit IMEI" pattern="^\d{15}$" title="Valid 15-digit IMEI number" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">Color/Variant</label>

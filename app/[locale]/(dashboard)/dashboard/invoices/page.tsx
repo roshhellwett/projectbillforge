@@ -12,6 +12,7 @@ import { Plus, Search, X, Trash2, Printer, MessageCircle } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 import { NewInvoiceModal } from "./components/NewInvoiceModal";
 import { InvoicePrintModal } from "./components/InvoicePrintModal";
+import { formatCurrency, formatDate } from "@/lib/formatters";
 
 interface Product {
   id: string;
@@ -189,6 +190,8 @@ export default function InvoicesPage() {
     if (result.success) {
       loadData();
       router.refresh();
+    } else if (result.error) {
+      setError(result.error);
     }
     setCancelling(false);
     setCancelId(null);
@@ -196,14 +199,14 @@ export default function InvoicesPage() {
 
   const handleWhatsAppShare = (invoice: Invoice, customerPhone: string | null) => {
     let message = "";
-    const amount = (invoice.total ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+    const amount = formatCurrency(invoice.total);
 
     if (locale === 'hi') {
-      message = `*${businessProfile?.name}*\n\nनमस्ते ${invoice.customerName},\nआपका बिल (नंबर: ${invoice.invoiceNumber}) तैयार है।\n*कुल राशि: ₹${amount}*\n\nधन्यवाद!`;
+      message = `*${businessProfile?.name}*\n\nनमस्ते ${invoice.customerName},\nआपका बिल (नंबर: ${invoice.invoiceNumber}) तैयार है।\n*कुल राशि: ${amount}*\n\nधन्यवाद!`;
     } else if (locale === 'hi-en') {
-      message = `*${businessProfile?.name}*\n\nNamaste ${invoice.customerName},\nAapka invoice (No: ${invoice.invoiceNumber}) tayar hai.\n*Total Amount: ₹${amount}*\n\nDhanyawad!`;
+      message = `*${businessProfile?.name}*\n\nNamaste ${invoice.customerName},\nAapka invoice (No: ${invoice.invoiceNumber}) tayar hai.\n*Total Amount: ${amount}*\n\nDhanyawad!`;
     } else {
-      message = `*${businessProfile?.name}*\n\nHello ${invoice.customerName},\nYour invoice (No: ${invoice.invoiceNumber}) is ready.\n*Total Amount: ₹${amount}*\n\nThank you!`;
+      message = `*${businessProfile?.name}*\n\nHello ${invoice.customerName},\nYour invoice (No: ${invoice.invoiceNumber}) is ready.\n*Total Amount: ${amount}*\n\nThank you!`;
     }
 
     const encodedMessage = encodeURIComponent(message);
@@ -242,6 +245,15 @@ export default function InvoicesPage() {
         </button>
       </FadeIn>
 
+      {error && !showNewInvoice && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+          {error}
+          <button onClick={() => setError("")} className="float-right text-red-500 hover:text-red-700">
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       <StaggerItem className="glass-card overflow-hidden">
         <div className="p-3 sm:p-4 md:p-6 border-b border-[var(--border)]/50">
           <div className="relative max-w-md">
@@ -278,9 +290,9 @@ export default function InvoicesPage() {
                 {filteredInvoices.map((invoice) => (
                   <tr key={invoice.id} className="hover:bg-[var(--foreground)]/[0.02] transition-colors">
                     <td className="px-3 sm:px-5 py-3 sm:py-4 font-medium text-[var(--foreground)] text-sm">{invoice.invoiceNumber}</td>
-                    <td className="px-3 sm:px-5 py-3 sm:py-4 text-[var(--foreground)]/70 text-xs sm:text-sm">{invoice.invoiceDate.toLocaleDateString('en-IN')}</td>
+                    <td className="px-3 sm:px-5 py-3 sm:py-4 text-[var(--foreground)]/70 text-xs sm:text-sm">{formatDate(invoice.invoiceDate)}</td>
                     <td className="px-3 sm:px-5 py-3 sm:py-4 text-[var(--foreground)] font-medium text-sm">{invoice.customerName}</td>
-                    <td className="px-3 sm:px-5 py-3 sm:py-4 font-semibold text-[var(--foreground)]">₹{(invoice.total ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    <td className="px-3 sm:px-5 py-3 sm:py-4 font-semibold text-[var(--foreground)]">{formatCurrency(invoice.total)}</td>
                     <td className="px-3 sm:px-5 py-3 sm:py-4">
                       {invoice.status === 'cancelled' ? (
                         <span className="px-2 sm:px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-danger)]/10 text-[var(--color-danger)] border border-[var(--color-danger)]/20">
@@ -296,7 +308,7 @@ export default function InvoicesPage() {
                             {t('statusPartial')}
                           </span>
                           <span className="text-[10px] text-[var(--foreground)]/50 font-medium px-1">
-                            ₹{(invoice.amountPaid ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })} paid
+                            {formatCurrency(invoice.amountPaid)} paid
                           </span>
                         </div>
                       ) : (

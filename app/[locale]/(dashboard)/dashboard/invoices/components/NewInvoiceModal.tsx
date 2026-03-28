@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
+import { formatCurrency } from "@/lib/formatters";
 
 interface Product {
     id: string;
@@ -201,8 +202,10 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                             <input
                                 type="text"
                                 value={formData.customerGstin}
-                                onChange={(e) => setFormData({ ...formData, customerGstin: e.target.value })}
-                                className="w-full glass-input"
+                                onChange={(e) => setFormData({ ...formData, customerGstin: e.target.value?.toUpperCase() })}
+                                className="w-full glass-input uppercase"
+                                pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$"
+                                title="Valid 15-character GSTIN"
                             />
                         </div>
                         <div>
@@ -333,16 +336,16 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                                             <tr key={idx}>
                                                 <td className="px-2 sm:px-3 py-2">{item.productName}</td>
                                                 <td className="px-2 sm:px-3 py-2 text-right">{item.quantity}</td>
-                                                <td className="px-2 sm:px-3 py-2 text-right">₹{item.rate.toFixed(2)}</td>
-                                                <td className="px-2 sm:px-3 py-2 text-right">₹{item.amount.toFixed(2)}</td>
+                                                <td className="px-2 sm:px-3 py-2 text-right">{formatCurrency(item.rate)}</td>
+                                                <td className="px-2 sm:px-3 py-2 text-right">{formatCurrency(item.amount)}</td>
                                                 <td className="px-2 sm:px-3 py-2 text-right">
                                                     {isInterState
-                                                        ? `IGST ₹${item.igst.toFixed(2)}`
-                                                        : `C ₹${item.cgst.toFixed(2)} S ₹${item.sgst.toFixed(2)}`
+                                                        ? `IGST ${formatCurrency(item.igst)}`
+                                                        : `C ${formatCurrency(item.cgst)} S ${formatCurrency(item.sgst)}`
                                                     }
                                                 </td>
                                                 <td className="px-2 sm:px-3 py-2 text-right font-medium">
-                                                    ₹{(item.amount + item.cgst + item.sgst + item.igst).toFixed(2)}
+                                                    {formatCurrency(item.amount + item.cgst + item.sgst + item.igst)}
                                                 </td>
                                                 <td className="px-2 sm:px-3 py-2">
                                                     <button type="button" onClick={() => removeItem(idx)} className="text-[var(--color-danger)]/80 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 p-1.5 rounded-lg transition-colors">
@@ -363,23 +366,23 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                         <div className="w-full sm:w-64 space-y-2 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-[var(--foreground)]/60">{t('subtotal')}</span>
-                                <span className="font-medium">₹{totals.subtotal.toFixed(2)}</span>
+                                <span className="font-medium">{formatCurrency(totals.subtotal)}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-[var(--foreground)]/60">CGST:</span>
-                                <span className="font-medium">₹{totals.cgst.toFixed(2)}</span>
+                                <span className="font-medium">{formatCurrency(totals.cgst)}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-[var(--foreground)]/60">SGST:</span>
-                                <span className="font-medium">₹{totals.sgst.toFixed(2)}</span>
+                                <span className="font-medium">{formatCurrency(totals.sgst)}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-[var(--foreground)]/60">IGST:</span>
-                                <span className="font-medium">₹{totals.igst.toFixed(2)}</span>
+                                <span className="font-medium">{formatCurrency(totals.igst)}</span>
                             </div>
                             <div className="flex justify-between text-lg font-bold pt-2 border-t">
                                 <span>{t('total')}</span>
-                                <span>₹{grandTotal.toFixed(2)}</span>
+                                <span>{formatCurrency(grandTotal)}</span>
                             </div>
                         </div>
                     </div>

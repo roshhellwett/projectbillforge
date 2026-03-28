@@ -375,12 +375,12 @@ export async function cancelInvoice(id: string) {
             const sqlIds = sql.join(ids.map(id => sql`${id}`), sql`, `);
 
             const amountPaidCases = sql.join(
-              invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.amountPaid}`),
+              invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.amountPaid}::numeric`),
               sql` `
             );
 
             const statusCases = sql.join(
-              invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.status}`),
+              invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.status}::text`),
               sql` `
             );
 

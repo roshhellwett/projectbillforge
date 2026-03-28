@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
           where: eq(businesses.email, credentials.email.toLowerCase()),
         });
 
-        if (!business || !business.passwordHash) return null;
+        if (!business || !business.passwordHash || business.passwordHash.length === 0) return null;
 
         const isValid = await compare(credentials.password, business.passwordHash);
         if (!isValid) return null;

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/routing";
 import { getCustomers } from "@/lib/actions/customers";
 import { getKhataStatement, createKhataTransaction, deleteKhataTransaction } from "@/lib/actions/khata";
+import { formatCurrency, formatDate } from "@/lib/formatters";
 import { ConfirmDialog } from "@/lib/components/ui";
 import { useTranslations } from "next-intl";
 import { Plus, Search, X, ArrowUpCircle, ArrowDownCircle, Trash2, Lock } from "lucide-react";
@@ -13,7 +14,7 @@ import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWr
 const fmt = (v: string | number | null | undefined): string => {
   const n = Number(v);
   if (isNaN(n) || !isFinite(n)) return '0.00';
-  return Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return formatCurrency(Math.abs(n)).replace('₹', '').trim();
 };
 const safeNum = (v: string | number | null | undefined): number => {
   const n = Number(v);
@@ -139,6 +140,8 @@ export default function KhataPage() {
       loadStatement(selectedCustomer);
       loadCustomers();
       router.refresh();
+    } else if (result.error) {
+      setError(result.error);
     }
     setDeleting(false);
     setDeleteId(null);
@@ -304,7 +307,7 @@ export default function KhataPage() {
               <div className="bg-[var(--color-danger)]/5 backdrop-blur-3xl p-6 rounded-3xl border border-[var(--color-danger)]/20 shadow-sm hover:shadow-md transition-shadow">
                 <p className="text-sm font-medium text-[var(--color-danger)]/80">{t('accruedFines')}</p>
                 <p className="text-2xl font-bold text-[var(--color-danger)] mt-1 tracking-tight">
-                  ₹{accruedFines.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  {formatCurrency(accruedFines)}
                 </p>
               </div>
             )}
@@ -336,7 +339,7 @@ export default function KhataPage() {
                     {statement.map((t) => (
                       <tr key={t.id} className={`hover:bg-[var(--foreground)]/[0.02] transition-colors ${t.status === 'cancelled' ? 'opacity-50' : ''}`}>
                         <td className="px-5 py-4 text-sm text-[var(--foreground)]/70">
-                          {t.createdAt?.toLocaleDateString('en-IN') ?? '-'}
+                          {formatDate(t.createdAt)}
                         </td>
                         <td className="px-5 py-4">
                           {t.status === 'cancelled' ? (
@@ -410,11 +413,11 @@ export default function KhataPage() {
       )}
 
       {showModal && (
-        <div className="glass-overlay">
+        <div className="glass-overlay" onKeyDown={(e) => { if (e.key === 'Escape') setShowModal(false); }}>
           <div className="glass-card glass-modal-panel max-w-md">
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--border)]/50">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">{t('addTransaction')}</h2>
-              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
+              <button onClick={() => { setShowModal(false); setError(''); }} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
                 <X size={20} className="text-[var(--foreground)]/60" />
               </button>
             </div>
@@ -495,11 +498,11 @@ export default function KhataPage() {
       />
 
       {showPaymentModal && (
-        <div className="glass-overlay">
+        <div className="glass-overlay" onKeyDown={(e) => { if (e.key === 'Escape') { setShowPaymentModal(false); setError(''); } }}>
           <div className="glass-card glass-modal-panel max-w-md">
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--border)]/50">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">Record Payment</h2>
-              <button onClick={() => setShowPaymentModal(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
+              <button onClick={() => { setShowPaymentModal(false); setError(''); }} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
                 <X size={20} className="text-[var(--foreground)]/60" />
               </button>
             </div>
@@ -537,7 +540,7 @@ export default function KhataPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPaymentData({ ...paymentData, amount: String(Math.round(safeNum(customer?.currentBalance) / 2)) })}
+                    onClick={() => setPaymentData({ ...paymentData, amount: (safeNum(customer?.currentBalance) / 2).toFixed(2) })}
                     className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded"
                   >
                     Pay Half

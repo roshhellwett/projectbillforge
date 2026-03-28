@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/;
+const indianPhoneRegex = /^[6-9]\d{9}$/;
 
 export const businessRegisterSchema = z.object({
   name: z.string().min(1, "Business name is required").max(100).trim(),
@@ -12,7 +13,11 @@ export const businessRegisterSchema = z.object({
     .regex(/[0-9]/, "Password must contain at least one number"),
   confirmPassword: z.string(),
   gstin: z.string().regex(gstinRegex, "Invalid GSTIN format").optional().or(z.literal('')),
-  phone: z.string().max(20).optional().transform(s => s?.trim() || undefined),
+  phone: z.string()
+    .regex(indianPhoneRegex, "Invalid Indian mobile number (10 digits starting with 6-9)")
+    .optional()
+    .or(z.literal(''))
+    .transform(s => s?.trim() || undefined),
   address: z.string().max(500).optional().transform(s => s?.trim() || undefined),
   state: z.string().max(100).optional().transform(s => s?.trim() || undefined),
   pincode: z.string().max(20).optional().transform(s => s?.trim() || undefined),
@@ -26,7 +31,11 @@ export const businessRegisterSchema = z.object({
 
 export const customerSchema = z.object({
   name: z.string().min(1, "Customer name is required").max(100).trim(),
-  phone: z.string().optional().transform(s => s?.trim() || undefined),
+  phone: z.string()
+    .regex(indianPhoneRegex, "Invalid Indian mobile number")
+    .optional()
+    .or(z.literal(''))
+    .transform(s => s?.trim() || undefined),
   email: z.string().email("Invalid email").optional().or(z.literal('')).transform(s => s?.trim().toLowerCase()),
   gstin: z.string().regex(gstinRegex, "Invalid GSTIN format").optional().or(z.literal('')),
   address: z.string().optional().transform(s => s?.trim() || undefined),
@@ -38,7 +47,7 @@ export const productSchema = z.object({
   sku: z.string().optional().transform(s => s?.trim() || undefined),
   hsnCode: z.string().optional().transform(s => s?.trim() || undefined),
   unit: z.string().default("piece"),
-  rate: z.number().min(0, "Rate must be positive"),
+  rate: z.number().min(0.01, "Rate must be greater than 0"),
   gstRate: z.number().min(0).max(28).default(0),
   stockQuantity: z.number().min(0).default(0),
   lowStockThreshold: z.number().min(0).default(0),
