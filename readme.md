@@ -4,8 +4,6 @@
 ![Stars](https://img.shields.io/github/stars/roshhellwett/projectbillforge?style=for-the-badge)
 ![Forks](https://img.shields.io/github/forks/roshhellwett/projectbillforge?style=for-the-badge)
 ![Issues](https://img.shields.io/github/issues/roshhellwett/projectbillforge?style=for-the-badge)
-![Language](https://img.shields.io/github/languages/top/roshhellwett/projectbillforge?style=for-the-badge)
-
 </p>
 
 # PROJECT BILLFORGE
