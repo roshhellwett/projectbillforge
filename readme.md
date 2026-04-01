@@ -10,6 +10,8 @@
 
 A powerful and streamlined business management utility — designed to simplify invoicing, khata bookkeeping, and customer management for modern Indian businesses. BillForge brings professional automation, making business workflows faster and easier for local vendors and merchants.
 
+![SAMPLE](https://github.com/roshhellwett/projectbillforge/blob/4d3988cb1910dcfe4e923f11c42693e7282c882c/Sample/sample.png)
+
 ## ✨ Key Features
 
 ### ⚡ Core Functionality
