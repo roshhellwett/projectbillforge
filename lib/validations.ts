@@ -57,7 +57,7 @@ export const invoiceItemSchema = z.object({
   productId: z.string().min(1),
   productName: z.string().min(1).trim(),
   quantity: z.number().positive("Quantity must be greater than 0"),
-  rate: z.number().min(0),
+  rate: z.number().min(0.01, "Item rate must be greater than 0"),
   gstRate: z.number().min(0),
   amount: z.number().min(0),
   cgst: z.number().min(0),

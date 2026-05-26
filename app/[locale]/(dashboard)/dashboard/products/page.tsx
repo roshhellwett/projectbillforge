@@ -81,6 +81,8 @@ export default function ProductsPage() {
     ]);
     if (productsResult.success) {
       setProducts(productsResult.products);
+    } else if (productsResult.error) {
+      setError(productsResult.error);
     }
     if (businessResult.success && businessResult.business) {
       setIndustryType((businessResult.business.industryType as IndustryType) || "custom");
@@ -102,12 +104,19 @@ export default function ProductsPage() {
 
     setSaving(true);
 
+    const parsedRate = Number(formData.rate);
+    if (!formData.rate || isNaN(parsedRate) || parsedRate <= 0) {
+      setError("Rate must be greater than 0.");
+      setSaving(false);
+      return;
+    }
+
     const data = {
       name: formData.name,
       sku: formData.sku || undefined,
       hsnCode: formData.hsnCode || undefined,
       unit: formData.unit,
-      rate: Number(formData.rate) || 0,
+      rate: parsedRate,
       gstRate: formData.gstRate ? Number(formData.gstRate) : 0,
       stockQuantity: stockQty,
       lowStockThreshold: threshold,
@@ -257,7 +266,7 @@ export default function ProductsPage() {
                     <td className="px-5 py-4 text-[var(--foreground)] font-medium">₹{product.rate.toFixed(2)}</td>
                     <td className="px-5 py-4 text-[var(--foreground)]/70 text-sm">{product.gstRate ?? 0}%</td>
                     <td className="px-5 py-4 text-sm">
-                      <span className={(product.stockQuantity ?? 0) <= (product.lowStockThreshold ?? 0) ? "text-[var(--color-danger)] font-semibold" : "text-[var(--foreground)]"}>
+                      <span className={((product.lowStockThreshold ?? 0) > 0 && (product.stockQuantity ?? 0) <= (product.lowStockThreshold ?? 0)) ? "text-[var(--color-danger)] font-semibold" : "text-[var(--foreground)]"}>
                         {product.stockQuantity ?? 0} <span className="text-[var(--foreground)]/50">{product.unit ?? 'piece'}</span>
                       </span>
                     </td>
@@ -288,11 +297,11 @@ export default function ProductsPage() {
       </StaggerItem>
 
       {showModal && (
-        <div className="glass-overlay" onKeyDown={(e) => { if (e.key === 'Escape') setShowModal(false); }}>
+        <div className="glass-overlay" onKeyDown={(e) => { if (e.key === 'Escape') { setShowModal(false); setError(""); } }}>
           <div className="glass-card glass-modal-panel max-w-lg">
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--border)]/50">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">{editingProduct ? t('editProduct') : t('addProduct')}</h2>
-              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
+              <button onClick={() => { setShowModal(false); setError(""); }} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
                 <X size={20} className="text-[var(--foreground)]/60" />
               </button>
             </div>
@@ -380,7 +389,7 @@ export default function ProductsPage() {
               )}
 
               <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="glass-btn-secondary flex-1">{t('cancel')}</button>
+                <button type="button" onClick={() => { setShowModal(false); setError(""); }} className="glass-btn-secondary flex-1">{t('cancel')}</button>
                 <button type="submit" disabled={saving} className="glass-btn-primary flex-1">
                   {saving ? t('saving') : editingProduct ? t('updateProduct') : t('createProduct')}
                 </button>

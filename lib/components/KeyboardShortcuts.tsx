@@ -44,7 +44,7 @@ export function KeyboardShortcutsHelp() {
     { key: "n", ctrl: true, description: "New Invoice", action: () => router.push("/dashboard/invoices?new=true") },
     { key: "c", ctrl: true, description: "New Customer", action: () => router.push("/dashboard/customers?new=true") },
     { key: "p", ctrl: true, description: "New Product", action: () => router.push("/dashboard/products?new=true") },
-    { key: "k", ctrl: true, description: "Search", action: () => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus() },
+    { key: "/", description: "Search", action: () => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus() },
     { key: "?", shift: true, description: "Show Shortcuts", action: () => setIsOpen(true) },
     { key: "Escape", description: "Close Modal", action: () => document.body.click() },
   ];

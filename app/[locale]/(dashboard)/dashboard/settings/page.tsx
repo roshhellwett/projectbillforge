@@ -80,6 +80,9 @@ export default function SettingsPage() {
           ? result.business.industryType
           : "custom",
       });
+    } else if (result.error) {
+      setMessageType("error");
+      setMessage(result.error);
     }
     setLoading(false);
   };
@@ -221,6 +224,8 @@ export default function SettingsPage() {
                 className="w-full px-4 py-3 bg-[var(--foreground)]/5 border border-[var(--border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 text-[var(--foreground)] transition-all"
                 placeholder="400001"
                 maxLength={6}
+                inputMode="numeric"
+                pattern="[0-9]{6}"
               />
             </div>
           </div>
@@ -412,7 +417,7 @@ export default function SettingsPage() {
             BillForge v1.0 · An open source billing platform for Indian businesses
           </p>
           <p className="text-xs text-[var(--foreground)]/50 mt-3 italic max-w-md mx-auto">
-            If you are unhappy with our services so please leave a message on this mail <a href="mailto:zenithopensource@icloud.com" className="text-[var(--color-primary)] hover:underline">zenithopensource@icloud.com</a> regarding issues you faced
+            For support or feedback, reach us at <a href="mailto:zenithprojects@icloud.com" className="text-[var(--color-primary)] hover:underline">zenithprojects@icloud.com</a>
           </p>
           <p className="text-xs text-[var(--foreground)]/35 mt-4">
             Built with ❤️ by{" "}

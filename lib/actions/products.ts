@@ -85,8 +85,29 @@ export async function updateProduct(id: string, data: Partial<ProductInput>) {
       return { error: "Product not found" };
     }
 
+    const updateFields: {
+      updatedAt: Date;
+      name?: string;
+      sku?: string | null;
+      hsnCode?: string | null;
+      unit?: string;
+      rate?: number;
+      gstRate?: number;
+      stockQuantity?: number;
+      lowStockThreshold?: number;
+      metadata?: Record<string, unknown>;
+    } = { updatedAt: new Date() };
+    if (data.name !== undefined) updateFields.name = data.name;
+    if (data.sku !== undefined) updateFields.sku = data.sku ?? null;
+    if (data.hsnCode !== undefined) updateFields.hsnCode = data.hsnCode ?? null;
+    if (data.unit !== undefined) updateFields.unit = data.unit;
+    if (data.rate !== undefined) updateFields.rate = data.rate;
+    if (data.gstRate !== undefined) updateFields.gstRate = data.gstRate;
+    if (data.stockQuantity !== undefined) updateFields.stockQuantity = data.stockQuantity;
+    if (data.lowStockThreshold !== undefined) updateFields.lowStockThreshold = data.lowStockThreshold;
+
     const [product] = await db.update(products)
-      .set({ ...data, updatedAt: new Date() })
+      .set(updateFields)
       .where(and(eq(products.id, id), eq(products.businessId, session.id)))
       .returning();
 

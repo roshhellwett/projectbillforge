@@ -53,7 +53,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
             </div>
           </div>
           <button
-            onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+            onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true, bubbles: true }))}
             className="flex items-center justify-between w-full px-3 py-2 bg-[var(--background)]/40 hover:bg-[var(--background)]/60 border border-[var(--border)] rounded-lg text-xs text-[var(--foreground)]/60 transition-colors group"
           >
             <span className="flex items-center gap-2">
@@ -112,7 +112,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
             <p className="text-[10px] text-[var(--foreground)]/60 mb-3 px-1 relative z-10">
               Problems while using BillForge?
             </p>
-            <a href="mailto:zenithopensource@icloud.com" className="block w-full py-2 bg-[var(--surface)] rounded-lg text-xs font-medium text-[var(--color-primary)] shadow-sm border border-[var(--color-primary)]/20 hover:border-[var(--color-primary)]/40 hover:shadow-md transition-all relative z-10">
+            <a href="mailto:zenithprojects@icloud.com" className="block w-full py-2 bg-[var(--surface)] rounded-lg text-xs font-medium text-[var(--color-primary)] shadow-sm border border-[var(--color-primary)]/20 hover:border-[var(--color-primary)]/40 hover:shadow-md transition-all relative z-10">
               Contact Support
             </a>
           </div>

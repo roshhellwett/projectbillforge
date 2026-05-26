@@ -123,11 +123,13 @@ export default function InvoicesPage() {
       getBusinessProfile(),
     ]);
     if (productsResult.success) setProducts(productsResult.products);
+    else if (productsResult.error) setError(productsResult.error);
     if (customersResult.success) setCustomers(customersResult.customers);
     if (invoicesResult.success) setInvoices(invoicesResult.invoices.map((inv: InvoiceServerRow) => ({
       ...inv,
       invoiceDate: new Date(inv.invoiceDate)
     })));
+    else if (invoicesResult.error) setError(invoicesResult.error);
     if (businessResult.success && businessResult.business) {
       setBusinessProfile({
         name: businessResult.business.name || "",
@@ -339,7 +341,10 @@ export default function InvoicesPage() {
                         </button>
                         )}
                         <button
-                          onClick={() => setViewInvoice(invoice)}
+                          onClick={() => {
+                            if (!businessProfile) { setError("Business profile not loaded yet. Please wait."); return; }
+                            setViewInvoice(invoice);
+                          }}
                           className="p-1.5 sm:p-2 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-colors"
                           aria-label="View invoice"
                         >
@@ -366,7 +371,7 @@ export default function InvoicesPage() {
 
       {showNewInvoice && (
         <NewInvoiceModal
-          onClose={() => setShowNewInvoice(false)}
+          onClose={() => { setShowNewInvoice(false); setError(""); }}
           onSubmit={handleCreateSubmit}
           customers={customers}
           products={products}

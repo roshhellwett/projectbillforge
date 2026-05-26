@@ -104,6 +104,10 @@ export function InvoicePrintModal({
               `).join("");
 
         const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert('Print window was blocked by your browser. Please allow pop-ups for this site and try again.');
+            return;
+        }
         if (printWindow) {
             printWindow.document.write(`
         <html><head><title>Receipt ${safeInvoiceNumber}</title>
@@ -168,6 +172,12 @@ export function InvoicePrintModal({
             </div>
           </div>
 
+          <div class="border-t mt-4 pt-4 text-center">
+            ${invoice.paymentStatus === 'paid' ? '<div style="font-weight:bold;margin-bottom:4px;">STATUS: PAID</div>' : ''}
+            ${invoice.paymentStatus === 'unpaid' ? '<div style="font-weight:bold;margin-bottom:4px;">STATUS: UNPAID</div>' : ''}
+            ${invoice.paymentStatus === 'partial' ? `<div style="font-weight:bold;margin-bottom:4px;">PARTIAL PAYMENT: ${formatCurrency(invoice.amountPaid)}</div>` : ''}
+            ${invoice.status === 'cancelled' ? '<div style="font-weight:bold;margin-bottom:4px;">** CANCELLED **</div>' : ''}
+          </div>
           <div class="text-center mt-4 pt-4 border-t">
             <div class="mb-2">*** Thank You ***</div>
           </div>
@@ -206,6 +216,10 @@ export function InvoicePrintModal({
                 `).join("");
 
         const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert('Print window was blocked by your browser. Please allow pop-ups for this site and try again.');
+            return;
+        }
         if (printWindow) {
             printWindow.document.write(`
         <html><head><title>Invoice ${safeInvoiceNumber}</title>
@@ -481,6 +495,9 @@ export function InvoicePrintModal({
                                         {invoice.paymentStatus === 'partial' && (
                                             <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold uppercase tracking-wider rounded border border-blue-200 dark:border-blue-800/50">Partially Paid (₹{safeAmountPaid})</span>
                                         )}
+                                        {invoice.status === 'cancelled' && (
+                                            <span className="inline-block px-3 py-1 bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 text-xs font-bold uppercase tracking-wider rounded border border-red-200 dark:border-red-800/50">CANCELLED</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -563,6 +580,20 @@ export function InvoicePrintModal({
                                 </div>
                             </div>
 
+                            <div className="border-t-2 border-dashed border-slate-300 pt-3 text-xs text-center">
+                                {invoice.paymentStatus === 'paid' && (
+                                    <div className="font-bold mb-1 text-green-700">STATUS: PAID</div>
+                                )}
+                                {invoice.paymentStatus === 'unpaid' && (
+                                    <div className="font-bold mb-1 text-amber-700">STATUS: UNPAID</div>
+                                )}
+                                {invoice.paymentStatus === 'partial' && (
+                                    <div className="font-bold mb-1 text-blue-700">PARTIAL PAYMENT: ₹{safeAmountPaid}</div>
+                                )}
+                                {invoice.status === 'cancelled' && (
+                                    <div className="font-bold mb-1 text-red-700">** CANCELLED **</div>
+                                )}
+                            </div>
                             <div className="text-center pt-4 border-t-2 border-dashed border-slate-300 text-xs">
                                 <div className="font-bold mb-1">*** Thank You ***</div>
                             </div>

@@ -22,9 +22,9 @@ function errorMessage(error: unknown, fallback: string): string {
 }
 
 function generateInvoiceNumber(): string {
-  const date = new Date();
-  const year = date.getFullYear().toString().slice(-2);
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const istDateStr = getIndiaDateString();
+  const [fullYear, month] = istDateStr.split('-');
+  const year = fullYear.slice(-2);
   const unique = crypto.randomUUID().split('-')[0];
   return `INV/${year}${month}/${unique}`;
 }

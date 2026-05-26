@@ -75,6 +75,8 @@ export default function CustomersPage() {
     const result = await getCustomers();
     if (result.success) {
       setCustomers(result.customers);
+    } else if (result.error) {
+      setError(result.error);
     }
     setLoading(false);
   };
@@ -179,7 +181,7 @@ export default function CustomersPage() {
         </button>
       </FadeIn>
 
-      {error && (
+      {error && !showModal && (
         <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl">
           {error}
           <button onClick={() => setError("")} className="float-right text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
@@ -285,11 +287,11 @@ export default function CustomersPage() {
       </StaggerItem>
 
       {showModal && (
-        <div className="glass-overlay" onKeyDown={(e) => { if (e.key === 'Escape') setShowModal(false); }}>
+        <div className="glass-overlay" onKeyDown={(e) => { if (e.key === 'Escape') { setShowModal(false); setError(""); } }}>
           <div className="glass-card glass-modal-panel max-w-lg">
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--border)]/50">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">{editingCustomer ? t('editCustomer') : t('addCustomer')}</h2>
-              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
+              <button onClick={() => { setShowModal(false); setError(""); }} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
                 <X size={20} className="text-[var(--foreground)]/60" />
               </button>
             </div>
@@ -368,7 +370,7 @@ export default function CustomersPage() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => { setShowModal(false); setError(""); }}
                   className="glass-btn-secondary flex-1"
                 >
                   {t('cancel')}

@@ -77,6 +77,8 @@ export default function KhataPage() {
     const result = await getCustomers();
     if (result.success) {
       setCustomers(result.customers);
+    } else if (result.error) {
+      setError(result.error);
     }
     setLoading(false);
   };
@@ -91,6 +93,8 @@ export default function KhataPage() {
       })));
       setAccruedFines(result.accruedFines || 0);
       setTotalBalanceDue(result.totalBalanceDue || 0);
+    } else if (result.error) {
+      setError(result.error);
     }
   };
 
@@ -111,13 +115,19 @@ export default function KhataPage() {
     e.preventDefault();
     if (!selectedCustomer) return;
 
+    const parsedAmount = Number(formData.amount);
+    if (!formData.amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      setError("Please enter a valid amount greater than 0.");
+      return;
+    }
+
     setError("");
     setSaving(true);
 
     const result = await createKhataTransaction({
       customerId: selectedCustomer,
       type: formData.type,
-      amount: Number(formData.amount) || 0,
+      amount: parsedAmount,
       note: formData.note || undefined,
     });
 
@@ -423,7 +433,7 @@ export default function KhataPage() {
       )}
 
       {showModal && (
-        <div className="glass-overlay" onKeyDown={(e) => { if (e.key === 'Escape') setShowModal(false); }}>
+        <div className="glass-overlay" onKeyDown={(e) => { if (e.key === 'Escape') { setShowModal(false); setError(''); } }}>
           <div className="glass-card glass-modal-panel max-w-md">
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--border)]/50">
               <h2 className="text-lg font-semibold text-[var(--foreground)]">{t('addTransaction')}</h2>
@@ -481,7 +491,7 @@ export default function KhataPage() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => { setShowModal(false); setError(''); }}
                   className="glass-btn-secondary flex-1"
                 >
                   Cancel

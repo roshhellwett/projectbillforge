@@ -29,7 +29,11 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      setError("Invalid email or password. Please try again.");
+      if (result.error.toLowerCase().includes("too many")) {
+        setError("Too many login attempts. Please wait a minute and try again.");
+      } else {
+        setError("Invalid email or password. Please try again.");
+      }
       setLoading(false);
     } else {
       router.push("/dashboard");
@@ -178,6 +182,12 @@ export default function LoginPage() {
               <Link href="/register" className="text-[var(--color-primary)] hover:text-[var(--color-primary-light)] font-semibold transition-colors">
                 {t('createOne')}
               </Link>
+            </p>
+            <p className="mt-3 text-xs text-[var(--foreground)]/30">
+              Need help?{" "}
+              <a href="mailto:zenithprojects@icloud.com" className="text-[var(--color-primary)]/60 hover:text-[var(--color-primary)] transition-colors">
+                zenithprojects@icloud.com
+              </a>
             </p>
           </motion.div>
         </div>

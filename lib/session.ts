@@ -13,13 +13,13 @@ async function getBusinessSession() {
     return null;
   }
   const user = session.user as SessionUser;
-  if (!user.id || !user.email || !user.name) {
+  if (!user.id || !user.email) {
     return null;
   }
   return {
     id: user.id,
     email: user.email,
-    name: user.name,
+    name: user.name || user.email.split('@')[0],
   };
 }
 

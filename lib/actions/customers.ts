@@ -56,16 +56,24 @@ export async function updateCustomer(id: string, data: Partial<CustomerInput>) {
       return { error: "Customer not found" };
     }
 
+    const updateFields: {
+      updatedAt: Date;
+      name?: string;
+      phone?: string | null;
+      email?: string | null;
+      gstin?: string | null;
+      address?: string | null;
+      creditLimit?: number;
+    } = { updatedAt: new Date() };
+    if (data.name !== undefined) updateFields.name = data.name;
+    if ('phone' in data) updateFields.phone = data.phone ?? null;
+    if ('email' in data) updateFields.email = data.email ?? null;
+    if ('gstin' in data) updateFields.gstin = data.gstin ?? null;
+    if ('address' in data) updateFields.address = data.address ?? null;
+    if (data.creditLimit !== undefined) updateFields.creditLimit = data.creditLimit;
+
     const [customer] = await db.update(customers)
-      .set({
-        name: data.name,
-        phone: data.phone ?? undefined,
-        email: data.email ?? undefined,
-        gstin: data.gstin ?? undefined,
-        address: data.address ?? undefined,
-        creditLimit: data.creditLimit,
-        updatedAt: new Date(),
-      })
+      .set(updateFields)
       .where(and(eq(customers.id, id), eq(customers.businessId, session.id)))
       .returning();
 

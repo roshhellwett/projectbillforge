@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signIn } from "next-auth/react";
 import { Link, useRouter } from "@/i18n/routing";
 import Script from "next/script";
@@ -17,6 +17,8 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState(1);
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const turnstileWidgetId = useRef<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -43,6 +45,18 @@ export default function RegisterPage() {
       }
       if (formData.password.length < 8) {
         setError("Password must be at least 8 characters.");
+        return;
+      }
+      if (!/[A-Z]/.test(formData.password)) {
+        setError("Password must contain at least one uppercase letter.");
+        return;
+      }
+      if (!/[a-z]/.test(formData.password)) {
+        setError("Password must contain at least one lowercase letter.");
+        return;
+      }
+      if (!/[0-9]/.test(formData.password)) {
+        setError("Password must contain at least one number.");
         return;
       }
       setError("");
@@ -84,6 +98,39 @@ export default function RegisterPage() {
   const handleGoogleSignIn = () => {
     signIn("google", { callbackUrl: `/${locale}/dashboard` });
   };
+
+  useEffect(() => {
+    if (step !== 2) return;
+    if (!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) return;
+    const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
+    const tryRender = () => {
+      if (!turnstileRef.current) return;
+      if (typeof window === 'undefined') return;
+      const w = window as unknown as { turnstile?: { render: (el: HTMLElement, opts: object) => string; reset: (id: string) => void } };
+      if (!w.turnstile) return;
+      if (turnstileWidgetId.current) {
+        try { w.turnstile.reset(turnstileWidgetId.current); } catch { /* ignore */ }
+      }
+      turnstileWidgetId.current = w.turnstile.render(turnstileRef.current, {
+        sitekey: siteKey,
+        theme: 'auto',
+      });
+    };
+
+    const w = window as unknown as { turnstile?: object };
+    if (w.turnstile) {
+      tryRender();
+    } else {
+      const interval = setInterval(() => {
+        if ((window as unknown as { turnstile?: object }).turnstile) {
+          clearInterval(interval);
+          tryRender();
+        }
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  }, [step]);
 
   const update = (field: string, value: string) =>
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -223,10 +270,10 @@ export default function RegisterPage() {
                     <input type="text" name="website_url" tabIndex={-1} autoComplete="off" value={formData.honeypot} onChange={(e) => update("honeypot", e.target.value)} />
                   </div>
 
-                  {/* Cloudflare Turnstile Widget */}
+                  {/* Cloudflare Turnstile Widget — rendered programmatically via useEffect */}
                   {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
                     <div className="w-full flex justify-center py-2">
-                      <div className="cf-turnstile" data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} data-theme="light"></div>
+                      <div ref={turnstileRef} />
                     </div>
                   )}
                 </motion.div>
@@ -262,6 +309,12 @@ export default function RegisterPage() {
               <Link href="/login" className="text-[var(--color-primary)] hover:text-[var(--color-primary-light)] font-semibold transition-colors">
                 {t('signInBtn')}
               </Link>
+            </p>
+            <p className="mt-3 text-xs text-[var(--foreground)]/30">
+              Need help?{" "}
+              <a href="mailto:zenithprojects@icloud.com" className="text-[var(--color-primary)]/60 hover:text-[var(--color-primary)] transition-colors">
+                zenithprojects@icloud.com
+              </a>
             </p>
           </motion.div>
         </div>
@@ -407,7 +460,7 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
-      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="lazyOnload" />
     </>
   );
 }
