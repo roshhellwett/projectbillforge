@@ -6,7 +6,7 @@ import { businessProfileSchema } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq } from "drizzle-orm";
 import { compare } from "bcryptjs";
-import { revalidateLocalizedPaths } from "@/lib/revalidate";
+import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
 
 function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -98,13 +98,20 @@ export async function resetAllKhataData(password: string) {
       where: eq(businesses.id, businessId),
     });
 
-    if (!business || !business.passwordHash) {
+    if (!business) {
       return { error: "Unable to verify credentials" };
     }
 
-    const isValidPassword = await compare(password, business.passwordHash);
-    if (!isValidPassword) {
-      return { error: "Incorrect password" };
+    // OAuth users (no password set) must type confirmation phrase
+    if (!business.passwordHash || business.passwordHash.length === 0) {
+      if (password !== "RESET ALL DATA") {
+        return { error: "Please type RESET ALL DATA to confirm" };
+      }
+    } else {
+      const isValidPassword = await compare(password, business.passwordHash);
+      if (!isValidPassword) {
+        return { error: "Incorrect password" };
+      }
     }
 
     await db.transaction(async (tx) => {
@@ -131,6 +138,7 @@ export async function resetAllKhataData(password: string) {
       '/dashboard/customers',
       '/dashboard/products',
     ]);
+    revalidateDashboardCache(businessId);
     return { success: true, message: "All Khata data has been reset. All invoices and transactions marked as cancelled, balances zeroed." };
   } catch (error: unknown) {
     return { error: errorMessage(error, "Failed to reset Khata data") };

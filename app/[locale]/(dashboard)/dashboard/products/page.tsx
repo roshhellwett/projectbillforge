@@ -207,9 +207,9 @@ export default function ProductsPage() {
       </FadeIn>
 
       {error && !showModal && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl text-sm">
           {error}
-          <button onClick={() => setError("")} className="float-right text-red-500 hover:text-red-700">
+          <button onClick={() => setError("")} className="float-right text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
             <X size={16} />
           </button>
         </div>

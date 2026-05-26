@@ -107,6 +107,8 @@ export default function InvoicesPage() {
   const [cancelling, setCancelling] = useState(false);
   const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
+  const [showSettingsPrompt, setShowSettingsPrompt] = useState(false);
+  const [settingsPromptMessage, setSettingsPromptMessage] = useState("");
 
   useEffect(() => {
     loadData();
@@ -168,10 +170,8 @@ export default function InvoicesPage() {
     const typedResult = result as CreateInvoiceResult;
     if (typedResult.error) {
       if (typedResult.redirectToSettings) {
-        setError(typedResult.error);
-        if (confirm(typedResult.error + " Go to Settings now?")) {
-          router.push("/dashboard/settings");
-        }
+        setSettingsPromptMessage(typedResult.error);
+        setShowSettingsPrompt(true);
       } else {
         setError(typedResult.error);
       }
@@ -212,8 +212,11 @@ export default function InvoicesPage() {
     const encodedMessage = encodeURIComponent(message);
     let url = `https://wa.me/`;
     if (customerPhone) {
-      // Basic sanitization
-      const cleanPhone = customerPhone.replace(/\D/g, '');
+      // Sanitize and ensure +91 country code for Indian numbers
+      let cleanPhone = customerPhone.replace(/\D/g, '');
+      if (cleanPhone.length === 10 && /^[6-9]/.test(cleanPhone)) {
+        cleanPhone = '91' + cleanPhone;
+      }
       url += `${cleanPhone}?text=${encodedMessage}`;
     } else {
       url += `?text=${encodedMessage}`;
@@ -246,9 +249,9 @@ export default function InvoicesPage() {
       </FadeIn>
 
       {error && !showNewInvoice && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl text-sm">
           {error}
-          <button onClick={() => setError("")} className="float-right text-red-500 hover:text-red-700">
+          <button onClick={() => setError("")} className="float-right text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
             <X size={16} />
           </button>
         </div>
@@ -319,6 +322,7 @@ export default function InvoicesPage() {
                     </td>
                     <td className="px-3 sm:px-5 py-3 sm:py-4">
                       <div className="flex items-center gap-1" style={{ opacity: 1 }}>
+                        {invoice.status !== 'cancelled' && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -333,6 +337,7 @@ export default function InvoicesPage() {
                         >
                           <MessageCircle size={16} />
                         </button>
+                        )}
                         <button
                           onClick={() => setViewInvoice(invoice)}
                           className="p-1.5 sm:p-2 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-colors"
@@ -376,6 +381,14 @@ export default function InvoicesPage() {
         message="Are you sure you want to cancel this invoice? This will restore the stock and adjust the customer's balance."
         onConfirm={handleCancelInvoice}
         onCancel={() => setCancelId(null)}
+      />
+
+      <ConfirmDialog
+        open={showSettingsPrompt}
+        title="Complete Your Business Profile"
+        message={settingsPromptMessage + " Go to Settings now?"}
+        onConfirm={() => { setShowSettingsPrompt(false); router.push("/dashboard/settings"); }}
+        onCancel={() => setShowSettingsPrompt(false)}
       />
 
       {viewInvoice && businessProfile && (

@@ -62,6 +62,7 @@
         "thActions": "Actions",
         "cancelled": "Cancelled",
         "sale": "Bikri (Sale)",
+        "saleAdded": "Bikri (Khate mein joda)",
         "paymentReceived": "Payment Mila",
         "selectCustomerPrompt": "Khata dekhne ke liye customer chunein"
     },

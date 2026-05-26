@@ -62,6 +62,7 @@
         "thActions": "Actions",
         "cancelled": "Cancelled",
         "sale": "Sale",
+        "saleAdded": "Sale (Added to Khata)",
         "paymentReceived": "Payment Received",
         "selectCustomerPrompt": "Select a customer to view their khata"
     },

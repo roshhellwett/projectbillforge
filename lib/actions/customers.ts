@@ -57,7 +57,15 @@ export async function updateCustomer(id: string, data: Partial<CustomerInput>) {
     }
 
     const [customer] = await db.update(customers)
-      .set({ ...data, updatedAt: new Date() })
+      .set({
+        name: data.name,
+        phone: data.phone ?? undefined,
+        email: data.email ?? undefined,
+        gstin: data.gstin ?? undefined,
+        address: data.address ?? undefined,
+        creditLimit: data.creditLimit,
+        updatedAt: new Date(),
+      })
       .where(and(eq(customers.id, id), eq(customers.businessId, session.id)))
       .returning();
 

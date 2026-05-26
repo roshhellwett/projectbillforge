@@ -7,7 +7,7 @@ import { khataTransactions, customers, businesses, invoices } from "@/lib/schema
 import { khataTransactionSchema, type KhataTransactionInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq, sql, and, asc } from "drizzle-orm";
-import { revalidateLocalizedPaths } from "@/lib/revalidate";
+import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
 import { allocatePaymentAcrossInvoices, calculateLateFee } from "@/lib/accounting";
 
 type KhataTransactionRow = typeof khataTransactions.$inferSelect;
@@ -55,7 +55,7 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
       // Credit limit enforcement: check BEFORE inserting
       if (data.type === 'credit' && creditLimit.greaterThan(0) && newBalance.greaterThan(creditLimit)) {
         const available = Decimal.max(0, creditLimit.minus(currentBalance));
-        throw new Error(`Credit limit exceeded. Limit: ${creditLimit.toFixed(2)}, Current Owed: ${currentBalance.toFixed(2)}, Available: ${available.toFixed(2)}, Requested: ${amountToProcess.toFixed(2)}`);
+        throw new Error(`Credit limit exceeded. Limit: ₹${creditLimit.toFixed(2)}, Current Owed: ₹${currentBalance.toFixed(2)}, Available: ₹${available.toFixed(2)}, Requested: ₹${amountToProcess.toFixed(2)}`);
       }
 
       // For payments (debit): allow overpayment, resulting in negative balance (credit in customer's favor)
@@ -128,6 +128,7 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
     });
 
     revalidateLocalizedPaths(['/dashboard/khata', '/dashboard']);
+    revalidateDashboardCache(session.id);
     return { success: true, transaction };
   } catch (error: unknown) {
     return { error: errorMessage(error, "Failed to create transaction") };
@@ -277,6 +278,75 @@ export async function deleteKhataTransaction(id: string) {
             updatedAt: new Date(),
           })
           .where(eq(customers.id, transaction.customerId));
+      }
+
+      // When cancelling a debit (payment), reverse the FIFO invoice settlements
+      // that were applied when the payment was originally created.
+      if (transaction.type === 'debit') {
+        const paidInvoiceRows = await tx.execute(
+          sql`SELECT id, total, amount_paid FROM invoices
+              WHERE customer_id = ${transaction.customerId}
+              AND business_id = ${session.id}
+              AND status = 'active'
+              AND amount_paid > 0
+              ORDER BY invoice_date DESC, created_at DESC
+              FOR UPDATE`
+        ) as unknown as { id: string; total: number | null; amount_paid: number | null }[];
+
+        // Reverse-allocate: claw back the cancelled payment amount from
+        // the most-recently-settled invoices first (reverse FIFO).
+        let remaining = new Decimal(transaction.amount).toDecimalPlaces(2);
+        const invoiceUpdates: { id: string; amountPaid: number; status: string }[] = [];
+
+        for (const inv of paidInvoiceRows) {
+          if (remaining.lessThanOrEqualTo(0)) break;
+          const paid = new Decimal(inv.amount_paid ?? 0);
+          if (paid.lessThanOrEqualTo(0)) continue;
+
+          const clawback = Decimal.min(remaining, paid);
+          const newPaid = paid.minus(clawback).toDecimalPlaces(2);
+          const total = new Decimal(inv.total ?? 0);
+
+          let newStatus: string;
+          if (newPaid.lessThanOrEqualTo(0)) {
+            newStatus = 'unpaid';
+          } else if (newPaid.greaterThanOrEqualTo(total)) {
+            newStatus = 'paid';
+          } else {
+            newStatus = 'partial';
+          }
+
+          invoiceUpdates.push({
+            id: inv.id,
+            amountPaid: newPaid.toNumber(),
+            status: newStatus,
+          });
+          remaining = remaining.minus(clawback);
+        }
+
+        if (invoiceUpdates.length > 0) {
+          const ids = invoiceUpdates.map(inv => inv.id);
+          const sqlIds = sql.join(ids.map(id => sql`${id}`), sql`, `);
+
+          const amountPaidCases = sql.join(
+            invoiceUpdates.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.amountPaid}::numeric`),
+            sql` `
+          );
+
+          const statusCases = sql.join(
+            invoiceUpdates.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.status}::text`),
+            sql` `
+          );
+
+          await tx.execute(sql`
+            UPDATE invoices
+            SET
+              amount_paid = CASE ${amountPaidCases} END,
+              payment_status = CASE ${statusCases} END,
+              updated_at = NOW()
+            WHERE id IN (${sqlIds})
+          `);
+        }
       }
 
       await tx.update(khataTransactions)

@@ -23,7 +23,7 @@ export const businesses = pgTable('businesses', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
-  passwordHash: text('password_hash').notNull(),
+  passwordHash: text('password_hash').notNull().default(''),
   gstin: text('gstin'),
   address: text('address'),
   phone: text('phone'),

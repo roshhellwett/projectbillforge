@@ -32,6 +32,7 @@ export default function SettingsPage() {
   const [resetting, setResetting] = useState(false);
   const [resetPassword, setResetPassword] = useState("");
   const [resetError, setResetError] = useState("");
+  const [isOAuthUser, setIsOAuthUser] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     gstin: "",
@@ -63,6 +64,7 @@ export default function SettingsPage() {
     setLoading(true);
     const result = await getBusinessProfile();
     if (result.success && result.business) {
+      setIsOAuthUser(!result.business.passwordHash || result.business.passwordHash.length === 0);
       setFormData({
         name: result.business.name || "",
         gstin: result.business.gstin || "",
@@ -115,8 +117,8 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-48 bg-slate-200 animate-pulse rounded"></div>
-        <div className="h-64 bg-slate-200 animate-pulse rounded-2xl"></div>
+        <div className="h-8 w-48 bg-[var(--foreground)]/10 animate-pulse rounded"></div>
+        <div className="h-64 bg-[var(--foreground)]/10 animate-pulse rounded-2xl"></div>
       </div>
     );
   }
@@ -293,7 +295,7 @@ export default function SettingsPage() {
           <div className="mt-6 p-5 bg-[var(--color-primary)]/10 rounded-2xl border-l-4 border-[var(--color-primary)] glass-card">
             <p className="text-sm font-medium text-[var(--foreground)]/80">
               <span className="font-bold text-[var(--color-primary)] mr-2">Example:</span> With {formData.redemptionPeriodDays} days grace, {formData.finePercentage}% per {formData.fineFrequencyDays} days -
-              A ₹10,000 invoice overdue by 44 days would incur: ₹{(10000 * (formData.finePercentage / 100) * Math.max(0, Math.floor((44 - formData.redemptionPeriodDays) / formData.fineFrequencyDays))).toFixed(2)} in fines.
+              A ₹10,000 invoice overdue by 44 days would incur: ₹{(formData.fineFrequencyDays > 0 ? (10000 * (formData.finePercentage / 100) * Math.max(0, Math.floor((44 - formData.redemptionPeriodDays) / formData.fineFrequencyDays))) : 0).toFixed(2)} in fines.
             </p>
           </div>
         </StaggerItem>
@@ -324,19 +326,19 @@ export default function SettingsPage() {
             </p>
             <div className="mb-4">
               <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">
-                Enter your password to confirm
+                {isOAuthUser ? 'Type RESET ALL DATA to confirm' : 'Enter your password to confirm'}
               </label>
               <input
-                type="password"
+                type={isOAuthUser ? "text" : "password"}
                 value={resetPassword}
                 onChange={(e) => {
                   setResetPassword(e.target.value);
                   setResetError("");
                 }}
                 className="w-full glass-input"
-                placeholder="Your login password"
+                placeholder={isOAuthUser ? 'RESET ALL DATA' : 'Your login password'}
               />
-              {resetError && <p className="text-sm text-red-600 mt-1">{resetError}</p>}
+              {resetError && <p className="text-sm text-[var(--color-danger)] mt-1">{resetError}</p>}
             </div>
             <div className="flex gap-3">
               <button
@@ -354,7 +356,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={async () => {
                   if (!resetPassword) {
-                    setResetError("Please enter your password");
+                    setResetError(isOAuthUser ? 'Please type RESET ALL DATA to confirm' : 'Please enter your password');
                     return;
                   }
                   setResetting(true);

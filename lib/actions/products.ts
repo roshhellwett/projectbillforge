@@ -144,7 +144,7 @@ export async function getLowStockProducts() {
       .select()
       .from(products)
       .where(
-        sql`${products.businessId} = ${session.id} AND ${products.isActive} = true AND ${products.stockQuantity} <= ${products.lowStockThreshold}`
+        sql`${products.businessId} = ${session.id} AND ${products.isActive} = true AND ${products.lowStockThreshold} > 0 AND ${products.stockQuantity} <= ${products.lowStockThreshold}`
       );
 
     return { success: true, products: lowStock };

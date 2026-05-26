@@ -98,6 +98,7 @@ export default function KhataPage() {
     setSelectedCustomer(customerId);
     setAccruedFines(0);
     setTotalBalanceDue(0);
+    setError("");
     if (customerId) {
       loadStatement(customerId);
     } else {
@@ -191,6 +192,15 @@ export default function KhataPage() {
         </div>
       </FadeIn>
 
+      {error && !showModal && !showPaymentModal && (
+        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl text-sm">
+          {error}
+          <button onClick={() => setError("")} className="float-right text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       <StaggerItem className="glass-card p-6 overflow-hidden">
         <label className="block text-sm font-semibold text-[var(--foreground)]/80 mb-4">Select Customer</label>
         <div className="relative">
@@ -252,7 +262,7 @@ export default function KhataPage() {
               {t('backToList')}
             </button>
             <button
-              onClick={() => { setError(""); setShowModal(true); }}
+              onClick={() => { setError(""); setFormData({ type: "credit", amount: "", note: "" }); setShowModal(true); }}
               className="glass-btn-primary flex items-center gap-2"
             >
               <Plus size={20} />
@@ -279,7 +289,7 @@ export default function KhataPage() {
                 </div>
                 {safeNum(customer.currentBalance) > 0 && (
                   <button
-                    onClick={() => { setError(""); setShowPaymentModal(true); }}
+                    onClick={() => { setError(""); setPaymentData({ amount: "", note: "", method: "cash" }); setShowPaymentModal(true); }}
                     className="px-4 py-2 bg-[var(--color-success)] text-white text-sm font-medium rounded-xl hover:opacity-90 transition-opacity shadow-sm"
                   >
                     {t('recordPayment')}
@@ -336,45 +346,45 @@ export default function KhataPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border)]/30">
-                    {statement.map((t) => (
-                      <tr key={t.id} className={`hover:bg-[var(--foreground)]/[0.02] transition-colors ${t.status === 'cancelled' ? 'opacity-50' : ''}`}>
+                    {statement.map((txn) => (
+                      <tr key={txn.id} className={`hover:bg-[var(--foreground)]/[0.02] transition-colors ${txn.status === 'cancelled' ? 'opacity-50' : ''}`}>
                         <td className="px-5 py-4 text-sm text-[var(--foreground)]/70">
-                          {formatDate(t.createdAt)}
+                          {formatDate(txn.createdAt)}
                         </td>
                         <td className="px-5 py-4">
-                          {t.status === 'cancelled' ? (
+                          {txn.status === 'cancelled' ? (
                             <span className="flex items-center gap-1.5 text-sm font-medium text-[var(--foreground)]/40 line-through">
-                              {t.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
-                              Cancelled / Refunded
+                              {txn.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
+                              {t('cancelled')}
                             </span>
                           ) : (
-                            <span className={`flex items-center gap-1.5 text-sm font-medium ${t.type === 'credit' ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
-                              {t.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
-                              {t.type === 'credit' ? 'Sale (Added to Khata)' : 'Payment Received'}
+                            <span className={`flex items-center gap-1.5 text-sm font-medium ${txn.type === 'credit' ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
+                              {txn.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
+                              {txn.type === 'credit' ? t('saleAdded') : t('paymentReceived')}
                             </span>
                           )}
                         </td>
-                        <td className="px-5 py-4 text-sm text-[var(--foreground)]/70">{t.status === 'cancelled' ? <span className="line-through">{t.note || "-"}</span> : t.note || "-"}</td>
+                        <td className="px-5 py-4 text-sm text-[var(--foreground)]/70">{txn.status === 'cancelled' ? <span className="line-through">{txn.note || "-"}</span> : txn.note || "-"}</td>
                         <td className="px-5 py-4 text-right font-medium text-[var(--foreground)]">
-                          {t.status === 'cancelled' ? (
-                            <span className="line-through text-[var(--foreground)]/40">₹{fmt(t.amount)}</span>
+                          {txn.status === 'cancelled' ? (
+                            <span className="line-through text-[var(--foreground)]/40">₹{fmt(txn.amount)}</span>
                           ) : (
-                            <span>₹{fmt(t.amount)}</span>
+                            <span>₹{fmt(txn.amount)}</span>
                           )}
                         </td>
                         <td className="px-5 py-4 text-right font-semibold">
-                          {t.status === 'cancelled' ? (
+                          {txn.status === 'cancelled' ? (
                             <span className="text-[var(--foreground)]/40">-</span>
                           ) : (
-                            <span className={safeNum(t.runningBalance) >= 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}>
-                              {safeNum(t.runningBalance) < 0 ? '-' : ''}₹{fmt(t.runningBalance)}
+                            <span className={safeNum(txn.runningBalance) >= 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}>
+                              {safeNum(txn.runningBalance) < 0 ? '-' : ''}₹{fmt(txn.runningBalance)}
                             </span>
                           )}
                         </td>
                         <td className="px-5 py-4">
-                          {t.status === 'cancelled' ? (
-                            <span className="text-xs text-[var(--foreground)]/40">Cancelled</span>
-                          ) : t.referenceInvoiceId ? (
+                          {txn.status === 'cancelled' ? (
+                            <span className="text-xs text-[var(--foreground)]/40">{t('cancelled')}</span>
+                          ) : txn.referenceInvoiceId ? (
                             <div className="relative group">
                               <button
                                 className="p-1.5 text-[var(--foreground)]/20 cursor-not-allowed"
@@ -388,7 +398,7 @@ export default function KhataPage() {
                             </div>
                           ) : (
                             <button
-                              onClick={() => setDeleteId(t.id)}
+                              onClick={() => setDeleteId(txn.id)}
                               className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-colors"
                               aria-label="Delete transaction"
                             >
@@ -422,7 +432,7 @@ export default function KhataPage() {
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
-              {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
+              {error && <div className="p-3 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-lg text-sm border border-[var(--color-danger)]/20">{error}</div>}
 
               <div>
                 <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-2">Transaction Type</label>
@@ -507,13 +517,13 @@ export default function KhataPage() {
               </button>
             </div>
             <form onSubmit={handlePaymentSubmit} className="p-4 space-y-4">
-              {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
+              {error && <div className="p-3 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-lg text-sm border border-[var(--color-danger)]/20">{error}</div>}
 
-              <div className="bg-green-500/10 p-4 rounded-xl">
-                <p className="text-sm text-green-700">
+              <div className="bg-[var(--color-success)]/10 p-4 rounded-xl border border-[var(--color-success)]/20">
+                <p className="text-sm text-[var(--color-success)]">
                   Recording payment for <strong>{customer?.name}</strong>
                 </p>
-                <p className="text-lg font-bold text-green-800 mt-1">
+                <p className="text-lg font-bold text-[var(--color-success)] mt-1">
                   Current Due: ₹{fmt(customer?.currentBalance)}
                 </p>
               </div>
@@ -534,14 +544,14 @@ export default function KhataPage() {
                   <button
                     type="button"
                     onClick={() => setPaymentData({ ...paymentData, amount: String(safeNum(customer?.currentBalance)) })}
-                    className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded"
+                    className="text-xs px-2 py-1 bg-[var(--foreground)]/5 hover:bg-[var(--foreground)]/10 rounded border border-[var(--border)] text-[var(--foreground)]/70"
                   >
                     Pay Full
                   </button>
                   <button
                     type="button"
                     onClick={() => setPaymentData({ ...paymentData, amount: (safeNum(customer?.currentBalance) / 2).toFixed(2) })}
-                    className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded"
+                    className="text-xs px-2 py-1 bg-[var(--foreground)]/5 hover:bg-[var(--foreground)]/10 rounded border border-[var(--border)] text-[var(--foreground)]/70"
                   >
                     Pay Half
                   </button>
@@ -576,7 +586,7 @@ export default function KhataPage() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowPaymentModal(false)}
+                  onClick={() => { setShowPaymentModal(false); setError(''); }}
                   className="glass-btn-secondary flex-1"
                 >
                   Cancel

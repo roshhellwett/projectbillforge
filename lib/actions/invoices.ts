@@ -8,7 +8,7 @@ import { invoiceSchema, type InvoiceInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
-import { revalidateLocalizedPaths } from "@/lib/revalidate";
+import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
 import { allocatePaymentAcrossInvoices } from "@/lib/accounting";
 
 const INDIA_TIME_ZONE = "Asia/Kolkata";
@@ -72,11 +72,10 @@ export async function createInvoice(data: InvoiceInput) {
       return { error: "A customer must be selected for Khata (credit) invoices." };
     }
 
-    // Prevent future-dated invoices (allow up to 1 day ahead for timezone variance)
-    const invoiceDateObj = new Date(data.invoiceDate);
-    const maxDate = new Date();
-    maxDate.setDate(maxDate.getDate() + 1);
-    if (invoiceDateObj > maxDate) {
+    // Prevent future-dated invoices — compare against today in IST (UTC+5:30)
+    const invoiceDateObj = new Date(data.invoiceDate + 'T00:00:00+05:30');
+    const todayIST = new Date(getIndiaDateString() + 'T23:59:59+05:30');
+    if (invoiceDateObj > todayIST) {
       return { error: "Invoice date cannot be in the future." };
     }
 
@@ -248,6 +247,7 @@ export async function createInvoice(data: InvoiceInput) {
     });
 
     revalidateLocalizedPaths(['/dashboard/invoices', '/dashboard/khata', '/dashboard']);
+    revalidateDashboardCache(session.id);
     return { success: true, invoice };
   } catch (error: unknown) {
     return { error: errorMessage(error, "Failed to create invoice") };
@@ -398,6 +398,7 @@ export async function cancelInvoice(id: string) {
     });
 
     revalidateLocalizedPaths(['/dashboard/invoices', '/dashboard/khata', '/dashboard']);
+    revalidateDashboardCache(session.id);
 
     return { success: true };
   } catch (error: unknown) {

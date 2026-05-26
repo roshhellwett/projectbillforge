@@ -62,6 +62,7 @@
         "thActions": "कार्य",
         "cancelled": "रद्द (Cancelled)",
         "sale": "बिक्री",
+        "saleAdded": "बिक्री (खाते में जोड़ा गया)",
         "paymentReceived": "भुगतान प्राप्त हुआ",
         "selectCustomerPrompt": "खाता देखने के लिए ग्राहक चुनें"
     },

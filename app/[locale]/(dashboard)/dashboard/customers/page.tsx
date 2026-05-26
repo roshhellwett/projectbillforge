@@ -180,9 +180,9 @@ export default function CustomersPage() {
       </FadeIn>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
+        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl">
           {error}
-          <button onClick={() => setError("")} className="float-right text-red-500 hover:text-red-700">
+          <button onClick={() => setError("")} className="float-right text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
             <X size={16} />
           </button>
         </div>
@@ -239,10 +239,10 @@ export default function CustomersPage() {
                     </button>
                     <button
                       onClick={() => setDeleteId(customer.id)}
-                      className={`p-1.5 rounded-lg transition-colors ${(customer.currentBalance ?? 0) > 0 ? 'text-[var(--foreground)]/20 cursor-not-allowed' : 'text-[var(--foreground)]/40 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10'}`}
+                      className={`p-1.5 rounded-lg transition-colors ${Math.abs(safeNum(customer.currentBalance)) > 0.01 ? 'text-[var(--foreground)]/20 cursor-not-allowed' : 'text-[var(--foreground)]/40 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10'}`}
                       aria-label="Delete customer"
-                      disabled={(customer.currentBalance ?? 0) > 0}
-                      title={(customer.currentBalance ?? 0) > 0 ? "Cannot delete customer with outstanding balance" : "Delete customer"}
+                      disabled={Math.abs(safeNum(customer.currentBalance)) > 0.01}
+                      title={Math.abs(safeNum(customer.currentBalance)) > 0.01 ? "Cannot delete customer with outstanding balance" : "Delete customer"}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -391,10 +391,10 @@ export default function CustomersPage() {
         title="Delete Customer"
         message={(() => {
           const customer = customers.find(c => c.id === deleteId);
-          if (customer && (customer.currentBalance ?? 0) > 0) {
-            return `Cannot delete this customer. They have an outstanding balance of ${formatCurrency(customer.currentBalance)}. Please settle the dues first.`;
+          if (customer && Math.abs(safeNum(customer.currentBalance)) > 0.01) {
+            return `Cannot delete this customer. They have an outstanding balance of ₹${fmt(customer.currentBalance)}. Please settle the dues first.`;
           }
-          return "Are you sure you want to delete this customer? This action cannot be undone and will also delete all their transactions.";
+          return "Are you sure you want to delete this customer? This action cannot be undone.";
         })()}
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}

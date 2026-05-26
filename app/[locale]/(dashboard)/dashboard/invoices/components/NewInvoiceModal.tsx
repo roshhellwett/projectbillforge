@@ -56,6 +56,14 @@ interface NewInvoiceModalProps {
 // Round to 2 decimal places to match server-side Decimal.js precision
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 
+// Get today's date in IST (UTC+5:30) as YYYY-MM-DD string
+const getISTDateString = (): string => {
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const ist = new Date(now.getTime() + istOffset + now.getTimezoneOffset() * 60 * 1000);
+    return ist.toISOString().split('T')[0];
+};
+
 export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving, error }: NewInvoiceModalProps) {
     const t = useTranslations('Invoices');
     const router = useRouter();
@@ -65,7 +73,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
         customerName: "",
         customerGstin: "",
         customerAddress: "",
-        invoiceDate: new Date().toISOString().split('T')[0],
+        invoiceDate: getISTDateString(),
         notes: "",
         paymentMode: "cash" as "cash" | "upi" | "khata",
     });
@@ -81,6 +89,40 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
         if (!product) return;
 
         const qty = parseFloat(itemQuantity) || 1;
+        if (qty <= 0) return;
+
+        // B4: Stock check — warn if qty exceeds available stock
+        if (product.stockQuantity !== null && product.stockQuantity >= 0 && qty > product.stockQuantity) {
+            const confirmOverStock = window.confirm(
+                `Warning: Only ${product.stockQuantity} ${product.unit ?? 'units'} of "${product.name}" in stock. Add ${qty} anyway?`
+            );
+            if (!confirmOverStock) return;
+        }
+
+        // B3: If same product already in list, merge into existing row
+        const existingIndex = items.findIndex(i => i.productId === product.id);
+        if (existingIndex !== -1) {
+            const existing = items[existingIndex];
+            const newQty = round2(existing.quantity + qty);
+            const newAmount = round2(product.rate * newQty);
+            const gstRate = product.gstRate ?? 0;
+            const newGstAmount = newAmount * (gstRate / 100);
+            const updatedItem: InvoiceItem = {
+                ...existing,
+                quantity: newQty,
+                amount: newAmount,
+                cgst: isInterState ? 0 : round2(newGstAmount / 2),
+                sgst: isInterState ? 0 : round2(newGstAmount / 2),
+                igst: isInterState ? round2(newGstAmount) : 0,
+            };
+            const newItems = [...items];
+            newItems[existingIndex] = updatedItem;
+            setItems(newItems);
+            setSelectedProduct("");
+            setItemQuantity("");
+            return;
+        }
+
         const amount = round2(product.rate * qty);
         const gstRate = product.gstRate ?? 0;
         const gstAmount = amount * (gstRate / 100);
@@ -171,7 +213,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
-                    {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
+                    {error && <div className="p-3 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-lg text-sm border border-[var(--color-danger)]/20">{error}</div>}
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div>
@@ -214,6 +256,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                                 type="date"
                                 required
                                 value={formData.invoiceDate}
+                                max={getISTDateString()}
                                 onChange={(e) => setFormData({ ...formData, invoiceDate: e.target.value })}
                                 className="w-full glass-input"
                             />
@@ -268,6 +311,12 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                                 <span className="text-sm text-[var(--foreground)]/70">{t('khataCredit')}</span>
                             </label>
                         </div>
+                        {/* B5: Warn when khata selected but no customer picked */}
+                        {formData.paymentMode === 'khata' && !formData.customerId && (
+                            <p className="text-xs text-[var(--color-warning)] mt-1 font-medium">
+                                ⚠ Please select a customer above to use Khata (credit) payment.
+                            </p>
+                        )}
                     </div>
 
                     <div className="border border-[var(--border)] rounded-xl p-3 sm:p-4">
@@ -296,7 +345,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                                 <input
                                     type="number"
                                     step="any"
-                                    min="0"
+                                    min="0.01"
                                     value={itemQuantity}
                                     onChange={(e) => setItemQuantity(e.target.value)}
                                     className="w-20 sm:w-24 glass-input min-h-[44px]"
@@ -331,7 +380,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                                             <th className="px-2 sm:px-3 py-2"></th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-100">
+                                    <tbody className="divide-y divide-[var(--border)]/30">
                                         {items.map((item, idx) => (
                                             <tr key={idx}>
                                                 <td className="px-2 sm:px-3 py-2">{item.productName}</td>

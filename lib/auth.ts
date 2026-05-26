@@ -38,13 +38,13 @@ export const authOptions: NextAuthOptions = {
 
         // Rate limit by email
         const limiter = getLoginRateLimiter();
-        const { success } = await checkRateLimit(limiter, credentials.email.toLowerCase());
+        const { success } = await checkRateLimit(limiter, credentials.email.trim().toLowerCase());
         if (!success) {
           throw new Error("Too many login attempts. Please try again in a minute.");
         }
 
         const business = await db.query.businesses.findFirst({
-          where: eq(businesses.email, credentials.email.toLowerCase()),
+          where: eq(businesses.email, credentials.email.trim().toLowerCase()),
         });
 
         if (!business || !business.passwordHash || business.passwordHash.length === 0) return null;
@@ -88,16 +88,11 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, user, account }) {
-      if (user) {
-        // For Google OAuth users, we need to look up the DB id
-        if (account?.provider === "google" && user.email) {
-          const business = await db.query.businesses.findFirst({
-            where: eq(businesses.email, user.email.toLowerCase()),
-          });
-          if (business) {
-            token.id = business.id;
-            token.name = business.name;
-          }
+      // Only runs on initial sign-in (user is populated); subsequent refreshes skip DB lookup
+      if (user && account) {
+        if (account.provider === "google" && user.email) {
+          // id was already set in signIn callback via user.id = newBusiness.id
+          token.id = user.id;
         } else {
           token.id = user.id;
         }
