@@ -8,7 +8,7 @@ import { recalculateCustomerBalance } from "@/lib/actions/khata";
 import { formatCurrency } from "@/lib/formatters";
 import { ConfirmDialog, SkeletonCard } from "@/lib/components/ui";
 import { useTranslations } from "next-intl";
-import { Plus, Search, X, RefreshCw, Trash2, Edit2, Phone, Mail, MapPin } from "lucide-react";
+import { Plus, Search, X, RefreshCw, Trash2, Edit2, Phone, Mail, MapPin, Users } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
 // NaN-safe currency formatter
@@ -222,7 +222,10 @@ export default function CustomersPage() {
             ))}
           </div>
         ) : filteredCustomers.length === 0 ? (
-          <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">{t('noCustomers')}</div>
+          <div className="p-12 text-center">
+            <Users size={40} className="mx-auto mb-3 text-[var(--foreground)]/15" />
+            <p className="text-[var(--foreground)]/50 font-medium">{t('noCustomers')}</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4 md:p-6">
             {filteredCustomers.map((customer) => (
@@ -241,7 +244,7 @@ export default function CustomersPage() {
                       </p>
                     )}
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleEdit(customer)}
                       className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-colors"

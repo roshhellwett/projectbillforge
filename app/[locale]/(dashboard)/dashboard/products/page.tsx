@@ -7,7 +7,7 @@ import { getProducts, createProduct, updateProduct, deleteProduct } from "@/lib/
 import { getBusinessProfile } from "@/lib/actions/business";
 import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
 import { useTranslations } from "next-intl";
-import { Plus, Search, Edit2, Trash2, X } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, X, Package } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
 interface Product {
@@ -254,7 +254,10 @@ export default function ProductsPage() {
         {loading ? (
           <div className="p-4"><SkeletonTable rows={5} /></div>
         ) : filteredProducts.length === 0 ? (
-          <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">{t('noProducts')}</div>
+          <div className="p-12 text-center">
+            <Package size={40} className="mx-auto mb-3 text-[var(--foreground)]/15" />
+            <p className="text-[var(--foreground)]/50 font-medium">{t('noProducts')}</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -283,7 +286,7 @@ export default function ProductsPage() {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <div className="flex items-center gap-1 opacity-0 hover:opacity-100 transition-opacity group-hover:opacity-100" style={{ opacity: 1 }}> {/* simplified for touch */}
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleEdit(product)}
                           className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-colors"

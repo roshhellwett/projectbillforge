@@ -67,7 +67,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
         </div>
 
         {/* Nav */}
-        <nav className="px-4 space-y-1 flex-1 overflow-y-auto">
+        <nav className="px-3 py-4 space-y-0.5 flex-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href ||
               (item.href !== '/dashboard' && pathname.startsWith(item.href));
@@ -100,28 +100,25 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
         </nav>
 
         {/* Support Section */}
-        <div className="p-4 shrink-0 mt-auto">
-          <div className="bg-gradient-to-br from-[var(--color-primary)]/5 to-[var(--color-secondary)]/5 rounded-2xl p-4 text-center border border-[var(--color-primary)]/10 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-[var(--color-primary)]/10 rounded-full blur-xl pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 -mb-2 -ml-2 w-16 h-16 bg-[var(--color-secondary)]/10 rounded-full blur-xl pointer-events-none"></div>
-
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-b from-[var(--surface)] to-[var(--background)] border border-[var(--border)] text-[var(--color-primary)] flex items-center justify-center mx-auto mb-3 shadow-[0_2px_8px_rgba(0,0,0,0.04)] relative z-10">
-              <BookOpen size={16} />
+        <div className="p-3 shrink-0 mt-auto">
+          <div className="bg-[var(--foreground)]/[0.02] rounded-xl p-4 text-center border border-[var(--border)]">
+            <div className="w-9 h-9 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mx-auto mb-2.5">
+              <BookOpen size={15} />
             </div>
-            <h3 className="font-semibold text-xs text-[var(--foreground)] mb-1 relative z-10">Need help?</h3>
-            <p className="text-[10px] text-[var(--foreground)]/60 mb-3 px-1 relative z-10">
-              Problems while using BillForge?
+            <h3 className="font-semibold text-xs text-[var(--foreground)] mb-0.5">Need help?</h3>
+            <p className="text-[10px] text-[var(--foreground)]/50 mb-3">
+              Reach out for support
             </p>
-            <a href="mailto:zenithprojects@icloud.com" className="block w-full py-2 bg-[var(--surface)] rounded-lg text-xs font-medium text-[var(--color-primary)] shadow-sm border border-[var(--color-primary)]/20 hover:border-[var(--color-primary)]/40 hover:shadow-md transition-all relative z-10">
+            <a href="mailto:zenithprojects@icloud.com" className="block w-full py-2 bg-[var(--surface)] rounded-lg text-xs font-medium text-[var(--color-primary)] border border-[var(--border)] hover:border-[var(--color-primary)]/30 transition-colors">
               Contact Support
             </a>
           </div>
 
-          {/* Minimal Auth/Theme Row */}
-          <div className="flex items-center justify-between mt-3 gap-1 px-1">
+          {/* Auth/Theme Row */}
+          <div className="flex items-center justify-between mt-3 gap-1">
             <LanguageSwitcher compact />
-            <div className="flex items-center gap-1">
-              <div className="transform scale-[0.70] origin-center -mx-2 h-[28px] overflow-visible flex flex-col justify-center">
+            <div className="flex items-center gap-0.5">
+              <div className="transform scale-[0.65] origin-center -mx-2.5 h-[28px] overflow-visible flex flex-col justify-center">
                 <ThemeToggle />
               </div>
               <SignOutButton iconOnly />

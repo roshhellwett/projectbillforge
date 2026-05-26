@@ -79,7 +79,7 @@ A clean, straightforward application for managing your business operations.
 [zenithopensourceprojects](https://github.com/topics/zenithopensourceprojects) | [nextjs](https://github.com/topics/nextjs) | [inventory-management](https://github.com/topics/inventory-management) | [billing-system](https://github.com/topics/billing-system)
 
 ### Resources
-[Documentation](https://github.com/roshhellwett/projectbillforge#readme) | [License](file:///b:/zenithopensourceprojects/projectbillforge/license) | [Security Policy](file:///b:/zenithopensourceprojects/projectbillforge/security.md)
+[Documentation](https://github.com/roshhellwett/projectbillforge#readme) | [License](https://github.com/roshhellwett/projectbillforge/blob/main/LICENSE) | [Security Policy](https://github.com/roshhellwett/projectbillforge/blob/main/SECURITY.md)
 
 ---
 

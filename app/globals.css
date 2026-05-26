@@ -222,9 +222,6 @@ body {
   transform: translateY(-2px);
 }
 
-.glass-card:active {
-  transform: translateY(1px);
-}
 
 /* ── Inner areas & Form Inputs ── */
 .glass-light,
@@ -446,7 +443,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--shadow-neu-inner-dark);
+  background: var(--border);
   border-radius: 3px;
 }
 
@@ -486,7 +483,14 @@ body {
   }
 }
 
-/* ── Legacy Compat & Toast Annimations ── */
+/* ── Focus Visible (Accessibility) ── */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Legacy Compat & Toast Animations ── */
 .text-balance {
   text-wrap: balance;
 }

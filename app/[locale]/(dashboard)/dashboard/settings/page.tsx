@@ -229,16 +229,6 @@ export default function SettingsPage() {
               />
             </div>
           </div>
-
-          <div className="mt-8 pt-6 border-t border-[var(--border)]/50 flex justify-end">
-            <button
-              type="submit"
-              disabled={saving}
-              className="glass-btn-primary px-8"
-            >
-              {saving ? t('saving') : t('saveChanges')}
-            </button>
-          </div>
         </StaggerItem>
 
         <StaggerItem className="glass-card p-8">
@@ -252,11 +242,6 @@ export default function SettingsPage() {
             className="w-full px-4 py-3 bg-[var(--foreground)]/5 border border-[var(--border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 text-[var(--foreground)] transition-all"
             placeholder="Enter terms and conditions..."
           />
-          <div className="mt-6 pt-4 border-t border-[var(--border)]/50 flex justify-end">
-            <button type="submit" disabled={saving} className="glass-btn-primary px-8">
-              {saving ? t('saving') : t('saveChanges')}
-            </button>
-          </div>
         </StaggerItem>
 
         <StaggerItem className="glass-card p-8">
@@ -308,28 +293,33 @@ export default function SettingsPage() {
               A ₹10,000 invoice overdue by 44 days would incur: ₹{(formData.fineFrequencyDays > 0 ? (10000 * (formData.finePercentage / 100) * Math.max(0, Math.floor((44 - formData.redemptionPeriodDays) / formData.fineFrequencyDays))) : 0).toFixed(2)} in fines.
             </p>
           </div>
-          <div className="mt-6 pt-4 border-t border-[var(--border)]/50 flex justify-end">
-            <button type="submit" disabled={saving} className="glass-btn-primary px-8">
-              {saving ? t('saving') : t('saveChanges')}
-            </button>
-          </div>
         </StaggerItem>
 
-        <StaggerItem className="glass-card p-8 border border-[var(--color-danger)]/10">
-          <h2 className="text-xl font-bold text-[var(--color-danger)] mb-2">Danger Zone</h2>
-          <p className="text-sm font-medium text-[var(--foreground)]/60 mb-6">
-            This will cancel all invoices and Khata transactions, and reset all customer balances to zero.
-            This action cannot be undone for accounting records.
-          </p>
+        <StaggerItem className="flex justify-end">
           <button
-            type="button"
-            onClick={() => setShowResetConfirm(true)}
-            className="px-6 py-3.5 bg-[var(--color-danger)]/10 text-[var(--color-danger)] font-bold rounded-full hover:bg-[var(--color-danger)] hover:text-white transition-all hover:-translate-y-1"
+            type="submit"
+            disabled={saving}
+            className="glass-btn-primary px-8"
           >
-            Reset All Khata Data
+            {saving ? t('saving') : t('saveChanges')}
           </button>
         </StaggerItem>
       </form>
+
+      <StaggerItem className="glass-card p-8 border border-[var(--color-danger)]/10">
+        <h2 className="text-xl font-bold text-[var(--color-danger)] mb-2">Danger Zone</h2>
+        <p className="text-sm font-medium text-[var(--foreground)]/60 mb-6">
+          This will cancel all invoices and Khata transactions, and reset all customer balances to zero.
+          This action cannot be undone for accounting records.
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowResetConfirm(true)}
+          className="px-6 py-3.5 bg-[var(--color-danger)]/10 text-[var(--color-danger)] font-bold rounded-full hover:bg-[var(--color-danger)] hover:text-white transition-all hover:-translate-y-1"
+        >
+          Reset All Khata Data
+        </button>
+      </StaggerItem>
 
       {showResetConfirm && (
         <div className="glass-overlay">
@@ -422,15 +412,15 @@ export default function SettingsPage() {
       {/* About */}
       <StaggerItem>
         <div className="glass-card p-6 text-center">
-          <h3 className="text-sm font-semibold text-[var(--foreground)]/60 mb-2">About BillForge</h3>
-          <p className="text-xs text-[var(--foreground)]/35 leading-relaxed">
-            BillForge v1.0 · An open source billing platform for Indian businesses
+          <h3 className="text-sm font-semibold text-[var(--foreground)]/60 mb-1">About BillForge</h3>
+          <p className="text-xs text-[var(--foreground)]/40 mb-4">v1.0 &mdash; An open source billing platform for Indian businesses</p>
+          <div className="w-12 h-px bg-[var(--border)] mx-auto mb-4" />
+          <p className="text-xs text-[var(--foreground)]/50">
+            For support or feedback, contact{" "}
+            <a href="mailto:zenithprojects@icloud.com" className="text-[var(--color-primary)] hover:underline font-medium">zenithprojects@icloud.com</a>
           </p>
-          <p className="text-xs text-[var(--foreground)]/50 mt-3 italic max-w-md mx-auto">
-            For support or feedback, reach us at <a href="mailto:zenithprojects@icloud.com" className="text-[var(--color-primary)] hover:underline">zenithprojects@icloud.com</a>
-          </p>
-          <p className="text-xs text-[var(--foreground)]/35 mt-4">
-            Built with ❤️ by{" "}
+          <p className="text-xs text-[var(--foreground)]/35 mt-3">
+            Developed by{" "}
             <a
               href="https://github.com/roshhellwett"
               target="_blank"
@@ -439,7 +429,7 @@ export default function SettingsPage() {
             >
               @roshhellwett
             </a>
-            {" "}·{" "}
+            {" "}&middot;{" "}
             <a
               href="https://github.com/roshhellwett/projectbillforge"
               target="_blank"

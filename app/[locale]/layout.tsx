@@ -4,10 +4,22 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 
 export const metadata: Metadata = {
-  title: "BillForge - Indian Billing Platform",
-  description: "Professional billing, invoicing, and Khata management for Indian businesses",
+  title: {
+    default: "BillForge - Indian Billing Platform",
+    template: "%s | BillForge",
+  },
+  description: "Professional GST billing, invoicing, and Khata management for Indian businesses. Open source by Zenith.",
+  keywords: ["billing", "invoice", "GST", "khata", "Indian business", "open source", "accounting"],
+  authors: [{ name: "roshhellwett", url: "https://github.com/roshhellwett" }],
   icons: {
     icon: "/favicon.ico",
+  },
+  metadataBase: new URL(process.env.NEXTAUTH_URL || "https://billforge.vercel.app"),
+  openGraph: {
+    title: "BillForge - Indian Billing Platform",
+    description: "Professional GST billing, invoicing, and Khata management for Indian businesses.",
+    type: "website",
+    siteName: "BillForge",
   },
 };
 

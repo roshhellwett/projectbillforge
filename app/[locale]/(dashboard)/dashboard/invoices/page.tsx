@@ -9,7 +9,7 @@ import { getInvoices, createInvoice, cancelInvoice } from "@/lib/actions/invoice
 import { getBusinessProfile } from "@/lib/actions/business";
 import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
 import { useTranslations, useLocale } from "next-intl";
-import { Plus, Search, X, Trash2, Printer, MessageCircle } from "lucide-react";
+import { Plus, Search, X, Trash2, Printer, MessageCircle, FileText } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 import { NewInvoiceModal } from "./components/NewInvoiceModal";
 import { InvoicePrintModal } from "./components/InvoicePrintModal";
@@ -289,7 +289,10 @@ export default function InvoicesPage() {
         {loading ? (
           <div className="p-4"><SkeletonTable rows={5} /></div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="p-8 sm:p-12 text-center text-[var(--foreground)]/50 font-medium">{t('noInvoices')}</div>
+          <div className="p-8 sm:p-12 text-center">
+            <FileText size={40} className="mx-auto mb-3 text-[var(--foreground)]/15" />
+            <p className="text-[var(--foreground)]/50 font-medium">{t('noInvoices')}</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px]">

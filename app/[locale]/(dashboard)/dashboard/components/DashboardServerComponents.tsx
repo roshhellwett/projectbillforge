@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, FileText, Users, AlertTriangle, TrendingUp, Package, BarChart3, Clock, ArrowUpRight, ArrowDownRight, ShoppingBag, Plus } from "lucide-react";
+import { DollarSign, FileText, Users, AlertTriangle, TrendingUp, Package, BarChart3, Clock, ArrowUpRight, ArrowDownRight, ShoppingBag } from "lucide-react";
 import { InteractiveItem } from "@/lib/components/MotionWrapper";
 import { formatCurrency } from "@/lib/formatters";
 import { Link } from "@/i18n/routing";
@@ -64,8 +64,8 @@ export async function TopReceivablesServer({ customersPromise }: { customersProm
                     ))}
                 </div>
             )}
-            <Link href="/dashboard/customers" className="mt-4 sm:mt-6 text-center text-xs sm:text-sm font-medium text-[var(--color-primary)] hover:underline">
-                View All Customers
+            <Link href="/dashboard/customers" className="mt-4 sm:mt-6 text-center text-xs sm:text-sm font-medium text-[var(--color-primary)] hover:underline flex items-center justify-center gap-1">
+                View All Customers <ArrowUpRight size={12} />
             </Link>
         </div>
     );
@@ -84,8 +84,8 @@ export async function WelcomeBannerServer({ salesPromise }: { salesPromise: Prom
                 <p className="text-[var(--foreground)]/60 mt-1 text-sm md:text-base">
                     You have {summary?.totalInvoices ?? 0} invoices processed so far.
                 </p>
-                <Link href="/dashboard/invoices" className="mt-5 inline-flex items-center gap-2 px-6 py-2.5 bg-[#60a5fa] text-white text-sm font-medium rounded-full cursor-pointer hover:shadow-lg transition-all">
-                    New Invoice
+                <Link href="/dashboard/invoices?new=true" className="mt-5 inline-flex items-center gap-2 px-6 py-2.5 bg-[var(--color-primary)] text-white text-sm font-medium rounded-full hover:opacity-90 transition-all">
+                    New Invoice <ArrowUpRight size={14} />
                 </Link>
             </div>
             <div className="hidden md:flex shrink-0 opacity-90 relative z-10 mr-10">
@@ -151,13 +151,6 @@ export async function OverviewCardsServer({ salesPromise }: { salesPromise: Prom
                                     <p className={`text-xs font-semibold truncate uppercase tracking-wider ${isGradient ? 'text-white/90' : 'text-[var(--foreground)]/60'}`}>{card.label}</p>
                                 </div>
                                 <p className={`text-2xl sm:text-3xl font-bold tracking-tight truncate ${isGradient ? 'text-white' : 'text-[var(--foreground)]'}`}>{card.value}</p>
-                                <div className="mt-3 flex items-center gap-1.5 opacity-100">
-                                    <div className="flex -space-x-1.5 align-middle">
-                                        <div className={`w-5 h-5 rounded-full border border-[var(--surface)] ${isGradient ? 'bg-white/20' : 'bg-[var(--color-primary)]/10 shadow-sm'}`}></div>
-                                        <div className={`w-5 h-5 rounded-full border border-[var(--surface)] ${isGradient ? 'bg-white/40' : 'bg-[var(--color-primary)]/30 shadow-sm'}`}></div>
-                                    </div>
-                                    <span className={`text-[9px] font-medium ${isGradient ? 'text-white/90' : 'text-[var(--foreground)]/50'}`}>Updated just now</span>
-                                </div>
                             </div>
                         </InteractiveItem>
                     );
@@ -286,7 +279,7 @@ export async function RecentInvoicesServer({ recentPromise }: { recentPromise: P
                 <div className="text-center py-8 sm:py-10 md:py-12 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-700/30">
                     <ShoppingBag className="mx-auto mb-2 sm:mb-3 text-[var(--foreground)]/20" size={32} />
                     <p className="text-[var(--foreground)]/40 font-medium text-sm">No invoices yet</p>
-                    <p className="text-xs text-[var(--foreground)]/25 mt-1">Create your first invoice to see it here</p>
+                    <p className="text-xs text-[var(--foreground)]/30 mt-1">Create your first invoice to see it here</p>
                 </div>
             ) : (
                 <div className="space-y-2 sm:space-y-2.5">
@@ -332,7 +325,7 @@ export async function LowStockAlertsServer({ lowStockPromise }: { lowStockPromis
             </h2>
             {(!lowStock || lowStock.length === 0) ? (
                 <div className="text-center py-8 glass-light rounded-xl">
-                    <p className="text-[var(--color-success)] font-medium text-sm">✓ All products are well stocked</p>
+                    <p className="text-[var(--color-success)] font-medium text-sm">All products are well stocked</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

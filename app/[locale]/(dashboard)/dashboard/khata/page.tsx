@@ -7,7 +7,7 @@ import { getKhataStatement, createKhataTransaction, deleteKhataTransaction } fro
 import { formatCurrency, formatDate } from "@/lib/formatters";
 import { ConfirmDialog } from "@/lib/components/ui";
 import { useTranslations } from "next-intl";
-import { Plus, Search, X, ArrowUpCircle, ArrowDownCircle, Trash2, Lock } from "lucide-react";
+import { Plus, Search, X, ArrowUpCircle, ArrowDownCircle, Trash2, Lock, BookOpen } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
 // NaN-safe currency formatter — never shows ₹NaN to the user
@@ -428,8 +428,10 @@ export default function KhataPage() {
       )}
 
       {!selectedCustomer && !loading && (
-        <StaggerItem className="bg-[var(--card)]/60 backdrop-blur-3xl rounded-3xl border border-[var(--border)] shadow-sm p-6 sm:p-12 text-center mt-6">
+        <StaggerItem className="glass-card p-8 sm:p-12 text-center mt-6">
+          <BookOpen size={40} className="mx-auto mb-3 text-[var(--foreground)]/15" />
           <p className="text-[var(--foreground)]/50 font-medium text-lg">{t('selectCustomerPrompt')}</p>
+          <p className="text-[var(--foreground)]/30 text-sm mt-1">Choose a customer above to view their Khata ledger</p>
         </StaggerItem>
       )}
 
