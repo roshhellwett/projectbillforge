@@ -80,7 +80,6 @@ export function InvoicePrintModal({
     const invoiceItems = invoice.items ?? [];
     const itemTotals = getItemTotals(invoiceItems);
     const hasIgst = invoiceItems.some((item) => item.igst > 0);
-    const safeTotal = Number(invoice.total ?? 0).toFixed(2);
     const safeAmountPaid = Number(invoice.amountPaid ?? 0).toFixed(2);
 
     const handlePrintThermal = () => {
@@ -108,8 +107,7 @@ export function InvoicePrintModal({
             alert('Print window was blocked by your browser. Please allow pop-ups for this site and try again.');
             return;
         }
-        if (printWindow) {
-            printWindow.document.write(`
+        printWindow.document.write(`
         <html><head><title>Receipt ${safeInvoiceNumber}</title>
         <style>
           @page { margin: 0; }
@@ -186,8 +184,7 @@ export function InvoicePrintModal({
           </script>
         </body></html>
       `);
-            printWindow.document.close();
-        }
+        printWindow.document.close();
     };
 
     const handlePrintA4 = () => {
@@ -220,8 +217,7 @@ export function InvoicePrintModal({
             alert('Print window was blocked by your browser. Please allow pop-ups for this site and try again.');
             return;
         }
-        if (printWindow) {
-            printWindow.document.write(`
+        printWindow.document.write(`
         <html><head><title>Invoice ${safeInvoiceNumber}</title>
         <style>
           @page { size: A4; margin: 20mm; }
@@ -355,8 +351,7 @@ export function InvoicePrintModal({
           </script>
         </body></html>
       `);
-            printWindow.document.close();
-        }
+        printWindow.document.close();
     };
 
     return (

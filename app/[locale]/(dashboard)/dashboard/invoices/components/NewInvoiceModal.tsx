@@ -58,10 +58,7 @@ const round2 = (n: number): number => Math.round(n * 100) / 100;
 
 // Get today's date in IST (UTC+5:30) as YYYY-MM-DD string
 const getISTDateString = (): string => {
-    const now = new Date();
-    const istOffset = 5.5 * 60 * 60 * 1000;
-    const ist = new Date(now.getTime() + istOffset + now.getTimezoneOffset() * 60 * 1000);
-    return ist.toISOString().split('T')[0];
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 };
 
 export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving, error }: NewInvoiceModalProps) {
@@ -417,18 +414,24 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                                 <span className="text-[var(--foreground)]/60">{t('subtotal')}</span>
                                 <span className="font-medium">{formatCurrency(totals.subtotal)}</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-[var(--foreground)]/60">CGST:</span>
-                                <span className="font-medium">{formatCurrency(totals.cgst)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-[var(--foreground)]/60">SGST:</span>
-                                <span className="font-medium">{formatCurrency(totals.sgst)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-[var(--foreground)]/60">IGST:</span>
-                                <span className="font-medium">{formatCurrency(totals.igst)}</span>
-                            </div>
+                            {!isInterState && (
+                                <>
+                                    <div className="flex justify-between">
+                                        <span className="text-[var(--foreground)]/60">CGST:</span>
+                                        <span className="font-medium">{formatCurrency(totals.cgst)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-[var(--foreground)]/60">SGST:</span>
+                                        <span className="font-medium">{formatCurrency(totals.sgst)}</span>
+                                    </div>
+                                </>
+                            )}
+                            {isInterState && (
+                                <div className="flex justify-between">
+                                    <span className="text-[var(--foreground)]/60">IGST:</span>
+                                    <span className="font-medium">{formatCurrency(totals.igst)}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between text-lg font-bold pt-2 border-t">
                                 <span>{t('total')}</span>
                                 <span>{formatCurrency(grandTotal)}</span>

@@ -252,6 +252,11 @@ export default function SettingsPage() {
             className="w-full px-4 py-3 bg-[var(--foreground)]/5 border border-[var(--border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 text-[var(--foreground)] transition-all"
             placeholder="Enter terms and conditions..."
           />
+          <div className="mt-6 pt-4 border-t border-[var(--border)]/50 flex justify-end">
+            <button type="submit" disabled={saving} className="glass-btn-primary px-8">
+              {saving ? t('saving') : t('saveChanges')}
+            </button>
+          </div>
         </StaggerItem>
 
         <StaggerItem className="glass-card p-8">
@@ -302,6 +307,11 @@ export default function SettingsPage() {
               <span className="font-bold text-[var(--color-primary)] mr-2">Example:</span> With {formData.redemptionPeriodDays} days grace, {formData.finePercentage}% per {formData.fineFrequencyDays} days -
               A ₹10,000 invoice overdue by 44 days would incur: ₹{(formData.fineFrequencyDays > 0 ? (10000 * (formData.finePercentage / 100) * Math.max(0, Math.floor((44 - formData.redemptionPeriodDays) / formData.fineFrequencyDays))) : 0).toFixed(2)} in fines.
             </p>
+          </div>
+          <div className="mt-6 pt-4 border-t border-[var(--border)]/50 flex justify-end">
+            <button type="submit" disabled={saving} className="glass-btn-primary px-8">
+              {saving ? t('saving') : t('saveChanges')}
+            </button>
           </div>
         </StaggerItem>
 

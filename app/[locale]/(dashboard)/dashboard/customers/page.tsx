@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "@/lib/actions/customers";
 import { recalculateCustomerBalance } from "@/lib/actions/khata";
 import { formatCurrency } from "@/lib/formatters";
@@ -35,6 +36,7 @@ interface Customer {
 export default function CustomersPage() {
   const t = useTranslations('Customers');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -70,11 +72,19 @@ export default function CustomersPage() {
     loadCustomers();
   }, []);
 
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      openModal();
+      router.replace('/dashboard/customers');
+    }
+  }, [searchParams]);
+
   const loadCustomers = async () => {
     setLoading(true);
     const result = await getCustomers();
     if (result.success) {
       setCustomers(result.customers);
+      setError("");
     } else if (result.error) {
       setError(result.error);
     }
@@ -391,6 +401,7 @@ export default function CustomersPage() {
       <ConfirmDialog
         open={!!deleteId}
         title="Delete Customer"
+        loading={deleting}
         message={(() => {
           const customer = customers.find(c => c.id === deleteId);
           if (customer && Math.abs(safeNum(customer.currentBalance)) > 0.01) {

@@ -2,11 +2,9 @@
 
 import { useEffect, useCallback, useState } from "react";
 import { useRouter } from "@/i18n/routing";
-import { useToast } from "@/lib/components/Toast";
 
 interface KeyboardShortcut {
   key: string;
-  ctrl?: boolean;
   shift?: boolean;
   action: () => void;
   description: string;
@@ -15,17 +13,25 @@ interface KeyboardShortcut {
 function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      const isEditable =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable;
+
       const shortcut = shortcuts.find(
         (s) =>
           s.key.toLowerCase() === event.key.toLowerCase() &&
-          (s.ctrl === undefined || s.ctrl === (event.ctrlKey || event.metaKey)) &&
           (s.shift === undefined || s.shift === event.shiftKey)
       );
 
-      if (shortcut) {
-        event.preventDefault();
-        shortcut.action();
-      }
+      if (!shortcut) return;
+      // Block all shortcuts when focus is inside editable elements
+      if (isEditable) return;
+
+      event.preventDefault();
+      shortcut.action();
     },
     [shortcuts]
   );
@@ -41,12 +47,12 @@ export function KeyboardShortcutsHelp() {
   const router = useRouter();
 
   const shortcuts: KeyboardShortcut[] = [
-    { key: "n", ctrl: true, description: "New Invoice", action: () => router.push("/dashboard/invoices?new=true") },
-    { key: "c", ctrl: true, description: "New Customer", action: () => router.push("/dashboard/customers?new=true") },
-    { key: "p", ctrl: true, description: "New Product", action: () => router.push("/dashboard/products?new=true") },
-    { key: "/", description: "Search", action: () => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus() },
+    { key: "N", shift: true, description: "New Invoice", action: () => router.push("/dashboard/invoices?new=true") },
+    { key: "C", shift: true, description: "New Customer", action: () => router.push("/dashboard/customers?new=true") },
+    { key: "P", shift: true, description: "New Product", action: () => router.push("/dashboard/products?new=true") },
+    { key: "S", shift: true, description: "Search", action: () => document.querySelector<HTMLInputElement>('input[placeholder*="Search"]')?.focus() },
+    { key: "K", shift: true, description: "Command Menu", action: () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, metaKey: true, bubbles: true })) },
     { key: "?", shift: true, description: "Show Shortcuts", action: () => setIsOpen(true) },
-    { key: "Escape", description: "Close Modal", action: () => document.body.click() },
   ];
 
   useKeyboardShortcuts(shortcuts);
@@ -85,7 +91,6 @@ export function KeyboardShortcutsHelp() {
                 >
                   <span className="text-sm text-[var(--foreground)]/70">{shortcut.description}</span>
                   <div className="flex items-center gap-1">
-                    {shortcut.ctrl && <kbd className="px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded text-xs">Ctrl</kbd>}
                     {shortcut.shift && <kbd className="px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded text-xs">Shift</kbd>}
                     <kbd className="px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded text-xs">{shortcut.key.toUpperCase()}</kbd>
                   </div>

@@ -146,19 +146,6 @@ export async function createInvoice(data: InvoiceInput) {
         status: 'active',
       }).returning();
 
-      if (data.customerId) {
-        const customerRows = await tx.execute(
-          sql`SELECT id, business_id FROM customers WHERE id = ${data.customerId} FOR UPDATE`
-        ) as unknown as { id: string; business_id: string }[];
-        const customer = customerRows[0];
-        if (!customer) {
-          throw new Error("Customer not found");
-        }
-        if (customer.business_id !== session.id) {
-          throw new Error("Customer does not belong to your business");
-        }
-      }
-
       if (processedItems.length > 0) {
         // Aggregate required quantities by productId to handle duplicate items
         const productProps = new Map<string, { qty: number; name: string }>();

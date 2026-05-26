@@ -61,7 +61,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
               {t('searchPlaceholder')}
             </span>
             <kbd className="hidden sm:inline-flex items-center gap-1 font-sans text-[10px] px-1.5 py-0.5 rounded shadow-[0_1px_0_rgba(0,0,0,0.1)] bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)]/50">
-              <span className="text-xs">⌘</span>K
+              Shift+K
             </kbd>
           </button>
         </div>

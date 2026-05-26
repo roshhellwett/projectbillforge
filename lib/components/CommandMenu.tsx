@@ -152,7 +152,11 @@ export function CommandMenu() {
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [open, filteredActions, selectedIndex]);
 
-    // Reset selected index when query changes
+    // Reset selected index when query changes, also clamp if filteredActions shrinks
+    useEffect(() => {
+        setSelectedIndex((prev) => Math.min(prev, Math.max(0, filteredActions.length - 1)));
+    }, [filteredActions.length]);    // eslint-disable-line react-hooks/exhaustive-deps
+
     useEffect(() => {
         setSelectedIndex(0);
     }, [query]);
@@ -166,13 +170,13 @@ export function CommandMenu() {
 
     // Scroll active item into view
     useEffect(() => {
-        if (listRef.current) {
+        if (listRef.current && filteredActions.length > 0) {
             const activeElement = listRef.current.children[selectedIndex] as HTMLElement;
             if (activeElement) {
                 activeElement.scrollIntoView({ block: "nearest", behavior: "smooth" });
             }
         }
-    }, [selectedIndex]);
+    }, [selectedIndex, filteredActions.length]);
 
     return (
         <AnimatePresence>

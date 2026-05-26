@@ -130,9 +130,8 @@ export async function deleteProduct(id: string) {
       return { error: "Product not found" };
     }
 
-    const [product] = await db.delete(products)
-      .where(and(eq(products.id, id), eq(products.businessId, session.id)))
-      .returning();
+    await db.delete(products)
+      .where(and(eq(products.id, id), eq(products.businessId, session.id)));
 
     revalidateLocalizedPaths(['/dashboard/products', '/dashboard']);
     return { success: true };

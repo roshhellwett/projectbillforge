@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
 import { getProducts } from "@/lib/actions/products";
 import { getCustomers } from "@/lib/actions/customers";
 import { getInvoices, createInvoice, cancelInvoice } from "@/lib/actions/invoices";
@@ -94,6 +95,7 @@ export default function InvoicesPage() {
   const t = useTranslations('Invoices');
   const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -114,6 +116,14 @@ export default function InvoicesPage() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      setError("");
+      setShowNewInvoice(true);
+      router.replace('/dashboard/invoices');
+    }
+  }, [searchParams]);
+
   const loadData = async () => {
     setLoading(true);
     const [productsResult, customersResult, invoicesResult, businessResult] = await Promise.all([
@@ -122,14 +132,16 @@ export default function InvoicesPage() {
       getInvoices(),
       getBusinessProfile(),
     ]);
-    if (productsResult.success) setProducts(productsResult.products);
+    if (productsResult.success) { setProducts(productsResult.products); setError(""); }
     else if (productsResult.error) setError(productsResult.error);
     if (customersResult.success) setCustomers(customersResult.customers);
-    if (invoicesResult.success) setInvoices(invoicesResult.invoices.map((inv: InvoiceServerRow) => ({
-      ...inv,
-      invoiceDate: new Date(inv.invoiceDate)
-    })));
-    else if (invoicesResult.error) setError(invoicesResult.error);
+    if (invoicesResult.success) {
+      setInvoices(invoicesResult.invoices.map((inv: InvoiceServerRow) => ({
+        ...inv,
+        invoiceDate: new Date(inv.invoiceDate)
+      })));
+      setError("");
+    } else if (invoicesResult.error) setError(invoicesResult.error);
     if (businessResult.success && businessResult.business) {
       setBusinessProfile({
         name: businessResult.business.name || "",
@@ -386,6 +398,7 @@ export default function InvoicesPage() {
         message="Are you sure you want to cancel this invoice? This will restore the stock and adjust the customer's balance."
         onConfirm={handleCancelInvoice}
         onCancel={() => setCancelId(null)}
+        loading={cancelling}
       />
 
       <ConfirmDialog

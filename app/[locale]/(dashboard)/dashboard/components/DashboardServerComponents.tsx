@@ -138,7 +138,7 @@ export async function OverviewCardsServer({ salesPromise }: { salesPromise: Prom
         <div>
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-sm font-bold text-[var(--foreground)]/70 tracking-wide uppercase">Overview</h2>
-                <span className="text-[10px] sm:text-xs font-semibold text-[var(--foreground)]/40 hover:text-[var(--color-primary)] cursor-pointer flex items-center gap-1">View All <ArrowUpRight size={14} /></span>
+                <Link href="/dashboard/invoices" className="text-[10px] sm:text-xs font-semibold text-[var(--foreground)]/40 hover:text-[var(--color-primary)] flex items-center gap-1 transition-colors">View All <ArrowUpRight size={14} /></Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
                 {statCards.map((card) => {
@@ -272,7 +272,7 @@ export async function BusinessSnapshotServer({
 
 export async function RecentInvoicesServer({ recentPromise }: { recentPromise: Promise<{ success?: boolean; invoices?: RecentInvoice[] }> }) {
     const recentResult = await recentPromise;
-    const recentInvoices = recentResult.success ? recentResult.invoices : [];
+    const recentInvoices = (recentResult.success && recentResult.invoices) ? recentResult.invoices : [];
 
     return (
         <div className="white-container p-5 sm:p-6 md:p-7 lg:p-8 h-full flex flex-col">

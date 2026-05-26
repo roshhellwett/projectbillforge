@@ -11,6 +11,7 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   variant?: "danger" | "warning" | "default";
+  loading?: boolean;
 }
 
 export function ConfirmDialog({
@@ -22,6 +23,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   variant = "danger",
+  loading = false,
 }: ConfirmDialogProps) {
   if (!open) return null;
 
@@ -44,15 +46,23 @@ export function ConfirmDialog({
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="glass-btn-secondary flex-1"
+            disabled={loading}
+            className="glass-btn-secondary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {cancelLabel}
           </button>
           <button
             onClick={onConfirm}
-            className={`flex-1 px-4 py-2.5 text-white rounded-full font-semibold transition-all active:scale-95 ${buttonStyle}`}
+            disabled={loading}
+            className={`flex-1 px-4 py-2.5 text-white rounded-full font-semibold transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${buttonStyle}`}
           >
-            {confirmLabel}
+            {loading && (
+              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+            )}
+            {loading ? "Processing..." : confirmLabel}
           </button>
         </div>
       </motion.div>

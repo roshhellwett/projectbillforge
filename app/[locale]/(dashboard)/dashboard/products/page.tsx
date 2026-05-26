@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "@/lib/actions/products";
 import { getBusinessProfile } from "@/lib/actions/business";
 import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
@@ -47,6 +48,7 @@ const normalizeMetadata = (value: Record<string, unknown> | null): Record<string
 export default function ProductsPage() {
   const t = useTranslations('Products');
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -73,6 +75,15 @@ export default function ProductsPage() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      setEditingProduct(null);
+      setError("");
+      setShowModal(true);
+      router.replace('/dashboard/products');
+    }
+  }, [searchParams]);
+
   const loadData = async () => {
     setLoading(true);
     const [productsResult, businessResult] = await Promise.all([
@@ -81,6 +92,7 @@ export default function ProductsPage() {
     ]);
     if (productsResult.success) {
       setProducts(productsResult.products);
+      setError("");
     } else if (productsResult.error) {
       setError(productsResult.error);
     }
@@ -405,6 +417,7 @@ export default function ProductsPage() {
         message="Are you sure you want to delete this product? This action cannot be undone."
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
+        loading={deleting}
       />
     </StaggerContainer>
   );

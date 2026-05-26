@@ -77,6 +77,7 @@ export default function KhataPage() {
     const result = await getCustomers();
     if (result.success) {
       setCustomers(result.customers);
+      setError("");
     } else if (result.error) {
       setError(result.error);
     }
@@ -515,6 +516,7 @@ export default function KhataPage() {
         message="Are you sure you want to delete this transaction? This will adjust the customer's balance."
         onConfirm={handleDeleteTransaction}
         onCancel={() => setDeleteId(null)}
+        loading={deleting}
       />
 
       {showPaymentModal && (
