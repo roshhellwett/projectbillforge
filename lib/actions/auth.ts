@@ -15,14 +15,14 @@ export async function registerBusiness(data: BusinessRegisterInput) {
 
   const { honeypot, turnstileToken, ...safeData } = validation.data;
 
-  // 1. Honeypot check - if a bot filled the invisible field, silently reject
+  
   if (honeypot && honeypot.length > 0) {
-    // Return a generic error so bots don't know they triggered the honeypot
+    
     return { error: "Registration failed or timed out. Please try again." };
   }
 
-  // 2. Cloudflare Turnstile Verification
-  // Only verify if the secret exists (allows local dev bypass if env is not set)
+  
+  
   if (process.env.TURNSTILE_SECRET_KEY && turnstileToken) {
     try {
       const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {

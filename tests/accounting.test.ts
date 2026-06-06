@@ -65,7 +65,7 @@ test("calculateLateFee uses outstanding amount and frequency periods", () => {
     new Date("2026-03-02")
   );
 
-  // Outstanding = 800, overdue periods = 3, fine = 800 * 0.05 * 3
+  
   assert.equal(fine, 120);
 });
 

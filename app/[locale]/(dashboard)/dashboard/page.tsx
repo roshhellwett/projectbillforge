@@ -24,8 +24,8 @@ import {
 } from "./components/Skeletons";
 
 export default function DashboardPage() {
-  // Initiate all data fetches concurrently. This allows the shell to render immediately
-  // and chunks to stream in as they finish, creating a fast, snappy experience.
+  
+  
   const salesPromise = getSalesSummary();
   const lowStockPromise = getLowStockProducts();
   const customersPromise = getCustomers();

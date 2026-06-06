@@ -10,7 +10,7 @@ import { useTranslations } from "next-intl";
 import { Plus, Search, X, ArrowUpCircle, ArrowDownCircle, Trash2, Lock, BookOpen } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
-// NaN-safe currency formatter — never shows ₹NaN to the user
+
 const fmt = (v: string | number | null | undefined): string => {
   const n = Number(v);
   if (isNaN(n) || !isFinite(n)) return '0.00';

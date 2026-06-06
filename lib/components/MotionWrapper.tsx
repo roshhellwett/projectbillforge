@@ -2,9 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 
-/* ═══════════════════════════════════════════
-   Smooth spring config — consistent everywhere
-   ═══════════════════════════════════════════ */
+
 const smoothSpring = { type: "spring" as const, stiffness: 260, damping: 24 };
 const gentleSpring = { type: "spring" as const, stiffness: 200, damping: 26 };
 

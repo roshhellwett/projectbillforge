@@ -27,7 +27,7 @@ export function CommandMenu() {
     const inputRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLDivElement>(null);
 
-    // Toggle menu on Cmd+K / Ctrl+K
+    
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
             if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -126,7 +126,7 @@ export function CommandMenu() {
             );
         });
 
-    // Handle keyboard navigation within the menu
+    
     useEffect(() => {
         if (!open) {
             setQuery("");
@@ -152,23 +152,23 @@ export function CommandMenu() {
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [open, filteredActions, selectedIndex]);
 
-    // Reset selected index when query changes, also clamp if filteredActions shrinks
+    
     useEffect(() => {
         setSelectedIndex((prev) => Math.min(prev, Math.max(0, filteredActions.length - 1)));
-    }, [filteredActions.length]);    // eslint-disable-line react-hooks/exhaustive-deps
+    }, [filteredActions.length]);    
 
     useEffect(() => {
         setSelectedIndex(0);
     }, [query]);
 
-    // Focus input when opened
+    
     useEffect(() => {
         if (open) {
             setTimeout(() => inputRef.current?.focus(), 50);
         }
     }, [open]);
 
-    // Scroll active item into view
+    
     useEffect(() => {
         if (listRef.current && filteredActions.length > 0) {
             const activeElement = listRef.current.children[selectedIndex] as HTMLElement;
@@ -182,7 +182,7 @@ export function CommandMenu() {
         <AnimatePresence>
             {open && (
                 <div className="fixed inset-0 z-[100] flex items-start justify-center pt-16 sm:pt-24 px-4 overflow-hidden">
-                    {/* Overlay mask */}
+                    
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -192,7 +192,7 @@ export function CommandMenu() {
                         onClick={() => setOpen(false)}
                     />
 
-                    {/* Command Menu Panel */}
+                    
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95, y: -20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -201,7 +201,7 @@ export function CommandMenu() {
                         className="w-full max-w-xl max-h-[70vh] flex flex-col glass-heavy shadow-[0_20px_60px_rgba(0,0,0,0.4)] border border-white/20 dark:border-white/10 rounded-2xl overflow-hidden relative z-10"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Search Input Area */}
+                        
                         <div className="flex items-center gap-3 px-4 sm:px-5 py-4 border-b border-[var(--border)] bg-[var(--background)]/20">
                             <Search className="text-[var(--foreground)]/40 shrink-0" size={20} />
                             <input
@@ -217,7 +217,7 @@ export function CommandMenu() {
                             </div>
                         </div>
 
-                        {/* Actions List */}
+                        
                         <div
                             ref={listRef}
                             className="overflow-y-auto p-2 sm:p-3 scroll-smooth max-h-[40vh] min-h-[150px]"
@@ -276,7 +276,7 @@ export function CommandMenu() {
                             )}
                         </div>
 
-                        {/* Footer */}
+                        
                         <div className="px-4 py-3 border-t border-[var(--border)] bg-[var(--background)]/30 backdrop-blur-md flex items-center justify-between text-[10px] sm:text-xs text-[var(--foreground)]/50">
                             <div className="flex items-center gap-4">
                                 <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded bg-[var(--foreground)]/10">↑</kbd><kbd className="px-1.5 py-0.5 rounded bg-[var(--foreground)]/10">↓</kbd> to navigate</span>

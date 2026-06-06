@@ -20,7 +20,7 @@ export async function createProduct(data: ProductInput) {
       return { error: validation.error.errors[0].message };
     }
 
-    // Server-side validation: threshold must be strictly less than stock
+    
     const stockQty = data.stockQuantity ?? 0;
     const threshold = data.lowStockThreshold ?? 0;
     if (stockQty > 0 && threshold >= stockQty) {
@@ -57,13 +57,13 @@ export async function updateProduct(id: string, data: Partial<ProductInput>) {
       return { error: validation.error.errors[0].message };
     }
 
-    // Server-side validation: if both stock and threshold are provided, check the constraint
+    
     if (data.stockQuantity !== undefined && data.lowStockThreshold !== undefined) {
       if (data.stockQuantity > 0 && data.lowStockThreshold >= data.stockQuantity) {
         return { error: "Low stock threshold must be less than the stock quantity." };
       }
     } else if (data.stockQuantity !== undefined || data.lowStockThreshold !== undefined) {
-      // One field provided without the other: fetch existing to validate
+      
       const existing = await db.query.products.findFirst({
         where: and(eq(products.id, id), eq(products.businessId, session.id)),
       });
@@ -77,7 +77,7 @@ export async function updateProduct(id: string, data: Partial<ProductInput>) {
       }
     }
 
-    // Verify ownership before update
+    
     const existingProduct = await db.query.products.findFirst({
       where: and(eq(products.id, id), eq(products.businessId, session.id)),
     });
@@ -122,7 +122,7 @@ export async function deleteProduct(id: string) {
   try {
     const session = await requireBusinessSession();
 
-    // Verify ownership before delete
+    
     const existingProduct = await db.query.products.findFirst({
       where: and(eq(products.id, id), eq(products.businessId, session.id)),
     });

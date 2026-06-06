@@ -1,8 +1,8 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { getRedis } from "./redis";
 
-// ── Rate Limiter for Auth Endpoints ──
-// Allows 5 login attempts per 60 seconds per IP
+
+
 let loginLimiter: Ratelimit | null = null;
 
 export function getLoginRateLimiter(): Ratelimit | null {
@@ -21,7 +21,7 @@ export function getLoginRateLimiter(): Ratelimit | null {
 }
 
 
-/** Check rate limit — returns { success, remaining } or allows if Redis unavailable */
+
 export async function checkRateLimit(
     limiter: Ratelimit | null,
     identifier: string
@@ -31,7 +31,7 @@ export async function checkRateLimit(
         const result = await limiter.limit(identifier);
         return { success: result.success, remaining: result.remaining };
     } catch {
-        // If Redis is down, allow the request
+        
         return { success: true, remaining: 999 };
     }
 }

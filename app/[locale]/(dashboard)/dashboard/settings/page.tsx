@@ -388,7 +388,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Mobile Account Preferences (Theme & Sign Out) */}
+      
       <StaggerItem className="glass-card p-8 md:hidden">
         <h2 className="text-lg font-semibold text-[var(--foreground)] mb-6">Account Preferences</h2>
         <div className="flex flex-col gap-4">
@@ -409,7 +409,7 @@ export default function SettingsPage() {
         </div>
       </StaggerItem>
 
-      {/* About */}
+      
       <StaggerItem>
         <div className="glass-card p-6 text-center">
           <h3 className="text-sm font-semibold text-[var(--foreground)]/60 mb-1">About BillForge</h3>

@@ -5,13 +5,13 @@ import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWr
 export default function DashboardLoading() {
     return (
         <StaggerContainer className="space-y-8 p-4 md:p-8">
-            {/* Header skeleton */}
+            
             <FadeIn>
                 <div className="h-9 w-48 skeleton rounded-xl" />
                 <div className="h-4 w-64 skeleton rounded-lg mt-2" />
             </FadeIn>
 
-            {/* Stat cards skeleton */}
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {[...Array(4)].map((_, i) => (
                     <StaggerItem key={i}>
@@ -28,7 +28,7 @@ export default function DashboardLoading() {
                 ))}
             </div>
 
-            {/* Content panels skeleton */}
+            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {[...Array(2)].map((_, i) => (
                     <StaggerItem key={i}>

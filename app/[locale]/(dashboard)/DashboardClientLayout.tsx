@@ -20,7 +20,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
 
   return (
     <>
-      {/* Mobile Top Controls (Hidden on Desktop) */}
+      
       <div className="md:hidden fixed top-3 right-3 z-50 flex items-center gap-2">
         <div className="bg-[var(--surface)]/80 backdrop-blur-md border border-[var(--border)] p-1 rounded-xl shadow-sm">
           <LanguageSwitcher />

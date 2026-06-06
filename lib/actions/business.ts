@@ -102,7 +102,7 @@ export async function resetAllKhataData(password: string) {
       return { error: "Unable to verify credentials" };
     }
 
-    // OAuth users (no password set) must type confirmation phrase
+    
     if (!business.passwordHash || business.passwordHash.length === 0) {
       if (password !== "RESET ALL DATA") {
         return { error: "Please type RESET ALL DATA to confirm" };
@@ -115,17 +115,17 @@ export async function resetAllKhataData(password: string) {
     }
 
     await db.transaction(async (tx) => {
-      // Soft-delete: mark all khata transactions as cancelled (never hard-delete financial records)
+      
       await tx.update(khataTransactions)
         .set({ status: 'cancelled' })
         .where(eq(khataTransactions.businessId, businessId));
 
-      // Soft-delete: mark all invoices as cancelled
+      
       await tx.update(invoices)
         .set({ status: 'cancelled', updatedAt: new Date() })
         .where(eq(invoices.businessId, businessId));
 
-      // Zero out all customer balances
+      
       await tx.update(customers)
         .set({ currentBalance: 0, updatedAt: new Date() })
         .where(eq(customers.businessId, businessId));

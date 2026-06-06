@@ -1,6 +1,6 @@
 import { Redis } from "@upstash/redis";
 
-// Singleton Redis client — only instantiated if env vars are present
+
 let redis: Redis | null = null;
 
 export function getRedis(): Redis | null {

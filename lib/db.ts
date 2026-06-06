@@ -20,7 +20,7 @@ function createUnavailableDb(): Database {
     );
 }
 
-// Keep module import safe during build; fail only when DB is actually accessed.
+
 export const db: Database = connectionString
     ? drizzle(
         postgres(connectionString, {

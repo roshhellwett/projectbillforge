@@ -11,7 +11,7 @@ import { useTranslations } from "next-intl";
 import { Plus, Search, X, RefreshCw, Trash2, Edit2, Phone, Mail, MapPin, Users } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
 
-// NaN-safe currency formatter
+
 const fmt = (v: string | number | null | undefined): string => {
   const n = Number(v);
   if (isNaN(n) || !isFinite(n)) return '0.00';

@@ -27,7 +27,7 @@ function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
       );
 
       if (!shortcut) return;
-      // Block all shortcuts when focus is inside editable elements
+      
       if (isEditable) return;
 
       event.preventDefault();
@@ -59,7 +59,7 @@ export function KeyboardShortcutsHelp() {
 
   return (
     <>
-      {/* Keyboard shortcut indicator - desktop only, fixed in corner to avoid overlap */}
+      
       <div className="hidden md:block fixed bottom-6 right-6 z-40">
         <button
           onClick={() => setIsOpen(true)}
@@ -69,7 +69,7 @@ export function KeyboardShortcutsHelp() {
         </button>
       </div>
 
-      {/* Shortcuts Modal */}
+      
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsOpen(false)} />

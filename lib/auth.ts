@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   providers: [
-    // ── Google OAuth ──
+    
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? [
         GoogleProvider({
@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
       ]
       : []),
 
-    // ── Email/Password Credentials ──
+    
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // Rate limit by email
+        
         const limiter = getLoginRateLimiter();
         const { success } = await checkRateLimit(limiter, credentials.email.trim().toLowerCase());
         if (!success) {
@@ -62,24 +62,24 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account }) {
-      // For Google OAuth: auto-create business record on first login
+      
       if (account?.provider === "google" && user.email) {
         const existing = await db.query.businesses.findFirst({
           where: eq(businesses.email, user.email.toLowerCase()),
         });
 
         if (!existing) {
-          // Create a new business record for the Google user
+          
           const [newBusiness] = await db
             .insert(businesses)
             .values({
               id: crypto.randomUUID(),
               name: user.name || user.email.split("@")[0],
               email: user.email.toLowerCase(),
-              passwordHash: "", // No password for OAuth users
+              passwordHash: "", 
             })
             .returning();
-          // Override the user id with the DB id
+          
           user.id = newBusiness.id;
         } else {
           user.id = existing.id;
@@ -88,10 +88,10 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, user, account }) {
-      // Only runs on initial sign-in (user is populated); subsequent refreshes skip DB lookup
+      
       if (user && account) {
         if (account.provider === "google" && user.email) {
-          // id was already set in signIn callback via user.id = newBusiness.id
+          
           token.id = user.id;
         } else {
           token.id = user.id;

@@ -47,7 +47,7 @@ export default function LoginPage() {
 
   return (
     <>
-      {/* Fullscreen Loading Overlay */}
+      
       <AnimatePresence>
         {loading && (
           <motion.div
@@ -70,7 +70,7 @@ export default function LoginPage() {
       </AnimatePresence>
 
       <div className="min-h-screen flex relative overflow-hidden">
-        {/* ─── Left: Login Form ─── */}
+        
         <div className="w-full lg:w-[480px] xl:w-[520px] flex-shrink-0 flex items-center justify-center p-6 sm:p-10 relative z-10 bg-[var(--background)]">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -78,7 +78,7 @@ export default function LoginPage() {
             transition={{ duration: 0.6, ease: [0.25, 1, 0.5, 1] }}
             className="w-full max-w-sm"
           >
-            {/* Logo */}
+            
             <div className="mb-10">
               <h1 className="text-3xl font-bold gradient-text mb-1">BillForge</h1>
               <p className="text-xs text-[var(--foreground)]/40 tracking-wider uppercase">Zenith Open Source</p>
@@ -87,7 +87,7 @@ export default function LoginPage() {
             <h2 className="text-2xl font-bold text-[var(--foreground)] mb-1">{t('welcomeBack')}</h2>
             <p className="text-sm text-[var(--foreground)]/40 mb-8">{t('signInPrompt')}</p>
 
-            {/* Google Sign In */}
+            
             <button
               onClick={handleGoogleSignIn}
               className="w-full glass-btn-secondary flex items-center justify-center gap-3 py-3 mb-6 rounded-xl"
@@ -101,14 +101,14 @@ export default function LoginPage() {
               <span className="font-medium text-[var(--foreground)]">{t('continueGoogle')}</span>
             </button>
 
-            {/* Divider */}
+            
             <div className="flex items-center gap-4 mb-6">
               <div className="flex-1 h-px bg-[var(--border)]" />
               <span className="text-xs font-medium text-[var(--foreground)]/25 uppercase tracking-wider">or</span>
               <div className="flex-1 h-px bg-[var(--border)]" />
             </div>
 
-            {/* Error */}
+            
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -5 }}
@@ -119,7 +119,7 @@ export default function LoginPage() {
               </motion.div>
             )}
 
-            {/* Form */}
+            
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
               <div className="relative">
                 <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground)]/50" />
@@ -192,23 +192,23 @@ export default function LoginPage() {
           </motion.div>
         </div>
 
-        {/* ─── Right: Animated Illustration ─── */}
+        
         <div className="hidden lg:flex flex-1 relative overflow-hidden items-center justify-center">
-          {/* Rich professional gradient background */}
+          
           <div className="absolute inset-0 grad-blue opacity-90" />
 
-          {/* Subtle radial glow */}
+          
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.08)_0%,transparent_70%)] pointer-events-none" />
 
-          {/* Grid pattern overlay */}
+          
           <div className="absolute inset-0 opacity-[0.07]" style={{
             backgroundImage: 'linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px)',
             backgroundSize: '40px 40px'
           }} />
 
-          {/* === Animated Illustration Content === */}
+          
           <div className="relative z-10 w-full max-w-lg px-8">
-            {/* Floating invoice card */}
+            
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
@@ -220,7 +220,7 @@ export default function LoginPage() {
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 className="white-container p-6"
               >
-                {/* Invoice header */}
+                
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <div className="text-[var(--foreground)] font-bold text-lg">Invoice #001</div>
@@ -231,7 +231,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Mock line items */}
+                
                 <div className="space-y-3 mb-6">
                   {[
                     { name: "Product Design Kit", amount: "₹12,500" },
@@ -251,14 +251,14 @@ export default function LoginPage() {
                   ))}
                 </div>
 
-                {/* Total */}
+                
                 <div className="flex justify-between items-center pt-2">
                   <span className="text-[var(--foreground)]/60 font-medium">Total</span>
                   <span className="text-[var(--foreground)] font-bold text-xl">₹44,700</span>
                 </div>
               </motion.div>
 
-              {/* Floating stat badges */}
+              
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -292,7 +292,7 @@ export default function LoginPage() {
               </motion.div>
             </motion.div>
 
-            {/* Tagline */}
+            
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -309,7 +309,7 @@ export default function LoginPage() {
               </p>
             </motion.div>
 
-            {/* Floating particles */}
+            
             {[...Array(6)].map((_, i) => (
               <motion.div
                 key={i}

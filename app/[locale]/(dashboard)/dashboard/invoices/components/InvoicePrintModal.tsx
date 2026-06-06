@@ -392,7 +392,7 @@ export function InvoicePrintModal({
                     </div>
                 </div>
 
-                {/* View content section (same for both formats, just a visual preview) */}
+                
                 <div className="p-4 sm:p-5 md:p-8 bg-white dark:bg-slate-900 overflow-x-auto min-h-[400px]">
                     {printFormat === 'a4' ? (
                         <div className="max-w-[800px] mx-auto min-w-[600px]">

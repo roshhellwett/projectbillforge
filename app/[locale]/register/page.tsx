@@ -67,7 +67,7 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
 
-    // Grab the Turnstile token directly from the hidden input injected by the Cloudflare script
+    
     const turnstileInput = document.querySelector('input[name="cf-turnstile-response"]') as HTMLInputElement;
     const turnstileToken = turnstileInput ? turnstileInput.value : undefined;
 
@@ -110,7 +110,7 @@ export default function RegisterPage() {
       const w = window as unknown as { turnstile?: { render: (el: HTMLElement, opts: object) => string; reset: (id: string) => void } };
       if (!w.turnstile) return;
       if (turnstileWidgetId.current) {
-        try { w.turnstile.reset(turnstileWidgetId.current); } catch { /* ignore */ }
+        try { w.turnstile.reset(turnstileWidgetId.current); } catch {  }
       }
       turnstileWidgetId.current = w.turnstile.render(turnstileRef.current, {
         sitekey: siteKey,
@@ -137,7 +137,7 @@ export default function RegisterPage() {
 
   return (
     <>
-      {/* Fullscreen Loading Overlay */}
+      
       <AnimatePresence>
         {loading && (
           <motion.div
@@ -160,7 +160,7 @@ export default function RegisterPage() {
       </AnimatePresence>
 
       <div className="min-h-screen flex relative overflow-hidden">
-        {/* ─── Left: Register Form ─── */}
+        
         <div className="w-full lg:w-[480px] xl:w-[520px] flex-shrink-0 flex items-center justify-center p-6 sm:p-10 relative z-10 bg-[var(--background)]">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -168,7 +168,7 @@ export default function RegisterPage() {
             transition={{ duration: 0.6, ease: [0.25, 1, 0.5, 1] }}
             className="w-full max-w-sm"
           >
-            {/* Logo */}
+            
             <div className="mb-8">
               <h1 className="text-3xl font-bold gradient-text mb-1">BillForge</h1>
               <p className="text-xs text-[var(--foreground)]/40 tracking-wider uppercase">Zenith Open Source</p>
@@ -179,13 +179,13 @@ export default function RegisterPage() {
               {step === 1 ? "Step 1 of 2 — Business basics" : "Step 2 of 2 — Optional details"}
             </p>
 
-            {/* Step indicator */}
+            
             <div className="flex gap-2 mb-6">
               <div className={`flex-1 h-1 rounded-full transition-colors duration-300 ${step >= 1 ? 'bg-[var(--color-primary)]' : 'bg-[var(--border)]'}`} />
               <div className={`flex-1 h-1 rounded-full transition-colors duration-300 ${step >= 2 ? 'bg-[var(--color-primary)]' : 'bg-[var(--border)]'}`} />
             </div>
 
-            {/* Google Sign In (step 1 only) */}
+            
             {step === 1 && (
               <>
                 <button
@@ -209,7 +209,7 @@ export default function RegisterPage() {
               </>
             )}
 
-            {/* Error */}
+            
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -5 }}
@@ -265,12 +265,12 @@ export default function RegisterPage() {
                     <input type="text" placeholder="Pincode" value={formData.pincode} onChange={(e) => update("pincode", e.target.value)} className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm" />
                   </div>
 
-                  {/* Honeypot Field (Hidden from real users) */}
+                  
                   <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
                     <input type="text" name="website_url" tabIndex={-1} autoComplete="off" value={formData.honeypot} onChange={(e) => update("honeypot", e.target.value)} />
                   </div>
 
-                  {/* Cloudflare Turnstile Widget — rendered programmatically via useEffect */}
+                  
                   {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
                     <div className="w-full flex justify-center py-2">
                       <div ref={turnstileRef} />
@@ -319,23 +319,23 @@ export default function RegisterPage() {
           </motion.div>
         </div>
 
-        {/* ─── Right: Animated Illustration ─── */}
+        
         <div className="hidden lg:flex flex-1 relative overflow-hidden items-center justify-center">
-          {/* Rich professional gradient background */}
+          
           <div className="absolute inset-0 grad-purple opacity-90" />
 
-          {/* Subtle radial glow */}
+          
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(37,99,235,0.08)_0%,transparent_70%)] pointer-events-none" />
 
-          {/* Grid overlay */}
+          
           <div className="absolute inset-0 opacity-[0.07]" style={{
             backgroundImage: 'linear-gradient(rgba(255,255,255,.4) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.4) 1px, transparent 1px)',
             backgroundSize: '40px 40px'
           }} />
 
-          {/* === Illustration: Dashboard Preview === */}
+          
           <div className="relative z-10 w-full max-w-lg px-8">
-            {/* Main dashboard preview card */}
+            
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
@@ -346,7 +346,7 @@ export default function RegisterPage() {
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
                 className="white-container p-6 w-full"
               >
-                {/* Mini stats row */}
+                
                 <div className="grid grid-cols-3 gap-3 mb-6">
                   {[
                     { label: "Revenue", value: "₹4.2L", color: "text-emerald-500", change: "+18%" },
@@ -367,7 +367,7 @@ export default function RegisterPage() {
                   ))}
                 </div>
 
-                {/* Mini chart */}
+                
                 <div className="mb-4">
                   <div className="text-[var(--foreground)]/40 text-[10px] font-semibold tracking-wider uppercase mb-3">Weekly Overview</div>
                   <div className="flex items-end gap-1.5 h-16">
@@ -388,7 +388,7 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                {/* Recent activity */}
+                
                 <div className="text-[var(--foreground)]/40 text-[10px] font-semibold tracking-wider uppercase mb-2 mt-6">Recent Activity</div>
                 {[
                   { text: "Invoice #042 generated", time: "2m ago", dot: "bg-emerald-500" },
@@ -409,7 +409,7 @@ export default function RegisterPage() {
               </motion.div>
             </motion.div>
 
-            {/* Floating badges */}
+            
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -447,7 +447,7 @@ export default function RegisterPage() {
               </p>
             </motion.div>
 
-            {/* Floating particles */}
+            
             {[...Array(5)].map((_, i) => (
               <motion.div
                 key={i}

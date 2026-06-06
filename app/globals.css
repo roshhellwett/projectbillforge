@@ -2,29 +2,26 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ═══════════════════════════════════════════════════════════
-   BillForge — Ultra-Premium Soft Neumorphic Design System v3
-   Perfectly balanced light/dark modes, buttery transitions.
-   ═══════════════════════════════════════════════════════════ */
+
 
 :root {
-  /* ── Base (Soft Light Gray-Blue) ── */
+  
   --background: #f0f2f5;
   --foreground: #475569;
-  /* Slate 600 for softer readability */
+  
 
-  /* ── Surface / Cards (Solid White) ── */
+  
   --surface: #ffffff;
   --border: #f1f5f9;
-  /* Slate 100 for very subtle borders */
+  
 
-  /* ── Accents (Professional Indigo & Status Colors) ── */
+  
   --color-primary: #2563eb;
-  /* Blue-600 */
+  
   --color-primary-light: #60a5fa;
   --color-primary-dark: #1d4ed8;
   --color-secondary: #4f46e5;
-  /* Indigo-600 */
+  
 
   --color-accent-blue: #3b82f6;
   --color-accent-yellow: #eab308;
@@ -34,31 +31,31 @@
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
 
-  /* ── Modern Sharp Shadows (Light Mode) ── */
+  
   --shadow-elevation: 0 10px 40px rgba(0, 0, 0, 0.04);
   --shadow-hover: 0 15px 50px rgba(0, 0, 0, 0.06);
 
-  /* ── Glass Elements (Reserved only for floating overlays) ── */
+  
   --glass-bg: rgba(255, 255, 255, 0.95);
   --glass-border: rgba(229, 231, 235, 0.8);
 
-  /* ── Sidebar ── */
+  
   --sidebar-active-bg: rgba(37, 99, 235, 0.1);
-  /* Primary Blue tint */
+  
   --sidebar-active-text: var(--color-primary);
 }
 
-/* ── Dark Mode (Professional Deep Slate) ── */
+
 .dark {
   --background: #0f172a;
-  /* Slate 900 */
+  
   --foreground: #f8fafc;
-  /* Slate 50 */
+  
 
   --surface: #1e293b;
-  /* Slate 800 */
+  
   --border: #334155;
-  /* Slate 700 */
+  
 
   --color-primary: #3b82f6;
   --color-primary-light: #60a5fa;
@@ -73,22 +70,20 @@
   --color-warning: #fbbf24;
   --color-danger: #ef4444;
 
-  /* ── Modern Sharp Shadows (Dark Mode) ── */
+  
   --shadow-elevation: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.2);
   --shadow-hover: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.3);
 
   --glass-bg: rgba(30, 41, 59, 0.95);
-  /* Slate 800 with slight transparency */
+  
   --glass-border: rgba(51, 65, 85, 0.8);
-  /* Slate 700 */
+  
 
   --sidebar-active-bg: rgba(59, 130, 246, 0.15);
   --sidebar-active-text: var(--color-primary-light);
 }
 
-/* ══════════════════════════
-   Global Reset & Base
-   ══════════════════════════ */
+
 
 html {
   scroll-behavior: smooth;
@@ -101,7 +96,7 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Buttery smooth global transitions for light/dark mode toggling */
+  
   transition: background-color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
     color 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
@@ -114,9 +109,7 @@ body {
   --color-danger: var(--color-danger);
 }
 
-/* ══════════════════════════
-   New Professional Solid Background
-   ══════════════════════════ */
+
 
 .dashboard-serene-bg {
   position: fixed;
@@ -128,18 +121,16 @@ body {
   transition: background-color 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* Removed ambient light orbs completely for a professional, distraction-free environment */
 
 
-/* ══════════════════════════════
-   Learnthru-Style Utility Classes
-   ══════════════════════════════ */
 
-/* ── White Container ── */
+
+
+
 .white-container {
   background: var(--surface);
   border-radius: 1.5rem;
-  /* 24px */
+  
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
   transition: all 0.3s ease;
   border: 1px solid rgba(0, 0, 0, 0.02);
@@ -150,34 +141,34 @@ body {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
-/* ── Vibrant Gradients ── */
+
 .grad-purple {
   background: linear-gradient(135deg, #7c3aed, #4f46e5);
-  /* Violet to Indigo */
+  
   box-shadow: 0 12px 24px -8px rgba(99, 102, 241, 0.5);
   color: white;
 }
 
 .grad-blue {
   background: linear-gradient(135deg, #3b82f6, #60a5fa);
-  /* Blue */
+  
   box-shadow: 0 12px 24px -8px rgba(59, 130, 246, 0.5);
   color: white;
 }
 
 .grad-pink {
   background: linear-gradient(135deg, #f43f5e, #fb7185);
-  /* Rose/Pink */
+  
   box-shadow: 0 12px 24px -8px rgba(244, 63, 94, 0.5);
   color: white;
 }
 
-/* ── Soft Pill Inputs ── */
+
 .soft-input {
   background: #f3f4f6;
-  /* Gray 100 */
+  
   border-radius: 9999px;
-  /* Pill shape */
+  
   border: none;
   padding: 0.75rem 1.5rem;
   color: #475569;
@@ -199,11 +190,9 @@ body {
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* ══════════════════════════════
-   Legacy Utility Classes (To be phased out)
-   ══════════════════════════════ */
 
-/* ── Protruding Card (Professional Standard) ── */
+
+
 .glass-card {
   background: var(--surface);
   border-radius: 1rem;
@@ -223,7 +212,7 @@ body {
 }
 
 
-/* ── Inner areas & Form Inputs ── */
+
 .glass-light,
 .glass-input {
   background: var(--surface);
@@ -254,12 +243,12 @@ body {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
-/* ── Floating Overlays (Modals, Command Menu, Bottom Nav) ── */
+
 .glass-heavy {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: 1.5rem;
-  /* Deep shadow separating it entirely from the neumorphic surface */
+  
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
 }
 
@@ -267,13 +256,13 @@ body {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-/* ── Sidebar Glass ── */
+
 .glass-sidebar {
   background: transparent;
-  /* Sidebar uses base background to blend in seamlessly */
+  
 }
 
-/* ── Modal Overlay ── */
+
 .glass-overlay {
   position: fixed;
   inset: 0;
@@ -297,11 +286,11 @@ body {
   overflow-y: auto !important;
 }
 
-/* ── Primary Button (Clean & Sharp) ── */
+
 .glass-btn-primary {
   background: var(--color-primary);
   color: #ffffff;
-  /* Always white text on primary button */
+  
   font-weight: 500;
   border: none;
   border-radius: 0.5rem;
@@ -336,7 +325,7 @@ body {
   color: var(--foreground);
 }
 
-/* ── Secondary / Ghost Button ── */
+
 .glass-btn-secondary {
   background: transparent;
   color: var(--foreground);
@@ -361,7 +350,7 @@ body {
   transform: translateY(1px);
 }
 
-/* ── Status badges ── */
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -392,7 +381,7 @@ body {
   border-color: rgba(239, 68, 68, 0.2);
 }
 
-/* ── Typography Accents ── */
+
 .gradient-text {
   color: var(--color-primary);
   font-weight: 700;
@@ -402,7 +391,7 @@ body {
   color: var(--color-primary-light);
 }
 
-/* ── Shimmer / Skeleton ── */
+
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);
@@ -432,7 +421,7 @@ body {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
 }
 
-/* ── Scrollbar (Soft) ── */
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -451,25 +440,23 @@ body {
   background: var(--color-primary);
 }
 
-/* ══════════════════════════
-   Mobile Responsive Tweaks
-   ══════════════════════════ */
+
 
 @media (max-width: 768px) {
   .glass-card {
     border-radius: 1.25rem;
-    /* Slightly reduce shadow spread on mobile to prevent clipping/noise */
+    
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 
   .glass-overlay {
     padding-bottom: 6rem;
-    /* Make room for the bottom navigation */
+    
   }
 
   .glass-modal-panel {
     max-height: calc(100svh - 8rem);
-    /* Use svh for mobile viewports, reserve space for nav + top padding */
+    
   }
 
   .glass-heavy {
@@ -483,14 +470,14 @@ body {
   }
 }
 
-/* ── Focus Visible (Accessibility) ── */
+
 *:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* ── Legacy Compat & Toast Animations ── */
+
 .text-balance {
   text-wrap: balance;
 }

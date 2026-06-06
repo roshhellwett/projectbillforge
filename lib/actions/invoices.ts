@@ -30,7 +30,7 @@ function generateInvoiceNumber(): string {
 }
 
 function calculateGST(itemRate: number, quantity: number, gstRate: number, isInterState: boolean) {
-  // Use Decimal for exact financial precision without float drift
+  
   const rate = new Decimal(itemRate);
   const qty = new Decimal(quantity);
   const gstPct = new Decimal(gstRate);
@@ -67,12 +67,12 @@ export async function createInvoice(data: InvoiceInput) {
       return { error: validation.error.errors[0].message };
     }
 
-    // Prevent khata invoices without a linked customer
+    
     if (data.paymentMode === 'khata' && !data.customerId) {
       return { error: "A customer must be selected for Khata (credit) invoices." };
     }
 
-    // Prevent future-dated invoices — compare against today in IST (UTC+5:30)
+    
     const invoiceDateObj = new Date(data.invoiceDate + 'T00:00:00+05:30');
     const todayIST = new Date(getIndiaDateString() + 'T23:59:59+05:30');
     if (invoiceDateObj > todayIST) {
@@ -147,7 +147,7 @@ export async function createInvoice(data: InvoiceInput) {
       }).returning();
 
       if (processedItems.length > 0) {
-        // Aggregate required quantities by productId to handle duplicate items
+        
         const productProps = new Map<string, { qty: number; name: string }>();
         for (const item of processedItems) {
           const existing = productProps.get(item.productId);
@@ -161,12 +161,12 @@ export async function createInvoice(data: InvoiceInput) {
         const productIds = Array.from(productProps.keys());
         const sqlIds = sql.join(productIds.map(id => sql`${id}`), sql`, `);
 
-        // Lock required products
+        
         const productRows = await tx.execute(
           sql`SELECT id, name, stock_quantity FROM products WHERE id IN (${sqlIds}) FOR UPDATE`
         ) as unknown as { id: string; name: string; stock_quantity: number | null }[];
 
-        // Validate stock
+        
         for (const [id, props] of productProps.entries()) {
           const product = productRows.find(p => p.id === id);
           if (!product) {
@@ -177,7 +177,7 @@ export async function createInvoice(data: InvoiceInput) {
           }
         }
 
-        // Bulk update
+        
         const quantityCases = sql.join(
           Array.from(productProps.entries()).map(([id, props]) => sql`WHEN id = ${id} THEN stock_quantity - ${props.qty}`),
           sql` `
@@ -278,7 +278,7 @@ export async function cancelInvoice(id: string) {
         .where(eq(invoices.id, id));
 
       if (invoice.items && invoice.items.length > 0) {
-        // Aggregate quantities by product to avoid duplicate-ID CASE overwrite issues
+        
         const productProps = new Map<string, number>();
         for (const item of invoice.items) {
           productProps.set(item.productId, (productProps.get(item.productId) ?? 0) + item.quantity);
@@ -287,13 +287,13 @@ export async function cancelInvoice(id: string) {
         const productIds = Array.from(productProps.keys());
         const sqlIds = sql.join(productIds.map(id => sql`${id}`), sql`, `);
 
-        // Build CASE statement for quantity increments
+        
         const quantityCases = sql.join(
           Array.from(productProps.entries()).map(([id, qty]) => sql`WHEN id = ${id} THEN stock_quantity + ${qty}`),
           sql` `
         );
 
-        // Bulk update products
+        
         await tx.execute(sql`
           UPDATE products
           SET 
@@ -334,12 +334,12 @@ export async function cancelInvoice(id: string) {
           referenceInvoiceId: invoice.id,
         });
 
-        // ---------------------------------------------------------------------
-        // GOD-LEVEL ORPHANED PAYMENT CASCADE
-        // If the cancelled invoice possessed partial payments, we must take that 
-        // locked capital and re-invest it into the next oldest unpaid invoices 
-        // belonging to the customer, to correctly resolve the Ledger shift.
-        // ---------------------------------------------------------------------
+        
+        
+        
+        
+        
+        
         if (orphanedPayment.greaterThan(0)) {
           const pendingInvoicesRows = await tx.execute(
             sql`SELECT id, total, amount_paid FROM invoices 
@@ -356,7 +356,7 @@ export async function cancelInvoice(id: string) {
           const invoicesToUpdate = allocation.updates;
           orphanedPayment = new Decimal(allocation.remaining);
 
-          // Execute batch updates avoiding N+1
+          
           if (invoicesToUpdate.length > 0) {
             const ids = invoicesToUpdate.map(inv => inv.id);
             const sqlIds = sql.join(ids.map(id => sql`${id}`), sql`, `);

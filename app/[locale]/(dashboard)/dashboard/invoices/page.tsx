@@ -226,7 +226,7 @@ export default function InvoicesPage() {
     const encodedMessage = encodeURIComponent(message);
     let url = `https://wa.me/`;
     if (customerPhone) {
-      // Sanitize and ensure +91 country code for Indian numbers
+      
       let cleanPhone = customerPhone.replace(/\D/g, '');
       if (cleanPhone.length === 10 && /^[6-9]/.test(cleanPhone)) {
         cleanPhone = '91' + cleanPhone;

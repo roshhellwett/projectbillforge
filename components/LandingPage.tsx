@@ -20,7 +20,7 @@ import {
     MessageSquare
 } from 'lucide-react';
 
-// --- Animation Variants ---
+
 const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 40, scale: 0.95 },
     visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }
@@ -61,7 +61,7 @@ const floatAnimationDelayed = {
     }
 };
 
-// --- Testimonials Data ---
+
 const testimonials = [
     {
         name: "Rajesh Kumar",
@@ -121,7 +121,7 @@ const TestimonialSlider = () => {
                     transition={{ duration: 0.5, ease: "easeInOut" }}
                     className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full"
                 >
-                    {/* Visual Card */}
+                    
                     <div className="relative">
                         <div className="absolute inset-0 bg-indigo-50/50 rounded-[3rem] transform rotate-3 scale-105 -z-10"></div>
                         <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl shadow-indigo-100/50 border border-slate-100 relative text-center">
@@ -137,7 +137,7 @@ const TestimonialSlider = () => {
                                 ))}
                             </div>
 
-                            {/* Mini UI Element */}
+                            
                             <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden text-left">
                                 <div className="flex items-center gap-2 mb-2">
                                     <div className="w-2 h-2 rounded-full bg-white"></div>
@@ -166,7 +166,7 @@ const TestimonialSlider = () => {
                 </motion.div>
             </AnimatePresence>
 
-            {/* Pagination Dots */}
+            
             <div className="absolute -bottom-16 md:-bottom-12 left-1/2 -translate-x-1/2 flex gap-3">
                 {testimonials.map((_, i) => (
                     <button
@@ -187,14 +187,14 @@ export default function LandingPage() {
 
     return (
         <div className="min-h-screen bg-[#fafbff] text-slate-800 font-sans overflow-x-hidden selection:bg-indigo-500 selection:text-white relative">
-            {/* Texture Overlay */}
+            
             <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[100] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
 
-            {/* ── Navbar ── */}
+            
             <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-lg border-b border-indigo-50/50 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
-                        {/* Logo */}
+                        
                         <div className="flex-shrink-0 flex items-center gap-2">
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-200">
                                 B
@@ -202,14 +202,14 @@ export default function LandingPage() {
                             <span className="font-bold text-xl tracking-tight text-slate-900">BillForge</span>
                         </div>
 
-                        {/* Desktop Menu */}
+                        
                         <div className="hidden md:flex items-center space-x-8">
                             <Link href="#features" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navFeatures')}</Link>
                             <Link href="/dashboard/khata" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navKhata')}</Link>
                             <Link href="/dashboard/invoices" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navInvoices')}</Link>
                         </div>
 
-                        {/* Auth Buttons */}
+                        
                         <div className="hidden md:flex items-center space-x-4">
                             <LanguageSwitcher />
                             <Link
@@ -226,7 +226,7 @@ export default function LandingPage() {
                             </Link>
                         </div>
 
-                        {/* Mobile menu button */}
+                        
                         <div className="md:hidden flex items-center">
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -238,7 +238,7 @@ export default function LandingPage() {
                     </div>
                 </div>
 
-                {/* Mobile Menu */}
+                
                 <AnimatePresence>
                     {isMobileMenuOpen && (
                         <motion.div
@@ -283,9 +283,9 @@ export default function LandingPage() {
                 </AnimatePresence>
             </nav>
 
-            {/* ── Hero Section ── */}
+            
             <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-                {/* Background Decorative Elements */}
+                
                 <div className="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-b from-purple-50 to-white -z-10 rounded-bl-[100px] opacity-70"></div>
                 <div className="absolute top-20 -left-64 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob"></div>
                 <div className="absolute top-40 -right-64 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob animation-delay-2000"></div>
@@ -293,7 +293,7 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-8 relative pt-10">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
 
-                        {/* Hero Content */}
+                        
                         <motion.div
                             initial="hidden"
                             animate="visible"
@@ -341,14 +341,14 @@ export default function LandingPage() {
                             </motion.div>
                         </motion.div>
 
-                        {/* Hero Imagery / Mockup */}
+                        
                         <motion.div
                             initial={{ opacity: 0, x: 50 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.8, delay: 0.2 }}
                             className="relative lg:h-[600px] flex items-center justify-center"
                         >
-                            {/* Main Phone Mockup */}
+                            
                             <motion.div
                                 animate={floatAnimation}
                                 className="relative z-20 w-[280px] h-[580px] bg-white rounded-[40px] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.1),0_10px_20px_-5px_rgba(0,0,0,0.05)] p-2 border-4 border-slate-100/50 backdrop-blur-sm"
@@ -357,7 +357,7 @@ export default function LandingPage() {
                                     <div className="w-20 h-4 bg-slate-100 rounded-b-xl"></div>
                                 </div>
                                 <div className="w-full h-full bg-gradient-to-b from-indigo-50 to-white rounded-[32px] overflow-hidden flex flex-col relative select-none">
-                                    {/* Phone UI Header */}
+                                    
                                     <div className="p-5 pb-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-b-3xl shadow-md">
                                         <div className="flex justify-between items-center mb-4">
                                             <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md font-bold text-xs text-indigo-800">
@@ -382,7 +382,7 @@ export default function LandingPage() {
                                         </div>
                                     </div>
 
-                                    {/* Phone UI Body */}
+                                    
                                     <div className="flex-1 px-4 pt-10 pb-4 overflow-hidden relative">
                                         <div className="flex justify-between items-center mb-4">
                                             <h4 className="font-bold text-slate-800">Recent Activity</h4>
@@ -409,7 +409,7 @@ export default function LandingPage() {
                                         </div>
                                     </div>
 
-                                    {/* Phone Floating Action Button */}
+                                    
                                     <div className="absolute bottom-6 inset-x-0 flex justify-center">
                                         <div className="w-14 h-14 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-indigo-300">
                                             <div className="w-6 h-0.5 bg-white relative">
@@ -420,7 +420,7 @@ export default function LandingPage() {
                                 </div>
                             </motion.div>
 
-                            {/* Floating Element 1 - Top Right */}
+                            
                             <motion.div
                                 animate={floatAnimationDelayed}
                                 className="absolute top-12 -right-16 lg:-right-12 z-30 bg-white/90 p-4 rounded-2xl shadow-[0_20px_50px_rgba(79,70,229,0.15)] border border-indigo-50/50 w-64 hidden sm:block backdrop-blur-md"
@@ -441,7 +441,7 @@ export default function LandingPage() {
                                 </div>
                             </motion.div>
 
-                            {/* Floating Element 2 - Bottom Left */}
+                            
                             <motion.div
                                 animate={floatAnimation}
                                 className="absolute bottom-24 -left-12 lg:-left-24 z-30 bg-white/90 p-5 rounded-[2rem] shadow-[0_25px_60px_rgba(0,0,0,0.08)] border border-white w-64 hidden sm:block backdrop-blur-xl"
@@ -488,12 +488,12 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* ── Features/Stats Section ── */}
+            
             <section className="py-20 bg-white relative border-t border-slate-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                        {/* Left side UI showcase */}
+                        
                         <motion.div
                             initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -504,7 +504,7 @@ export default function LandingPage() {
                             <div className="absolute inset-0 bg-gradient-to-tr from-indigo-100 to-purple-50 rounded-[3rem] transform -rotate-3 scale-[1.05] -z-10"></div>
 
                             <div className="bg-white rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-100/50 border border-slate-100 relative">
-                                {/* Decorative floating icon */}
+                                
                                 <div className="absolute -left-6 -top-6 w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 transform rotate-[-10deg]">
                                     <Layout size={28} />
                                 </div>
@@ -568,7 +568,7 @@ export default function LandingPage() {
                             </div>
                         </motion.div>
 
-                        {/* Right side stats & info */}
+                        
                         <motion.div
                             initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -622,11 +622,11 @@ export default function LandingPage() {
                 </div>
             </section>
 
-            {/* ── Bottom Call to Action ── */}
+            
             <section className="py-24 relative overflow-hidden bg-slate-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-[2.5rem] md:rounded-[3rem] px-6 py-12 md:p-16 text-white relative overflow-hidden shadow-2xl shadow-indigo-200">
-                        {/* Background pattern */}
+                        
                         <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none"
                             style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}>
                         </div>
@@ -746,7 +746,7 @@ export default function LandingPage() {
                             </div>
                         </div>
 
-                        {/* Sitemap / Links Sections */}
+                        
                         <div>
                             <h4 className="text-white font-bold mb-6 flex items-center gap-2">
                                 <Layout size={16} /> Product Features

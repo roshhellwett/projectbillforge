@@ -53,10 +53,10 @@ interface NewInvoiceModalProps {
     error: string;
 }
 
-// Round to 2 decimal places to match server-side Decimal.js precision
+
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 
-// Get today's date in IST (UTC+5:30) as YYYY-MM-DD string
+
 const getISTDateString = (): string => {
     return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 };
@@ -88,7 +88,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
         const qty = parseFloat(itemQuantity) || 1;
         if (qty <= 0) return;
 
-        // B4: Stock check — warn if qty exceeds available stock
+        
         if (product.stockQuantity !== null && product.stockQuantity >= 0 && qty > product.stockQuantity) {
             const confirmOverStock = window.confirm(
                 `Warning: Only ${product.stockQuantity} ${product.unit ?? 'units'} of "${product.name}" in stock. Add ${qty} anyway?`
@@ -96,7 +96,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
             if (!confirmOverStock) return;
         }
 
-        // B3: If same product already in list, merge into existing row
+        
         const existingIndex = items.findIndex(i => i.productId === product.id);
         if (existingIndex !== -1) {
             const existing = items[existingIndex];
@@ -308,7 +308,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                                 <span className="text-sm text-[var(--foreground)]/70">{t('khataCredit')}</span>
                             </label>
                         </div>
-                        {/* B5: Warn when khata selected but no customer picked */}
+                        
                         {formData.paymentMode === 'khata' && !formData.customerId && (
                             <p className="text-xs text-[var(--color-warning)] mt-1 font-medium">
                                 ⚠ Please select a customer above to use Khata (credit) payment.

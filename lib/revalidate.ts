@@ -1,9 +1,9 @@
 import { revalidatePath, revalidateTag as _revalidateTag } from "next/cache";
 import { routing } from "@/i18n/routing";
 
-// Next.js 16 changed the public TS type of revalidateTag to require a profile
-// arg (for "use cache"), but the single-arg form still works at runtime for
-// unstable_cache tag invalidation. Cast once here to avoid per-call suppressions.
+
+
+
 const revalidateTag = _revalidateTag as (tag: string) => void;
 
 function normalizePath(path: string): string {

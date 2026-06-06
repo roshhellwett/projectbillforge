@@ -52,14 +52,14 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
         ? currentBalance.plus(amountToProcess)
         : currentBalance.minus(amountToProcess);
 
-      // Credit limit enforcement: check BEFORE inserting
+      
       if (data.type === 'credit' && creditLimit.greaterThan(0) && newBalance.greaterThan(creditLimit)) {
         const available = Decimal.max(0, creditLimit.minus(currentBalance));
         throw new Error(`Credit limit exceeded. Limit: ₹${creditLimit.toFixed(2)}, Current Owed: ₹${currentBalance.toFixed(2)}, Available: ₹${available.toFixed(2)}, Requested: ₹${amountToProcess.toFixed(2)}`);
       }
 
-      // For payments (debit): allow overpayment, resulting in negative balance (credit in customer's favor)
-      // No clamping to 0 — negative balance means customer has advance credit
+      
+      
 
       const [newTransaction] = await tx.insert(khataTransactions).values({
         id: crypto.randomUUID(),
@@ -70,9 +70,9 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
         note: data.note || null,
       }).returning();
 
-      // FIFO Invoice Auto-Settlement Logic
+      
       if (data.type === 'debit') {
-        // Fetch all unpaid or partially paid invoices for this customer, oldest first
+        
         const pendingInvoicesRows = await tx.execute(
           sql`SELECT id, total, amount_paid FROM invoices 
               WHERE customer_id = ${data.customerId} 
@@ -88,14 +88,14 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
           amountToProcess
         );
 
-        // Execute batch updates using CASE statement to avoid N+1 queries
+        
         if (invoicesToUpdate.length > 0) {
           const ids = invoicesToUpdate.map(inv => inv.id);
           const sqlIds = sql.join(ids.map(id => sql`${id}`), sql`, `);
 
-          // Build dynamic CASE queries — cast values to match column types
-          // Drizzle's sql`` sends JS values as text parameters; PostgreSQL
-          // requires explicit casts for numeric/enum columns in CASE expressions.
+          
+          
+          
           const amountPaidCases = sql.join(
             invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.amountPaid}::numeric`),
             sql` `
@@ -168,7 +168,7 @@ export async function getKhataStatement(customerId: string) {
       ),
     });
 
-    // Calculate fines inline — no N+1 queries
+    
     let totalAccruedFines = 0;
     const invoiceFines: Record<string, number> = {};
 
@@ -257,8 +257,8 @@ export async function deleteKhataTransaction(id: string) {
     }
 
     await db.transaction(async (tx) => {
-      // Cancelling a debit (payment) → add the amount back (debt restored)
-      // Cancelling a credit (sale) → subtract the amount (debt removed)
+      
+      
       const balanceAdjustment = transaction.type === 'debit'
         ? transaction.amount
         : -transaction.amount;
@@ -271,7 +271,7 @@ export async function deleteKhataTransaction(id: string) {
       if (customer) {
         const currentBalance = new Decimal(customer.current_balance || 0);
         const newBalance = currentBalance.plus(balanceAdjustment).toDecimalPlaces(2);
-        // No Math.max(0) clamping — preserve true accounting balance
+        
         await tx.update(customers)
           .set({
             currentBalance: newBalance.toNumber(),
@@ -280,8 +280,8 @@ export async function deleteKhataTransaction(id: string) {
           .where(eq(customers.id, transaction.customerId));
       }
 
-      // When cancelling a debit (payment), reverse the FIFO invoice settlements
-      // that were applied when the payment was originally created.
+      
+      
       if (transaction.type === 'debit') {
         const paidInvoiceRows = await tx.execute(
           sql`SELECT id, total, amount_paid FROM invoices
@@ -293,8 +293,8 @@ export async function deleteKhataTransaction(id: string) {
               FOR UPDATE`
         ) as unknown as { id: string; total: number | null; amount_paid: number | null }[];
 
-        // Reverse-allocate: claw back the cancelled payment amount from
-        // the most-recently-settled invoices first (reverse FIFO).
+        
+        
         let remaining = new Decimal(transaction.amount).toDecimalPlaces(2);
         const invoiceUpdates: { id: string; amountPaid: number; status: string }[] = [];
 
@@ -366,7 +366,7 @@ export async function recalculateCustomerBalance(customerId: string) {
     const session = await requireBusinessSession();
 
     const calculatedBalance = await db.transaction(async (tx) => {
-      // Lock the customer row to prevent concurrent modifications
+      
       const customerRows = await tx.execute(
         sql`SELECT id, business_id, current_balance FROM customers WHERE id = ${customerId} FOR UPDATE`
       ) as unknown as { id: string; business_id: string; current_balance: number | null }[];

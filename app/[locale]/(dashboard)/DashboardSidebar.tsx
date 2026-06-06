@@ -40,9 +40,9 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
 
   return (
     <>
-      {/* Desktop Sidebar - completely hidden on mobile */}
+      
       <aside className="hidden md:flex fixed md:static inset-y-0 left-0 z-50 w-[280px] md:w-[270px] lg:w-[280px] bg-[var(--surface)] border-r border-[var(--border)] shadow-[4px_0_24px_rgba(0,0,0,0.02)] h-full flex flex-col transition-all">
-        {/* Logo */}
+        
         <div className="p-6 flex flex-col gap-4 shrink-0 border-b border-[var(--border)]/50">
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
@@ -66,7 +66,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
           </button>
         </div>
 
-        {/* Nav */}
+        
         <nav className="px-3 py-4 space-y-0.5 flex-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = pathname === item.href ||
@@ -99,7 +99,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
           })}
         </nav>
 
-        {/* Support Section */}
+        
         <div className="p-3 shrink-0 mt-auto">
           <div className="bg-[var(--foreground)]/[0.02] rounded-xl p-4 text-center border border-[var(--border)]">
             <div className="w-9 h-9 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mx-auto mb-2.5">
@@ -114,7 +114,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
             </a>
           </div>
 
-          {/* Auth/Theme Row */}
+          
           <div className="flex items-center justify-between mt-3 gap-1">
             <LanguageSwitcher compact />
             <div className="flex items-center gap-0.5">
@@ -126,7 +126,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
           </div>
         </div>
 
-        {/* Credit */}
+        
         <div className="px-5 pb-3 shrink-0">
           <a
             href="https://github.com/roshhellwett"
