@@ -12,19 +12,19 @@ A powerful and streamlined business management utility — designed to simplify 
 
 ![SAMPLE](https://github.com/roshhellwett/projectbillforge/blob/4d3988cb1910dcfe4e923f11c42693e7282c882c/Sample/sample.png)
 
-## ✨ Key Features
+## Key Features
 
-### ⚡ Core Functionality
-- **Fast Invoicing**: Generate professional, GST-ready invoices in seconds with a clean, intuitive interface.
-- **Digital Khata (Ledger)**: Track daily credit (Udhaar), view transaction history, and manage balances without physical registers.
-- **Product Catalog**: Maintain a comprehensive directory of products with pricing and categorization.
-- **Customer Management**: Keep track of client payment patterns, contact details, and improve business relations.
+### Core Functionality
+- **Fast Invoicing**: Generate GST-ready invoices with a clean, simple interface.
+- **Digital Khata (Ledger)**: Track daily credit (Udhaar), view transaction history, and manage balances.
+- **Product Catalog**: Maintain a directory of products with pricing and categories.
+- **Customer Management**: Keep track of client payment patterns and contact details.
 
-### 🔐 Execution & Safety
-- **Secure Authentication**: Built with NextAuth.js for robust user session management and security.
-- **Data Integrity**: Powered by Drizzle ORM and PostgreSQL (Neon) for reliable and fast data operations.
-- **Rate Limiting**: Integrated Upstash Redis rate limiting to ensure application stability and protection.
-- **Modern Tech Stack**: Developed with Next.js 15, React 19, and Tailwind CSS for a premium, responsive experience.
+### Security & Reliability
+- **Secure Authentication**: Built with NextAuth.js for user session management.
+- **Data Integrity**: Drizzle ORM with PostgreSQL (Neon) for reliable data operations.
+- **Rate Limiting**: Upstash Redis rate limiting for application stability.
+- **Tech Stack**: Next.js 15, React 19, Tailwind CSS.
 
 ## 🛠️ Prerequisites
 To run BillForge locally, you will need:
@@ -69,19 +69,6 @@ projectbillforge/
 └── README.md             # Project documentation
 ```
 
-© 2026 [Zenith Open Source Projects](https://zenithopensourceprojects.vercel.app/). All Rights Reserved. Zenith is a Open Source Project Idea's by @roshhellwett
-
-## About
-A clean, straightforward application for managing your business operations.
-[zenithopensourceprojects.vercel.app](https://zenithopensourceprojects.vercel.app)
-
-### Topics
-[zenithopensourceprojects](https://github.com/topics/zenithopensourceprojects) | [nextjs](https://github.com/topics/nextjs) | [inventory-management](https://github.com/topics/inventory-management) | [billing-system](https://github.com/topics/billing-system)
-
-### Resources
-[Documentation](https://github.com/roshhellwett/projectbillforge#readme) | [License](https://github.com/roshhellwett/projectbillforge/blob/main/LICENSE) | [Security Policy](https://github.com/roshhellwett/projectbillforge/blob/main/SECURITY.md)
-
 ---
-
-© 2026 [Zenith Open Source Projects](https://zenithopensourceprojects.vercel.app/). All Rights Reserved. 
-Zenith is a Open Source Project Idea's by @roshhellwett
+© 2026 [Zenith Open Source Projects](https://zenithopensourceprojects.vercel.app/). All Rights Reserved.
+Zenith is an Open Source Project Idea by @roshhellwett
