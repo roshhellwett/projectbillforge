@@ -34,8 +34,8 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
   }
 }
 
-export function verificationHtml(token: string): { subject: string; html: string } {
-  const url = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/verify-email?token=${token}`;
+export function verificationHtml(token: string, locale: string = "en"): { subject: string; html: string } {
+  const url = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/${locale}/verify-email?token=${token}`;
   return {
     subject: "Verify your BillForge email",
     html: `
@@ -55,8 +55,8 @@ export function verificationHtml(token: string): { subject: string; html: string
   };
 }
 
-export function passwordResetHtml(token: string): { subject: string; html: string } {
-  const url = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/reset-password?token=${token}`;
+export function passwordResetHtml(token: string, locale: string = "en"): { subject: string; html: string } {
+  const url = `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/${locale}/reset-password?token=${token}`;
   return {
     subject: "Reset your BillForge password",
     html: `

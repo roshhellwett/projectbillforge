@@ -52,6 +52,10 @@ export const authOptions: NextAuthOptions = {
         const isValid = await compare(credentials.password, business.passwordHash);
         if (!isValid) return null;
 
+        if (!business.emailVerified) {
+          throw new Error("Account not verified. Please check your email.");
+        }
+
         return {
           id: business.id,
           name: business.name,
@@ -77,6 +81,7 @@ export const authOptions: NextAuthOptions = {
                 name: user.name || user.email.split("@")[0],
                 email: user.email.toLowerCase(),
                 passwordHash: "",
+                emailVerified: new Date(),
               })
               .returning();
 

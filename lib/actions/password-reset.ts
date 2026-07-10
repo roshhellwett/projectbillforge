@@ -8,7 +8,7 @@ import { checkActionRateLimit } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import { sendEmail, passwordResetHtml } from "@/lib/email";
 
-export async function requestPasswordReset(email: string) {
+export async function requestPasswordReset(email: string, locale: string = "en") {
   try {
     const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const ipCheck = await checkActionRateLimit(`pwdreset:ip:${ip}`, 'pwdreset', 3, '3600 s');
@@ -40,7 +40,7 @@ export async function requestPasswordReset(email: string) {
       expires,
     });
 
-    const { subject, html } = passwordResetHtml(token);
+    const { subject, html } = passwordResetHtml(token, locale);
     await sendEmail({ to: normalizedEmail, subject, html });
 
     return { success: true };

@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { Link } from "@/i18n/routing";
+import { useLocale } from "next-intl";
 import { requestPasswordReset } from "@/lib/actions/password-reset";
 import { Mail, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ForgotPasswordPage() {
+  const locale = useLocale();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -16,7 +18,7 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const result = await requestPasswordReset(email);
+    const result = await requestPasswordReset(email, locale);
     if (result?.error) {
       setError(result.error);
       setLoading(false);

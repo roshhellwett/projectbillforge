@@ -76,7 +76,7 @@ export default function RegisterPage() {
       turnstileToken
     };
 
-    const result = await registerBusiness(submitData);
+    const result = await registerBusiness(submitData, locale);
     if (result?.error) {
       setError(result.error);
       setLoading(false);
@@ -84,17 +84,7 @@ export default function RegisterPage() {
       setLoading(false);
       router.push("/login?registered=true");
     } else {
-      const loginResult = await signIn("credentials", {
-        redirect: false,
-        email: formData.email.toLowerCase(),
-        password: formData.password,
-      });
-      if (loginResult?.error) {
-        router.push("/login");
-      } else {
-        router.push("/dashboard");
-        router.refresh();
-      }
+      router.push("/login?registered=true");
     }
   };
 

@@ -2,7 +2,6 @@
 
 import { useState, use, Suspense } from "react";
 import { useRouter, Link } from "@/i18n/routing";
-import { signIn } from "next-auth/react";
 import { resetPassword } from "@/lib/actions/password-reset";
 import { Lock, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
@@ -26,7 +25,6 @@ function ResetForm({ token }: { token: string }) {
       setError(result.error);
       setLoading(false);
     } else {
-      await signIn("credentials", { redirect: false, email: "", password });
       router.push("/login?reset=1");
     }
   };

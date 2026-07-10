@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { signIn } from "next-auth/react";
 import { Link, useRouter } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 
-export default function LoginPage() {
+export default function LoginPage({ searchParams: searchParamsPromise }: { searchParams: Promise<{ registered?: string; reset?: string }> }) {
+  const searchParams = use(searchParamsPromise);
   const t = useTranslations('Auth');
   const locale = useLocale();
   const router = useRouter();
@@ -31,6 +32,8 @@ export default function LoginPage() {
     if (result?.error) {
       if (result.error.toLowerCase().includes("too many")) {
         setError("Too many login attempts. Please wait a minute and try again.");
+      } else if (result.error.toLowerCase().includes("not verified")) {
+        setError("Account not verified. Please check your email for the verification link.");
       } else {
         setError("Invalid email or password. Please try again.");
       }
@@ -109,6 +112,16 @@ export default function LoginPage() {
             </div>
 
             
+            {searchParams.registered === "true" && (
+              <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl text-sm font-medium border border-emerald-500/20 mb-4">
+                Account created! Check your email for the verification link.
+              </div>
+            )}
+            {searchParams.reset === "1" && (
+              <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl text-sm font-medium border border-emerald-500/20 mb-4">
+                Password reset successfully. Sign in with your new password.
+              </div>
+            )}
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -5 }}

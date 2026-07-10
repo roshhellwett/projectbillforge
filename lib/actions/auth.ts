@@ -10,7 +10,7 @@ import { headers } from "next/headers";
 import { requireBusinessSession } from "@/lib/session";
 import { sendEmail, verificationHtml } from "@/lib/email";
 
-export async function registerBusiness(data: BusinessRegisterInput) {
+export async function registerBusiness(data: BusinessRegisterInput, locale: string = "en") {
   try {
     const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
@@ -87,7 +87,7 @@ export async function registerBusiness(data: BusinessRegisterInput) {
     token,
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
   });
-  const { subject, html } = verificationHtml(token);
+  const { subject, html } = verificationHtml(token, locale);
   await sendEmail({ to: safeData.email, subject, html });
 
   return { success: true, businessId: business.id };
