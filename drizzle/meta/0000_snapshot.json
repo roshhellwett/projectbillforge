@@ -1,5 +1,5 @@
 {
-  "id": "a77accbc-04e0-4bf7-be79-350aee027c92",
+  "id": "91415c19-a858-4f06-8696-e1c9dc62f427",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -135,7 +135,8 @@
           "name": "password_hash",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "''"
         },
         "gstin": {
           "name": "gstin",
@@ -173,6 +174,40 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "industry_type": {
+          "name": "industry_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'custom'"
+        },
+        "terms_and_conditions": {
+          "name": "terms_and_conditions",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "redemption_period_days": {
+          "name": "redemption_period_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 30
+        },
+        "fine_percentage": {
+          "name": "fine_percentage",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 2
+        },
+        "fine_frequency_days": {
+          "name": "fine_frequency_days",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 7
         },
         "created_at": {
           "name": "created_at",
@@ -253,14 +288,14 @@
         },
         "credit_limit": {
           "name": "credit_limit",
-          "type": "real",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": false,
-          "default": 0
+          "default": null
         },
         "current_balance": {
           "name": "current_balance",
-          "type": "real",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": false,
           "default": 0
@@ -366,41 +401,48 @@
         },
         "invoice_date": {
           "name": "invoice_date",
-          "type": "timestamp",
+          "type": "date",
           "primaryKey": false,
           "notNull": true
         },
         "subtotal": {
           "name": "subtotal",
-          "type": "real",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
         "cgst": {
           "name": "cgst",
-          "type": "real",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": false,
           "default": 0
         },
         "sgst": {
           "name": "sgst",
-          "type": "real",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": false,
           "default": 0
         },
         "igst": {
           "name": "igst",
-          "type": "real",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": false,
           "default": 0
         },
         "total": {
           "name": "total",
-          "type": "real",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "amount_paid": {
+          "name": "amount_paid",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true,
           "default": 0
@@ -416,6 +458,20 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "payment_mode": {
+          "name": "payment_mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'cash'"
+        },
+        "payment_status": {
+          "name": "payment_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'paid'"
         },
         "status": {
           "name": "status",
@@ -469,6 +525,51 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "idx_invoices_status": {
+          "name": "idx_invoices_status",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_invoices_date": {
+          "name": "idx_invoices_date",
+          "columns": [
+            {
+              "expression": "invoice_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_invoices_payment_status": {
+          "name": "idx_invoices_payment_status",
+          "columns": [
+            {
+              "expression": "payment_status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -500,7 +601,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "invoices_invoice_number_unique": {
+          "name": "invoices_invoice_number_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "invoice_number"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -535,7 +644,7 @@
         },
         "amount": {
           "name": "amount",
-          "type": "real",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true
         },
@@ -544,6 +653,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'active'"
         },
         "reference_invoice_id": {
           "name": "reference_invoice_id",
@@ -578,6 +694,42 @@
         "idx_khata_customer": {
           "name": "idx_khata_customer",
           "columns": [
+            {
+              "expression": "customer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_khata_status": {
+          "name": "idx_khata_status",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_khata_business_customer": {
+          "name": "idx_khata_business_customer",
+          "columns": [
+            {
+              "expression": "business_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
             {
               "expression": "customer_id",
               "isExpression": false,
@@ -681,31 +833,37 @@
         },
         "rate": {
           "name": "rate",
-          "type": "real",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": true,
           "default": 0
         },
         "gst_rate": {
           "name": "gst_rate",
-          "type": "real",
+          "type": "numeric(5, 2)",
           "primaryKey": false,
           "notNull": false,
           "default": 0
         },
         "stock_quantity": {
           "name": "stock_quantity",
-          "type": "real",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": false,
           "default": 0
         },
         "low_stock_threshold": {
           "name": "low_stock_threshold",
-          "type": "real",
+          "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": false,
           "default": 0
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         },
         "is_active": {
           "name": "is_active",
@@ -761,6 +919,44 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.rate_limits": {
+      "name": "rate_limits",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "identifier": {
+          "name": "identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

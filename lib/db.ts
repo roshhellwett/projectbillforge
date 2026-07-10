@@ -1,13 +1,13 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/postgres-js';
 import * as schema from './schema';
-import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
 const connectionString = process.env.DATABASE_URL;
 const missingDbMessage =
-    'DATABASE_URL environment variable is not set. Add it to your Vercel or Neon dashboard.';
+    'DATABASE_URL environment variable is not set.';
 
-type Database = NeonHttpDatabase<typeof schema>;
+type Database = PostgresJsDatabase<typeof schema>;
 
 function createUnavailableDb(): Database {
     return new Proxy(
@@ -21,5 +21,5 @@ function createUnavailableDb(): Database {
 }
 
 export const db: Database = connectionString
-    ? drizzle(neon(connectionString), { schema })
+    ? drizzle(postgres(connectionString, { prepare: false }), { schema })
     : createUnavailableDb();

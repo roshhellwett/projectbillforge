@@ -1,1 +1,0 @@
-ALTER TABLE "khata_transactions" ADD COLUMN "status" text DEFAULT 'active';

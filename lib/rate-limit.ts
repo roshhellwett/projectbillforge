@@ -1,5 +1,9 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { getRedis } from "./redis";
+import { db } from "./db";
+import { rateLimits } from "./schema";
+import { sql, eq, and, lt } from "drizzle-orm";
+import crypto from "crypto";
 
 let loginLimiter: Ratelimit | null = null;
 let warnedAboutRedis = false;
@@ -44,11 +48,47 @@ function parseWindowMs(window: string): number {
   return n * 1000;
 }
 
+async function checkDbRateLimit(key: string, limit: number, windowMs: number): Promise<{ success: boolean; remaining: number }> {
+  try {
+    const windowStart = new Date(Date.now() - windowMs);
+    const [identifier, action] = [key, ...[]];
+    
+    await db.delete(rateLimits).where(
+      and(
+        eq(rateLimits.identifier, key),
+        lt(rateLimits.createdAt, windowStart)
+      )
+    );
+    
+    const [result] = await db.select({ count: sql<number>`count(*)::int` })
+      .from(rateLimits)
+      .where(and(
+        eq(rateLimits.identifier, key),
+        sql`created_at >= ${windowStart}`
+      ));
+    
+    const count = result?.count ?? 0;
+    if (count >= limit) {
+      return { success: false, remaining: 0 };
+    }
+    
+    await db.insert(rateLimits).values({
+      id: crypto.randomUUID(),
+      identifier: key,
+      action: 'rate_limit',
+    });
+    
+    return { success: true, remaining: limit - count - 1 };
+  } catch {
+    return checkMemRateLimit(key, limit, windowMs);
+  }
+}
+
 export function getLoginRateLimiter(): Ratelimit | null {
   const redis = getRedis();
   if (!redis) {
     if (!warnedAboutRedis) {
-      console.warn("[billforge] Falling back to in-memory rate limiting (no Upstash Redis). Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN for production.");
+      console.warn("[billforge] Falling back to DB-backed rate limiting (no Upstash Redis). Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN for production.");
       warnedAboutRedis = true;
     }
     return null;
@@ -68,13 +108,13 @@ export async function checkRateLimit(
   identifier: string
 ): Promise<{ success: boolean; remaining: number }> {
   if (!limiter) {
-    return checkMemRateLimit(`login:${identifier}`, 5, 60_000);
+    return checkDbRateLimit(`login:${identifier}`, 5, 60_000);
   }
   try {
     const result = await limiter.limit(identifier);
     return { success: result.success, remaining: result.remaining };
   } catch {
-    return checkMemRateLimit(`login:${identifier}`, 5, 60_000);
+    return checkDbRateLimit(`login:${identifier}`, 5, 60_000);
   }
 }
 
@@ -86,12 +126,12 @@ export async function checkActionRateLimit(
 ): Promise<{ success: boolean; remaining: number }> {
   const limiter = getNamedLimiter(action, limit, window);
   if (!limiter) {
-    return checkMemRateLimit(`${action}:${identifier}`, limit, parseWindowMs(window));
+    return checkDbRateLimit(`${action}:${identifier}`, limit, parseWindowMs(window));
   }
   try {
     const result = await limiter.limit(identifier);
     return { success: result.success, remaining: result.remaining };
   } catch {
-    return checkMemRateLimit(`${action}:${identifier}`, limit, parseWindowMs(window));
+    return checkDbRateLimit(`${action}:${identifier}`, limit, parseWindowMs(window));
   }
 }

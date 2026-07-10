@@ -7,6 +7,10 @@ type SessionUser = {
   name?: string | null;
 };
 
+export class AuthError extends Error {
+  constructor() { super("Unauthorized"); this.name = "AuthError"; }
+}
+
 async function getBusinessSession() {
   const session = await getServerSession(authOptions);
   if (!session?.user) {
@@ -26,7 +30,7 @@ async function getBusinessSession() {
 export async function requireBusinessSession() {
   const session = await getBusinessSession();
   if (!session) {
-    throw new Error("Unauthorized");
+    throw new AuthError();
   }
   return session;
 }

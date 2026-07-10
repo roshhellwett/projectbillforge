@@ -146,13 +146,12 @@ export async function resetAllKhataData(password: string) {
       }
 
       
-      await tx.update(khataTransactions)
-        .set({ status: 'cancelled' })
+      await tx.delete(khataTransactions)
         .where(eq(khataTransactions.businessId, businessId));
 
       
       await tx.update(invoices)
-        .set({ status: 'cancelled', updatedAt: new Date() })
+        .set({ status: 'cancelled', updatedAt: new Date(), amountPaid: 0 })
         .where(eq(invoices.businessId, businessId));
 
       

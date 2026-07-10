@@ -60,10 +60,10 @@ export const invoiceItemSchema = z.object({
   quantity: z.number().positive("Quantity must be greater than 0"),
   rate: z.number().min(0.01, "Item rate must be greater than 0"),
   gstRate: z.number().min(0),
-  amount: z.number().min(0),
-  cgst: z.number().min(0),
-  sgst: z.number().min(0),
-  igst: z.number().min(0),
+  amount: z.number().min(0).default(0),
+  cgst: z.number().min(0).default(0),
+  sgst: z.number().min(0).default(0),
+  igst: z.number().min(0).default(0),
 });
 
 export const invoiceSchema = z.object({
@@ -90,7 +90,7 @@ export const businessProfileSchema = z.object({
   name: z.string().min(1, "Business name is required").max(200).trim().optional(),
   gstin: z.string().regex(gstinRegex, "Invalid GSTIN format").optional().or(z.literal('')),
   address: z.string().max(500).optional().transform(s => s?.trim() || undefined),
-  phone: z.string().max(20).optional().transform(s => s?.trim() || undefined),
+  phone: z.string().regex(indianPhoneRegex, "Invalid Indian mobile number (10 digits starting with 6-9)").optional().or(z.literal('')).transform(s => s?.trim() || undefined),
   state: z.string().max(50).optional().transform(s => s?.trim() || undefined),
   pincode: z.string().max(10).optional().transform(s => s?.trim() || undefined),
   termsAndConditions: z.string().max(2000).optional().transform(s => s?.trim() || undefined),

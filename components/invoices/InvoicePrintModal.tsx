@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import { X, Printer } from "lucide-react";
 import { formatCurrency, formatDate, formatReceiptDate } from "@/lib/formatters";
 
@@ -70,27 +70,26 @@ function getItemTotals(items: InvoiceItem[]) {
     );
 }
 
-const printIframeRef = useRef<HTMLIFrameElement | null>(null);
-
 function printIframe(html: string) {
-  let iframe = printIframeRef.current;
-  if (!iframe) {
-    iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.top = '-9999px';
-    iframe.style.left = '-9999px';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    document.body.appendChild(iframe);
-    printIframeRef.current = iframe;
-  }
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.top = '-9999px';
+  iframe.style.left = '-9999px';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  document.body.appendChild(iframe);
   const doc = iframe.contentWindow?.document;
-  if (!doc) return;
+  if (!doc) { document.body.removeChild(iframe); return; }
   doc.open();
   doc.write(html);
   doc.close();
+  const cleanup = () => {
+    try { if (iframe.parentNode) document.body.removeChild(iframe); } catch {}
+  };
+  iframe.contentWindow?.addEventListener('afterprint', cleanup);
   setTimeout(() => {
     iframe?.contentWindow?.print();
+    setTimeout(cleanup, 1000);
   }, 500);
 }
 

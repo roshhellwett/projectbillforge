@@ -18,13 +18,18 @@ CREATE TABLE "businesses" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"email" text NOT NULL,
-	"password_hash" text NOT NULL,
+	"password_hash" text DEFAULT '' NOT NULL,
 	"gstin" text,
 	"address" text,
 	"phone" text,
 	"state" text DEFAULT '',
 	"pincode" text,
 	"logo" text,
+	"industry_type" text DEFAULT 'custom',
+	"terms_and_conditions" text,
+	"redemption_period_days" integer DEFAULT 30,
+	"fine_percentage" numeric(5, 2) DEFAULT 2,
+	"fine_frequency_days" integer DEFAULT 7,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	CONSTRAINT "businesses_email_unique" UNIQUE("email")
@@ -38,8 +43,8 @@ CREATE TABLE "customers" (
 	"email" text,
 	"gstin" text,
 	"address" text,
-	"credit_limit" real DEFAULT 0,
-	"current_balance" real DEFAULT 0,
+	"credit_limit" numeric(10, 2) DEFAULT null,
+	"current_balance" numeric(10, 2) DEFAULT 0,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()
 );
@@ -52,17 +57,21 @@ CREATE TABLE "invoices" (
 	"customer_name" text NOT NULL,
 	"customer_gstin" text,
 	"customer_address" text,
-	"invoice_date" timestamp NOT NULL,
-	"subtotal" real DEFAULT 0 NOT NULL,
-	"cgst" real DEFAULT 0,
-	"sgst" real DEFAULT 0,
-	"igst" real DEFAULT 0,
-	"total" real DEFAULT 0 NOT NULL,
+	"invoice_date" date NOT NULL,
+	"subtotal" numeric(10, 2) DEFAULT 0 NOT NULL,
+	"cgst" numeric(10, 2) DEFAULT 0,
+	"sgst" numeric(10, 2) DEFAULT 0,
+	"igst" numeric(10, 2) DEFAULT 0,
+	"total" numeric(10, 2) DEFAULT 0 NOT NULL,
+	"amount_paid" numeric(10, 2) DEFAULT 0 NOT NULL,
 	"items" jsonb,
 	"notes" text,
+	"payment_mode" text DEFAULT 'cash',
+	"payment_status" text DEFAULT 'paid',
 	"status" text DEFAULT 'active',
 	"created_at" timestamp DEFAULT now(),
-	"updated_at" timestamp DEFAULT now()
+	"updated_at" timestamp DEFAULT now(),
+	CONSTRAINT "invoices_invoice_number_unique" UNIQUE("invoice_number")
 );
 --> statement-breakpoint
 CREATE TABLE "khata_transactions" (
@@ -70,8 +79,9 @@ CREATE TABLE "khata_transactions" (
 	"business_id" text NOT NULL,
 	"customer_id" text NOT NULL,
 	"type" text NOT NULL,
-	"amount" real NOT NULL,
+	"amount" numeric(10, 2) NOT NULL,
 	"note" text,
+	"status" text DEFAULT 'active',
 	"reference_invoice_id" text,
 	"created_at" timestamp DEFAULT now()
 );
@@ -83,13 +93,21 @@ CREATE TABLE "products" (
 	"sku" text,
 	"hsn_code" text,
 	"unit" text DEFAULT 'piece',
-	"rate" real DEFAULT 0 NOT NULL,
-	"gst_rate" real DEFAULT 0,
-	"stock_quantity" real DEFAULT 0,
-	"low_stock_threshold" real DEFAULT 0,
+	"rate" numeric(10, 2) DEFAULT 0 NOT NULL,
+	"gst_rate" numeric(5, 2) DEFAULT 0,
+	"stock_quantity" numeric(10, 2) DEFAULT 0,
+	"low_stock_threshold" numeric(10, 2) DEFAULT 0,
+	"metadata" jsonb,
 	"is_active" boolean DEFAULT true,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "rate_limits" (
+	"id" text PRIMARY KEY NOT NULL,
+	"identifier" text NOT NULL,
+	"action" text NOT NULL,
+	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "verification_tokens" (
@@ -109,6 +127,11 @@ ALTER TABLE "products" ADD CONSTRAINT "products_business_id_businesses_id_fk" FO
 CREATE INDEX "idx_customers_business" ON "customers" USING btree ("business_id");--> statement-breakpoint
 CREATE INDEX "idx_invoices_business" ON "invoices" USING btree ("business_id");--> statement-breakpoint
 CREATE INDEX "idx_invoices_customer" ON "invoices" USING btree ("customer_id");--> statement-breakpoint
+CREATE INDEX "idx_invoices_status" ON "invoices" USING btree ("status");--> statement-breakpoint
+CREATE INDEX "idx_invoices_date" ON "invoices" USING btree ("invoice_date");--> statement-breakpoint
+CREATE INDEX "idx_invoices_payment_status" ON "invoices" USING btree ("payment_status");--> statement-breakpoint
 CREATE INDEX "idx_khata_business" ON "khata_transactions" USING btree ("business_id");--> statement-breakpoint
 CREATE INDEX "idx_khata_customer" ON "khata_transactions" USING btree ("customer_id");--> statement-breakpoint
+CREATE INDEX "idx_khata_status" ON "khata_transactions" USING btree ("status");--> statement-breakpoint
+CREATE INDEX "idx_khata_business_customer" ON "khata_transactions" USING btree ("business_id","customer_id");--> statement-breakpoint
 CREATE INDEX "idx_products_business" ON "products" USING btree ("business_id");

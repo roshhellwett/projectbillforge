@@ -131,6 +131,8 @@ export async function deleteCustomer(id: string) {
 }
 
 export async function getCustomers(limit = 50, offset = 0) {
+  limit = Math.max(1, Math.min(limit, 200));
+  offset = Math.max(0, offset);
   try {
     const session = await requireBusinessSession();
 

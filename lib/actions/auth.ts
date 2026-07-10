@@ -28,7 +28,10 @@ export async function registerBusiness(data: BusinessRegisterInput) {
 
   
   
-  if (process.env.TURNSTILE_SECRET_KEY && turnstileToken) {
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    if (!turnstileToken) {
+      return { error: "Please complete the security check to continue." };
+    }
     try {
       const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
         method: "POST",
@@ -45,8 +48,6 @@ export async function registerBusiness(data: BusinessRegisterInput) {
       console.error("Turnstile verification error:", e);
       return { error: "Unable to verify security challenge at this time." };
     }
-  } else if (process.env.NODE_ENV === "production" && !turnstileToken) {
-    return { error: "Please complete the security check to continue." };
   }
 
   const existingBusiness = await db.query.businesses.findFirst({

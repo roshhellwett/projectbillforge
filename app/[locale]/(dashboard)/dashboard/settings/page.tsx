@@ -75,7 +75,7 @@ export default function SettingsPage() {
         termsAndConditions: result.business.termsAndConditions || defaultTerms,
         redemptionPeriodDays: result.business.redemptionPeriodDays || 30,
         finePercentage: Number(result.business.finePercentage) || 2,
-        fineFrequencyDays: result.business.fineFrequencyDays || 7,
+        fineFrequencyDays: result.business.fineFrequencyDays ?? 7,
         industryType: result.business.industryType && isIndustryType(result.business.industryType)
           ? result.business.industryType
           : "custom",

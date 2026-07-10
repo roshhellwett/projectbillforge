@@ -48,6 +48,7 @@ export default function KhataPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [statement, setStatement] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statementLoading, setStatementLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     type: "credit" as "credit" | "debit",
@@ -85,6 +86,7 @@ export default function KhataPage() {
   };
 
   const loadStatement = async (customerId: string) => {
+    setStatementLoading(true);
     const result = await getKhataStatement(customerId);
     if (result.success) {
       setCustomer(result.customer);
@@ -97,6 +99,7 @@ export default function KhataPage() {
     } else if (result.error) {
       setError(result.error);
     }
+    setStatementLoading(false);
   };
 
   const handleCustomerSelect = (customerId: string) => {
@@ -339,7 +342,11 @@ export default function KhataPage() {
               <h2 className="font-bold text-[var(--foreground)] text-xl">{t('transactionHistory')}</h2>
             </div>
 
-            {statement.length === 0 ? (
+            {statementLoading ? (
+              <div className="p-12 flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-[var(--color-primary)]/30 border-t-[var(--color-primary)] rounded-full animate-spin" />
+              </div>
+            ) : statement.length === 0 ? (
               <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">{t('noTransactions')}</div>
             ) : (
               <div className="overflow-x-auto">

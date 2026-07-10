@@ -10,7 +10,7 @@ export type PendingInvoiceAllocationInput = {
 export type InvoiceAllocationUpdate = {
   id: string;
   amountPaid: number;
-  status: "paid" | "partial";
+  status: "paid" | "partial" | "unpaid";
 };
 
 export function allocatePaymentAcrossInvoices(

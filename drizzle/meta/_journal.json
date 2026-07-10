@@ -5,64 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1771919951410,
-      "tag": "0000_talented_bug",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1771927610465,
-      "tag": "0001_cynical_ozymandias",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1771927900995,
-      "tag": "0002_spotty_hawkeye",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1771933198471,
-      "tag": "0003_good_thunderbolt_ross",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1771934032245,
-      "tag": "0004_light_ravenous",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1771935495585,
-      "tag": "0005_freezing_black_bolt",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1771938148804,
-      "tag": "0006_useful_roughhouse",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1771943414098,
-      "tag": "0007_true_roughhouse",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1771951603018,
-      "tag": "0008_even_outlaw_kid",
+      "when": 1783665247135,
+      "tag": "0000_big_wolfpack",
       "breakpoints": true
     }
   ]

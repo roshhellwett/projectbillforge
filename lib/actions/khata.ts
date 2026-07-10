@@ -48,7 +48,6 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
       }
 
       const currentBalance = new Decimal(lockedCustomer.current_balance || 0);
-      const creditLimit = new Decimal(lockedCustomer.credit_limit || 0);
 
       const amountToProcess = new Decimal(data.amount).toDecimalPlaces(2);
 
@@ -57,9 +56,12 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
         : currentBalance.minus(amountToProcess);
 
       
-      if (data.type === 'credit' && creditLimit.greaterThan(0) && newBalance.greaterThan(creditLimit)) {
-        const available = Decimal.max(0, creditLimit.minus(currentBalance));
-        throw new Error(`Credit limit exceeded. Limit: ₹${creditLimit.toFixed(2)}, Current Owed: ₹${currentBalance.toFixed(2)}, Available: ₹${available.toFixed(2)}, Requested: ₹${amountToProcess.toFixed(2)}`);
+      if (data.type === 'credit' && lockedCustomer.credit_limit !== null) {
+        const creditLimit = new Decimal(lockedCustomer.credit_limit);
+        if (newBalance.greaterThan(creditLimit)) {
+          const available = Decimal.max(0, creditLimit.minus(currentBalance));
+          throw new Error(`Credit limit exceeded. Limit: ₹${creditLimit.toFixed(2)}, Current Owed: ₹${currentBalance.toFixed(2)}, Available: ₹${available.toFixed(2)}, Requested: ₹${amountToProcess.toFixed(2)}`);
+        }
       }
 
       

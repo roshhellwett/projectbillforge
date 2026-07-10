@@ -49,7 +49,7 @@ export const customers = pgTable('customers', {
   email: text('email'),
   gstin: text('gstin'),
   address: text('address'),
-  creditLimit: numeric2('credit_limit').default(0),
+  creditLimit: numeric2('credit_limit').default(null as unknown as number),
   currentBalance: numeric2('current_balance').default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -137,6 +137,13 @@ export const accounts = pgTable('accounts', {
   id_token: text('id_token'),
   session_state: text('session_state'),
   businessId: text('business_id').references(() => businesses.id, { onDelete: 'cascade' }),
+});
+
+export const rateLimits = pgTable('rate_limits', {
+  id: text('id').primaryKey(),
+  identifier: text('identifier').notNull(),
+  action: text('action').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 export const verificationTokens = pgTable('verification_tokens', {

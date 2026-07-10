@@ -147,7 +147,10 @@ export default function InvoicesPage() {
       })));
       setTotalInvoices(invoicesResult.total ?? 0);
       setOffset(invoicesResult.invoices.length);
-    } else if (invoicesResult.error) errs.push(invoicesResult.error);
+    } else if (invoicesResult.error) {
+      if (invoicesResult.error === "Unauthorized") { router.push('/en/login'); return; }
+      errs.push(invoicesResult.error);
+    }
     if (businessResult.success && businessResult.business) {
       setBusinessProfile({
         name: businessResult.business.name || "",
@@ -223,6 +226,7 @@ export default function InvoicesPage() {
       loadData();
       router.refresh();
     } else if (result.error) {
+      if (result.error === "Unauthorized") { router.push('/en/login'); return; }
       setError(result.error);
     }
     setCancelling(false);
