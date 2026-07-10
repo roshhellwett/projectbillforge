@@ -80,6 +80,9 @@ export default function RegisterPage() {
     if (result?.error) {
       setError(result.error);
       setLoading(false);
+    } else if (result?.exists) {
+      setLoading(false);
+      router.push("/login?registered=true");
     } else {
       const loginResult = await signIn("credentials", {
         redirect: false,

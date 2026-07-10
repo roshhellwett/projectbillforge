@@ -37,6 +37,7 @@ export const businesses = pgTable('businesses', {
   redemptionPeriodDays: integer('redemption_period_days').default(30),
   finePercentage: numeric5('fine_percentage').default(2),
   fineFrequencyDays: integer('fine_frequency_days').default(7),
+  emailVerified: timestamp('email_verified'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

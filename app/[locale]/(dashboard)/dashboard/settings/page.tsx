@@ -7,6 +7,7 @@ import { TermsSection } from "./components/TermsSection";
 import { FineSettingsSection } from "./components/FineSettingsSection";
 import { DangerZoneSection } from "./components/DangerZoneSection";
 import { AccountPreferencesSection } from "./components/AccountPreferencesSection";
+import { PasswordSection } from "./components/PasswordSection";
 import { AboutSection } from "./components/AboutSection";
 import { StaggerContainer, StaggerItem } from "@/components/ui/MotionWrapper";
 
@@ -67,6 +68,10 @@ export default function SettingsPage() {
           </button>
         </StaggerItem>
       </form>
+
+      <StaggerItem>
+        <PasswordSection />
+      </StaggerItem>
 
       <StaggerItem>
         <DangerZoneSection />

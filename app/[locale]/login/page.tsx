@@ -156,6 +156,12 @@ export default function LoginPage() {
                 </button>
               </div>
 
+              <div className="flex justify-end">
+                <Link href="/forgot-password" className="text-xs font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-light)] transition-colors">
+                  Forgot password?
+                </Link>
+              </div>
+
               <motion.button
                 whileHover={{ scale: 1.01, y: -1 }}
                 whileTap={{ scale: 0.98 }}
