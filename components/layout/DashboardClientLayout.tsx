@@ -1,10 +1,11 @@
 "use client";
 
 import { usePathname } from "@/i18n/routing";
-import BottomNavigation from "./BottomNavigation";
-import { KeyboardShortcutsHelp } from "@/lib/components/KeyboardShortcuts";
-import { CommandMenu } from "@/lib/components/CommandMenu";
+import BottomNavigation from "@/components/layout/BottomNavigation";
+import { KeyboardShortcutsHelp } from "@/components/ui/KeyboardShortcuts";
+import { CommandMenu } from "@/components/ui/CommandMenu";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -20,14 +21,12 @@ export default function DashboardClientLayout({ children }: { children: React.Re
 
   return (
     <>
-      
-      <div className="md:hidden fixed top-3 right-3 z-50 flex items-center gap-2">
+      <ErrorBoundary>{children}</ErrorBoundary>
+      <div className="md:hidden fixed bottom-20 right-3 z-50">
         <div className="bg-[var(--surface)]/80 backdrop-blur-md border border-[var(--border)] p-1 rounded-xl shadow-sm">
           <LanguageSwitcher />
         </div>
       </div>
-
-      {children}
       <BottomNavigation currentPage={getCurrentPage()} />
       <KeyboardShortcutsHelp />
       <CommandMenu />

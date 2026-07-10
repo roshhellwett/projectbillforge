@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { getSalesSummary, getRecentInvoices, getWeeklySalesData } from "@/lib/actions/invoices";
 import { getLowStockProducts, getProducts } from "@/lib/actions/products";
 import { getCustomers } from "@/lib/actions/customers";
-import { StaggerContainer, StaggerItem } from "@/lib/components/MotionWrapper";
+import { StaggerContainer, StaggerItem } from "@/components/ui/MotionWrapper";
 
 import {
   WelcomeBannerServer,
@@ -12,7 +12,7 @@ import {
   RecentInvoicesServer,
   TopReceivablesServer,
   LowStockAlertsServer
-} from "./components/DashboardServerComponents";
+} from "@/components/dashboard/DashboardServerComponents";
 import {
   WelcomeBannerSkeleton,
   OverviewCardsSkeleton,
@@ -21,7 +21,7 @@ import {
   RecentInvoicesSkeleton,
   TopReceivablesSkeleton,
   LowStockSkeleton
-} from "./components/Skeletons";
+} from "@/components/dashboard/Skeletons";
 
 export default function DashboardPage() {
   

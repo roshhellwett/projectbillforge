@@ -5,15 +5,20 @@ import { db } from "@/lib/db";
 import { businesses } from "@/lib/schema";
 import { businessRegisterSchema, type BusinessRegisterInput } from "@/lib/validations";
 import { eq } from "drizzle-orm";
+import { checkActionRateLimit } from "@/lib/rate-limit";
 
 export async function registerBusiness(data: BusinessRegisterInput) {
-  const validation = businessRegisterSchema.safeParse(data);
+  try {
+    const rateCheck = await checkActionRateLimit(data.email, 'register', 3, '600 s');
+    if (!rateCheck.success) return { error: "Too many attempts. Please try again later." };
 
-  if (!validation.success) {
-    return { error: validation.error.errors[0].message };
-  }
+    const validation = businessRegisterSchema.safeParse(data);
 
-  const { honeypot, turnstileToken, ...safeData } = validation.data;
+    if (!validation.success) {
+      return { error: validation.error.errors[0].message };
+    }
+
+    const { honeypot, turnstileToken, ...safeData } = validation.data;
 
   
   if (honeypot && honeypot.length > 0) {
@@ -67,4 +72,7 @@ export async function registerBusiness(data: BusinessRegisterInput) {
   }).returning();
 
   return { success: true, businessId: business.id };
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : "Registration failed" };
+  }
 }

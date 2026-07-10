@@ -7,12 +7,12 @@ import { getProducts } from "@/lib/actions/products";
 import { getCustomers } from "@/lib/actions/customers";
 import { getInvoices, createInvoice, cancelInvoice } from "@/lib/actions/invoices";
 import { getBusinessProfile } from "@/lib/actions/business";
-import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
+import { ConfirmDialog, SkeletonTable } from "@/components/ui/ui";
 import { useTranslations, useLocale } from "next-intl";
 import { Plus, Search, X, Trash2, Printer, MessageCircle, FileText } from "lucide-react";
-import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
-import { NewInvoiceModal } from "./components/NewInvoiceModal";
-import { InvoicePrintModal } from "./components/InvoicePrintModal";
+import { StaggerContainer, StaggerItem, FadeIn } from "@/components/ui/MotionWrapper";
+import { NewInvoiceModal } from "@/components/invoices/NewInvoiceModal";
+import { InvoicePrintModal } from "@/components/invoices/InvoicePrintModal";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 
 interface Product {
@@ -80,6 +80,7 @@ interface InvoiceFormData {
   invoiceDate: string;
   notes: string;
   paymentMode: "cash" | "upi" | "khata";
+  recordPayment: boolean;
 }
 
 interface InvoiceServerRow extends Omit<Invoice, "invoiceDate"> {
@@ -111,6 +112,9 @@ export default function InvoicesPage() {
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [showSettingsPrompt, setShowSettingsPrompt] = useState(false);
   const [settingsPromptMessage, setSettingsPromptMessage] = useState("");
+  const [offset, setOffset] = useState(0);
+  const [totalInvoices, setTotalInvoices] = useState(0);
+  const PAGE_SIZE = 50;
 
   useEffect(() => {
     loadData();
@@ -129,19 +133,21 @@ export default function InvoicesPage() {
     const [productsResult, customersResult, invoicesResult, businessResult] = await Promise.all([
       getProducts(),
       getCustomers(),
-      getInvoices(),
+      getInvoices(PAGE_SIZE, 0),
       getBusinessProfile(),
     ]);
-    if (productsResult.success) { setProducts(productsResult.products); setError(""); }
-    else if (productsResult.error) setError(productsResult.error);
+    const errs: string[] = [];
+    if (productsResult.success) setProducts(productsResult.products);
+    else if (productsResult.error) errs.push(productsResult.error);
     if (customersResult.success) setCustomers(customersResult.customers);
     if (invoicesResult.success) {
       setInvoices(invoicesResult.invoices.map((inv: InvoiceServerRow) => ({
         ...inv,
         invoiceDate: new Date(inv.invoiceDate)
       })));
-      setError("");
-    } else if (invoicesResult.error) setError(invoicesResult.error);
+      setTotalInvoices(invoicesResult.total ?? 0);
+      setOffset(invoicesResult.invoices.length);
+    } else if (invoicesResult.error) errs.push(invoicesResult.error);
     if (businessResult.success && businessResult.business) {
       setBusinessProfile({
         name: businessResult.business.name || "",
@@ -153,7 +159,19 @@ export default function InvoicesPage() {
         termsAndConditions: businessResult.business.termsAndConditions || null,
       });
     }
+    setError(errs.length > 0 ? errs.join(". ") : "");
     setLoading(false);
+  };
+
+  const loadMoreInvoices = async () => {
+    const result = await getInvoices(PAGE_SIZE, offset);
+    if (result.success && result.invoices) {
+      setInvoices(prev => [...prev, ...result.invoices.map((inv: InvoiceServerRow) => ({
+        ...inv,
+        invoiceDate: new Date(inv.invoiceDate)
+      }))]);
+      setOffset(prev => prev + result.invoices.length);
+    }
   };
 
 
@@ -263,11 +281,16 @@ export default function InvoicesPage() {
       </FadeIn>
 
       {error && !showNewInvoice && (
-        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl text-sm">
-          {error}
-          <button onClick={() => setError("")} className="float-right text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
-            <X size={16} />
-          </button>
+        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl text-sm flex items-center justify-between gap-2">
+          <span>{error}</span>
+          <span className="flex items-center gap-2 shrink-0">
+            <button onClick={() => { setError(""); loadData(); }} className="text-[var(--color-danger)]/70 hover:text-[var(--color-danger)] underline text-xs">
+              Retry
+            </button>
+            <button onClick={() => setError("")} className="text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
+              <X size={16} />
+            </button>
+          </span>
         </div>
       )}
 
@@ -380,6 +403,13 @@ export default function InvoicesPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {offset < totalInvoices && !loading && (
+          <div className="p-4 text-center">
+            <button onClick={loadMoreInvoices} className="glass-btn-primary px-6 py-2 text-sm min-h-[44px]">
+              Load More ({totalInvoices - offset} remaining)
+            </button>
           </div>
         )}
       </StaggerItem>

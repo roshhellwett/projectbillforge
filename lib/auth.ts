@@ -64,25 +64,28 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account }) {
       
       if (account?.provider === "google" && user.email) {
-        const existing = await db.query.businesses.findFirst({
-          where: eq(businesses.email, user.email.toLowerCase()),
-        });
+        try {
+          const existing = await db.query.businesses.findFirst({
+            where: eq(businesses.email, user.email.toLowerCase()),
+          });
 
-        if (!existing) {
-          
-          const [newBusiness] = await db
-            .insert(businesses)
-            .values({
-              id: crypto.randomUUID(),
-              name: user.name || user.email.split("@")[0],
-              email: user.email.toLowerCase(),
-              passwordHash: "", 
-            })
-            .returning();
-          
-          user.id = newBusiness.id;
-        } else {
-          user.id = existing.id;
+          if (!existing) {
+            const [newBusiness] = await db
+              .insert(businesses)
+              .values({
+                id: crypto.randomUUID(),
+                name: user.name || user.email.split("@")[0],
+                email: user.email.toLowerCase(),
+                passwordHash: "",
+              })
+              .returning();
+
+            user.id = newBusiness.id;
+          } else {
+            user.id = existing.id;
+          }
+        } catch {
+          return false;
         }
       }
       return true;

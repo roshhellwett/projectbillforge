@@ -1,6 +1,6 @@
 "use client";
 
-import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
+import { StaggerContainer, StaggerItem, FadeIn } from "@/components/ui/MotionWrapper";
 
 export default function DashboardLoading() {
     return (

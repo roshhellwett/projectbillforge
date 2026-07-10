@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatedRouteWrapper } from "@/lib/components/MotionWrapper";
+import { AnimatedRouteWrapper } from "@/components/ui/MotionWrapper";
 import { usePathname } from "@/i18n/routing";
 
 export default function DashboardTransition({ children }: { children: React.ReactNode }) {

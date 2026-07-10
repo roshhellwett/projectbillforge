@@ -6,10 +6,10 @@ import { useSearchParams } from "next/navigation";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "@/lib/actions/customers";
 import { recalculateCustomerBalance } from "@/lib/actions/khata";
 import { formatCurrency } from "@/lib/formatters";
-import { ConfirmDialog, SkeletonCard } from "@/lib/components/ui";
+import { ConfirmDialog, SkeletonCard } from "@/components/ui/ui";
 import { useTranslations } from "next-intl";
 import { Plus, Search, X, RefreshCw, Trash2, Edit2, Phone, Mail, MapPin, Users } from "lucide-react";
-import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
+import { StaggerContainer, StaggerItem, FadeIn } from "@/components/ui/MotionWrapper";
 
 
 const fmt = (v: string | number | null | undefined): string => {
@@ -55,6 +55,9 @@ export default function CustomersPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [offset, setOffset] = useState(0);
+  const [totalCustomers, setTotalCustomers] = useState(0);
+  const PAGE_SIZE = 50;
 
   const handleSyncBalance = async (customerId: string) => {
     setSyncingId(customerId);
@@ -81,14 +84,24 @@ export default function CustomersPage() {
 
   const loadCustomers = async () => {
     setLoading(true);
-    const result = await getCustomers();
+    const result = await getCustomers(PAGE_SIZE, 0);
     if (result.success) {
       setCustomers(result.customers);
+      setTotalCustomers(result.total ?? 0);
+      setOffset(result.customers.length);
       setError("");
     } else if (result.error) {
       setError(result.error);
     }
     setLoading(false);
+  };
+
+  const loadMoreCustomers = async () => {
+    const result = await getCustomers(PAGE_SIZE, offset);
+    if (result.success && result.customers) {
+      setCustomers(prev => [...prev, ...result.customers]);
+      setOffset(prev => prev + result.customers.length);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -192,11 +205,16 @@ export default function CustomersPage() {
       </FadeIn>
 
       {error && !showModal && (
-        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl">
-          {error}
-          <button onClick={() => setError("")} className="float-right text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
-            <X size={16} />
-          </button>
+        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl flex items-center justify-between gap-2">
+          <span>{error}</span>
+          <span className="flex items-center gap-2 shrink-0">
+            <button onClick={() => { setError(""); loadCustomers(); }} className="text-[var(--color-danger)]/70 hover:text-[var(--color-danger)] underline text-xs">
+              Retry
+            </button>
+            <button onClick={() => setError("")} className="text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
+              <X size={16} />
+            </button>
+          </span>
         </div>
       )}
 
@@ -295,6 +313,13 @@ export default function CustomersPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        {offset < totalCustomers && !loading && (
+          <div className="p-4 text-center">
+            <button onClick={loadMoreCustomers} className="glass-btn-primary px-6 py-2 text-sm min-h-[44px]">
+              Load More ({totalCustomers - offset} remaining)
+            </button>
           </div>
         )}
       </StaggerItem>

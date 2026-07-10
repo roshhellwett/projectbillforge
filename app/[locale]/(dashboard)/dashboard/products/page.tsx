@@ -5,10 +5,10 @@ import { useRouter } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "@/lib/actions/products";
 import { getBusinessProfile } from "@/lib/actions/business";
-import { ConfirmDialog, SkeletonTable } from "@/lib/components/ui";
+import { ConfirmDialog, SkeletonTable } from "@/components/ui/ui";
 import { useTranslations } from "next-intl";
 import { Plus, Search, Edit2, Trash2, X, Package } from "lucide-react";
-import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
+import { StaggerContainer, StaggerItem, FadeIn } from "@/components/ui/MotionWrapper";
 
 interface Product {
   id: string;
@@ -70,6 +70,9 @@ export default function ProductsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const PAGE_SIZE = 50;
 
   useEffect(() => {
     loadData();
@@ -87,11 +90,13 @@ export default function ProductsPage() {
   const loadData = async () => {
     setLoading(true);
     const [productsResult, businessResult] = await Promise.all([
-      getProducts(),
+      getProducts(PAGE_SIZE, 0),
       getBusinessProfile()
     ]);
     if (productsResult.success) {
       setProducts(productsResult.products);
+      setTotalProducts(productsResult.total ?? 0);
+      setOffset(productsResult.products.length);
       setError("");
     } else if (productsResult.error) {
       setError(productsResult.error);
@@ -100,6 +105,14 @@ export default function ProductsPage() {
       setIndustryType((businessResult.business.industryType as IndustryType) || "custom");
     }
     setLoading(false);
+  };
+
+  const loadMoreProducts = async () => {
+    const result = await getProducts(PAGE_SIZE, offset);
+    if (result.success && result.products) {
+      setProducts(prev => [...prev, ...result.products]);
+      setOffset(prev => prev + result.products.length);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -228,11 +241,16 @@ export default function ProductsPage() {
       </FadeIn>
 
       {error && !showModal && (
-        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl text-sm">
-          {error}
-          <button onClick={() => setError("")} className="float-right text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
-            <X size={16} />
-          </button>
+        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl text-sm flex items-center justify-between gap-2">
+          <span>{error}</span>
+          <span className="flex items-center gap-2 shrink-0">
+            <button onClick={() => { setError(""); loadData(); }} className="text-[var(--color-danger)]/70 hover:text-[var(--color-danger)] underline text-xs">
+              Retry
+            </button>
+            <button onClick={() => setError("")} className="text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
+              <X size={16} />
+            </button>
+          </span>
         </div>
       )}
 
@@ -307,6 +325,13 @@ export default function ProductsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {offset < totalProducts && !loading && (
+          <div className="p-4 text-center">
+            <button onClick={loadMoreProducts} className="glass-btn-primary px-6 py-2 text-sm min-h-[44px]">
+              Load More ({totalProducts - offset} remaining)
+            </button>
           </div>
         )}
       </StaggerItem>

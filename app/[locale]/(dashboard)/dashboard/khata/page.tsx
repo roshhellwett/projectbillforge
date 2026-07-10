@@ -5,10 +5,10 @@ import { useRouter } from "@/i18n/routing";
 import { getCustomers } from "@/lib/actions/customers";
 import { getKhataStatement, createKhataTransaction, deleteKhataTransaction } from "@/lib/actions/khata";
 import { formatCurrency, formatDate } from "@/lib/formatters";
-import { ConfirmDialog } from "@/lib/components/ui";
+import { ConfirmDialog } from "@/components/ui/ui";
 import { useTranslations } from "next-intl";
 import { Plus, Search, X, ArrowUpCircle, ArrowDownCircle, Trash2, Lock, BookOpen } from "lucide-react";
-import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
+import { StaggerContainer, StaggerItem, FadeIn } from "@/components/ui/MotionWrapper";
 
 
 const fmt = (v: string | number | null | undefined): string => {

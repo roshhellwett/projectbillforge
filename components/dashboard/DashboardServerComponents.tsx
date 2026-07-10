@@ -1,6 +1,6 @@
 import React from 'react';
 import { DollarSign, FileText, Users, AlertTriangle, TrendingUp, Package, BarChart3, Clock, ArrowUpRight, ArrowDownRight, ShoppingBag } from "lucide-react";
-import { InteractiveItem } from "@/lib/components/MotionWrapper";
+import { InteractiveItem } from "@/components/ui/MotionWrapper";
 import { formatCurrency } from "@/lib/formatters";
 import { Link } from "@/i18n/routing";
 

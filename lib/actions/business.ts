@@ -1,10 +1,10 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { businesses, customers, invoices, khataTransactions } from "@/lib/schema";
+import { businesses, customers, invoices, khataTransactions, type InvoiceItem } from "@/lib/schema";
 import { businessProfileSchema } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { compare } from "bcryptjs";
 import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
 
@@ -115,6 +115,36 @@ export async function resetAllKhataData(password: string) {
     }
 
     await db.transaction(async (tx) => {
+      
+      const activeInvoices = await tx.execute(sql`
+        SELECT id, items FROM invoices
+        WHERE business_id = ${businessId} AND status = 'active'
+      `) as unknown as { id: string; items: InvoiceItem[] | null }[];
+
+      
+      const stockRestore = new Map<string, number>();
+      for (const inv of activeInvoices) {
+        if (inv.items) {
+          for (const item of inv.items) {
+            stockRestore.set(item.productId, (stockRestore.get(item.productId) ?? 0) + item.quantity);
+          }
+        }
+      }
+
+      
+      if (stockRestore.size > 0) {
+        const prodIds = Array.from(stockRestore.keys());
+        const sqlIds = sql.join(prodIds.map(id => sql`${id}`), sql`, `);
+        const cases = sql.join(
+          Array.from(stockRestore.entries()).map(([id, qty]) => sql`WHEN id = ${id} THEN stock_quantity + ${qty}`),
+          sql` `
+        );
+        await tx.execute(sql`
+          UPDATE products SET stock_quantity = CASE ${cases} ELSE stock_quantity END, updated_at = NOW()
+          WHERE id IN (${sqlIds}) AND business_id = ${businessId}
+        `);
+      }
+
       
       await tx.update(khataTransactions)
         .set({ status: 'cancelled' })

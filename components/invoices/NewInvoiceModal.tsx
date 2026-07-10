@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { formatCurrency } from "@/lib/formatters";
+import { Decimal } from "decimal.js";
 
 interface Product {
     id: string;
@@ -42,6 +43,7 @@ interface InvoiceFormData {
     invoiceDate: string;
     notes: string;
     paymentMode: "cash" | "upi" | "khata";
+    recordPayment: boolean;
 }
 
 interface NewInvoiceModalProps {
@@ -54,7 +56,7 @@ interface NewInvoiceModalProps {
 }
 
 
-const round2 = (n: number): number => Math.round(n * 100) / 100;
+const round2 = (n: number): number => new Decimal(n).toDecimalPlaces(2).toNumber();
 
 
 const getISTDateString = (): string => {
@@ -73,6 +75,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
         invoiceDate: getISTDateString(),
         notes: "",
         paymentMode: "cash" as "cash" | "upi" | "khata",
+        recordPayment: false,
     });
 
     const [items, setItems] = useState<InvoiceItem[]>([]);
@@ -174,9 +177,10 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                 customerName: customer.name,
                 customerGstin: customer.gstin || "",
                 customerAddress: customer.address || "",
+                recordPayment: formData.recordPayment,
             });
         } else {
-            setFormData({ ...formData, customerId, customerName: "", customerGstin: "", customerAddress: "" });
+            setFormData({ ...formData, customerId, customerName: "", customerGstin: "", customerAddress: "", recordPayment: false });
         }
     };
 
@@ -313,6 +317,17 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                             <p className="text-xs text-[var(--color-warning)] mt-1 font-medium">
                                 ⚠ Please select a customer above to use Khata (credit) payment.
                             </p>
+                        )}
+                        {formData.customerId && formData.paymentMode !== 'khata' && (
+                            <label className="flex items-center gap-2 cursor-pointer mt-2">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.recordPayment}
+                                    onChange={(e) => setFormData({ ...formData, recordPayment: e.target.checked })}
+                                    className="w-4 h-4 text-[var(--color-primary)] bg-[var(--background)] border border-[var(--border)] focus:ring-[var(--color-primary)]"
+                                />
+                                <span className="text-sm text-[var(--foreground)]/70">Record payment immediately</span>
+                            </label>
                         )}
                     </div>
 

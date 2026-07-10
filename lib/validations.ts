@@ -51,6 +51,7 @@ export const productSchema = z.object({
   gstRate: z.number().min(0).max(28).default(0),
   stockQuantity: z.number().min(0).default(0),
   lowStockThreshold: z.number().min(0).default(0),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const invoiceItemSchema = z.object({
@@ -75,6 +76,7 @@ export const invoiceSchema = z.object({
   notes: z.string().optional().transform(s => s?.trim() || undefined),
   isInterState: z.boolean().default(false),
   paymentMode: z.enum(["cash", "upi", "khata"]).default("cash"),
+  recordPayment: z.boolean().default(false),
 });
 
 export const khataTransactionSchema = z.object({

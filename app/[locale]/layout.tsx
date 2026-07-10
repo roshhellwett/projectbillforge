@@ -2,6 +2,11 @@ import type { Metadata, Viewport } from "next";
 import "../globals.css";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
+import { routing } from "@/i18n/routing";
+
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 
 export const metadata: Metadata = {
   title: {
@@ -29,7 +34,7 @@ export const viewport: Viewport = {
 };
 
 import { ThemeProvider } from "@/components/theme-provider";
-import { ToastProvider } from "@/lib/components/Toast";
+import { ToastProvider } from "@/components/ui/Toast";
 import { SessionProvider } from "@/components/providers/session-provider";
 
 export default async function RootLayout({

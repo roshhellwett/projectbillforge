@@ -10,6 +10,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
 import { allocatePaymentAcrossInvoices } from "@/lib/accounting";
+import { checkActionRateLimit } from "@/lib/rate-limit";
 
 const INDIA_TIME_ZONE = "Asia/Kolkata";
 
@@ -25,8 +26,9 @@ function generateInvoiceNumber(): string {
   const istDateStr = getIndiaDateString();
   const [fullYear, month] = istDateStr.split('-');
   const year = fullYear.slice(-2);
-  const unique = crypto.randomUUID().split('-')[0];
-  return `INV/${year}${month}/${unique}`;
+  const ts = Date.now().toString(36).slice(-6);
+  const rand = crypto.randomUUID().replace(/-/g, '').slice(0, 8);
+  return `INV/${year}${month}/${ts}${rand}`;
 }
 
 function calculateGST(itemRate: number, quantity: number, gstRate: number, isInterState: boolean) {
@@ -61,6 +63,9 @@ function calculateGST(itemRate: number, quantity: number, gstRate: number, isInt
 export async function createInvoice(data: InvoiceInput) {
   try {
     const session = await requireBusinessSession();
+
+    const rateCheck = await checkActionRateLimit(session.id, 'createInvoice', 30, '60 s');
+    if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
 
     const validation = invoiceSchema.safeParse(data);
     if (!validation.success) {
@@ -120,8 +125,8 @@ export async function createInvoice(data: InvoiceInput) {
 
     const total = subtotal.plus(totalCgst).plus(totalSgst).plus(totalIgst).toNumber();
     const paymentMode = data.paymentMode || 'cash';
-    const paymentStatus = paymentMode === 'khata' ? 'unpaid' : 'paid';
-    const amountPaid = paymentMode === 'khata' ? 0 : total;
+    const paymentStatus = 'unpaid';
+    const amountPaid = 0;
 
     const invoice = await db.transaction(async (tx) => {
       const [newInvoice] = await tx.insert(invoices).values({
@@ -163,14 +168,17 @@ export async function createInvoice(data: InvoiceInput) {
 
         
         const productRows = await tx.execute(
-          sql`SELECT id, name, stock_quantity FROM products WHERE id IN (${sqlIds}) FOR UPDATE`
-        ) as unknown as { id: string; name: string; stock_quantity: number | null }[];
+          sql`SELECT id, name, stock_quantity, business_id FROM products WHERE id IN (${sqlIds}) FOR UPDATE`
+        ) as unknown as { id: string; name: string; stock_quantity: number | null; business_id: string }[];
 
         
         for (const [id, props] of productProps.entries()) {
           const product = productRows.find(p => p.id === id);
           if (!product) {
             throw new Error(`Product not found: ${props.name}`);
+          }
+          if (product.business_id !== session.id) {
+            throw new Error(`Product ${product.name} does not belong to your business`);
           }
           if ((product.stock_quantity ?? 0) < props.qty) {
             throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stock_quantity ?? 0}, Required: ${props.qty}`);
@@ -190,6 +198,32 @@ export async function createInvoice(data: InvoiceInput) {
             updated_at = NOW()
           WHERE id IN (${sqlIds})
         `);
+      }
+
+      if (data.customerId && data.recordPayment && paymentMode !== 'khata') {
+        const customerRows = await tx.execute(
+          sql`SELECT id, business_id, current_balance FROM customers WHERE id = ${data.customerId} FOR UPDATE`
+        ) as unknown as { id: string; business_id: string; current_balance: number | null }[];
+        const customer = customerRows[0];
+        if (!customer || customer.business_id !== session.id) {
+          throw new Error("Customer not found");
+        }
+        const newBalance = new Decimal(customer.current_balance || 0).minus(total);
+        await tx.update(customers)
+          .set({ currentBalance: newBalance.toNumber(), updatedAt: new Date() })
+          .where(eq(customers.id, data.customerId));
+        await tx.insert(khataTransactions).values({
+          id: crypto.randomUUID(),
+          businessId: session.id,
+          customerId: data.customerId,
+          type: 'debit',
+          amount: total,
+          note: `Payment for Invoice ${invoiceNumber}`,
+          referenceInvoiceId: newInvoice.id,
+        });
+        await tx.update(invoices)
+          .set({ paymentStatus: 'paid', amountPaid: total, updatedAt: new Date() })
+          .where(eq(invoices.id, newInvoice.id));
       }
 
       if (data.customerId && paymentMode === 'khata') {
@@ -241,16 +275,23 @@ export async function createInvoice(data: InvoiceInput) {
   }
 }
 
-export async function getInvoices() {
+export async function getInvoices(limit = 50, offset = 0) {
   try {
     const session = await requireBusinessSession();
 
     const invoiceList = await db.query.invoices.findMany({
       where: eq(invoices.businessId, session.id),
       orderBy: [desc(invoices.createdAt)],
+      limit,
+      offset,
     });
 
-    return { success: true, invoices: invoiceList };
+    const [countResult] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(invoices)
+      .where(eq(invoices.businessId, session.id));
+
+    return { success: true, invoices: invoiceList, total: Number(countResult.count) };
   } catch (error: unknown) {
     return { error: errorMessage(error, "Failed to fetch invoices") };
   }
@@ -260,22 +301,24 @@ export async function cancelInvoice(id: string) {
   try {
     const session = await requireBusinessSession();
 
-    const invoice = await db.query.invoices.findFirst({
-      where: eq(invoices.id, id),
-    });
-
-    if (!invoice || invoice.businessId !== session.id) {
-      return { error: "Invoice not found" };
-    }
-
-    if (invoice.status === 'cancelled') {
-      return { error: "Invoice already cancelled" };
-    }
+    const rateCheck = await checkActionRateLimit(session.id, 'cancelInvoice', 10, '60 s');
+    if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
 
     await db.transaction(async (tx) => {
-      await tx.update(invoices)
+      const [invoice] = await tx.update(invoices)
         .set({ status: 'cancelled', updatedAt: new Date() })
-        .where(eq(invoices.id, id));
+        .where(and(eq(invoices.id, id), eq(invoices.businessId, session.id), eq(invoices.status, 'active')))
+        .returning();
+
+      if (!invoice) {
+        const existing = await tx.query.invoices.findFirst({
+          where: eq(invoices.id, id),
+        });
+        if (!existing || existing.businessId !== session.id) {
+          throw new Error("Invoice not found");
+        }
+        throw new Error("Invoice already cancelled");
+      }
 
       if (invoice.items && invoice.items.length > 0) {
         
@@ -303,18 +346,26 @@ export async function cancelInvoice(id: string) {
         `);
       }
 
-      if (invoice.customerId && invoice.paymentMode === 'khata') {
+      if (invoice.customerId) {
         const customerRows = await tx.execute(
           sql`SELECT id, current_balance FROM customers WHERE id = ${invoice.customerId} FOR UPDATE`
         ) as unknown as { id: string; current_balance: number | null }[];
         const customer = customerRows[0];
 
-        let orphanedPayment = new Decimal(invoice.amountPaid || 0);
+        const isKhata = invoice.paymentMode === 'khata';
+        const hadPayment = (invoice.amountPaid ?? 0) > 0;
 
-        if (customer) {
+        if (customer && (isKhata || hadPayment)) {
           const currentBalance = new Decimal(customer.current_balance || 0);
           const invTotalStr = new Decimal(invoice.total || 0);
-          const newBalance = currentBalance.minus(invTotalStr);
+          
+          
+          
+          
+          
+          const newBalance = isKhata
+            ? currentBalance.minus(invTotalStr)        
+            : currentBalance.plus(invTotalStr);         
 
           await tx.update(customers)
             .set({
@@ -324,22 +375,20 @@ export async function cancelInvoice(id: string) {
             .where(eq(customers.id, invoice.customerId));
         }
 
+        
+        const reversalType = isKhata ? 'debit' : 'credit';
         await tx.insert(khataTransactions).values({
           id: crypto.randomUUID(),
           businessId: session.id,
           customerId: invoice.customerId,
-          type: 'debit',
+          type: reversalType,
           amount: invoice.total ?? 0,
           note: `Invoice ${invoice.invoiceNumber} Cancelled - Reversal`,
           referenceInvoiceId: invoice.id,
         });
 
         
-        
-        
-        
-        
-        
+        let orphanedPayment = new Decimal(isKhata ? 0 : (invoice.amountPaid || 0));
         if (orphanedPayment.greaterThan(0)) {
           const pendingInvoicesRows = await tx.execute(
             sql`SELECT id, total, amount_paid FROM invoices 
@@ -402,62 +451,33 @@ export async function getSalesSummary() {
 
     const getCachedSummary = unstable_cache(
       async (bId: string, tStr: string) => {
-        const [todaySalesResult] = await db
-          .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
-          .from(invoices)
-          .where(
-            and(
-              eq(invoices.businessId, bId),
-              eq(invoices.status, 'active'),
-              eq(invoices.invoiceDate, tStr)
-            )
-          );
+        const [invoiceResult] = await db.execute(sql`
+          SELECT
+            COALESCE(SUM(CASE WHEN invoice_date = ${tStr} THEN total ELSE 0 END), 0) AS today_sales,
+            COALESCE(SUM(total), 0) AS total_sales,
+            COUNT(*) AS total_invoices
+          FROM invoices
+          WHERE business_id = ${bId} AND status = 'active'
+        `) as unknown as [{ today_sales: number; total_sales: number; total_invoices: number }];
 
-        const [totalSalesResult] = await db
-          .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
-          .from(invoices)
-          .where(
-            and(
-              eq(invoices.businessId, bId),
-              eq(invoices.status, 'active')
-            )
-          );
-
-        const [invoicesCountResult] = await db
-          .select({ count: sql<number>`COUNT(*)` })
-          .from(invoices)
-          .where(
-            and(
-              eq(invoices.businessId, bId),
-              eq(invoices.status, 'active')
-            )
-          );
-
-        const [customersCountResult] = await db
-          .select({ count: sql<number>`COUNT(*)` })
-          .from(customers)
-          .where(eq(customers.businessId, bId));
-
-        const [receivableResult] = await db
-          .select({ total: sql<number>`COALESCE(SUM(${customers.currentBalance}), 0)` })
-          .from(customers)
-          .where(
-            and(
-              eq(customers.businessId, bId),
-              sql`${customers.currentBalance} > 0`
-            )
-          );
+        const [customerResult] = await db.execute(sql`
+          SELECT
+            COUNT(*) AS total_customers,
+            COALESCE(SUM(CASE WHEN current_balance > 0 THEN current_balance ELSE 0 END), 0) AS total_receivable
+          FROM customers
+          WHERE business_id = ${bId}
+        `) as unknown as [{ total_customers: number; total_receivable: number }];
 
         return {
-          todaySales: Number(todaySalesResult.total),
-          totalSales: Number(totalSalesResult.total),
-          totalInvoices: Number(invoicesCountResult.count),
-          totalCustomers: Number(customersCountResult.count),
-          totalReceivable: Number(receivableResult?.total ?? 0),
+          todaySales: Number(invoiceResult.today_sales),
+          totalSales: Number(invoiceResult.total_sales),
+          totalInvoices: Number(invoiceResult.total_invoices),
+          totalCustomers: Number(customerResult.total_customers),
+          totalReceivable: Number(customerResult.total_receivable),
         };
       },
-      ['dashboard-sales-summary'],
-      { tags: ['dashboard_sales', `business_sales_${businessId}`], revalidate: 3600 }
+      ['dashboard-sales-summary', businessId],
+      { tags: [`business_sales_${businessId}`], revalidate: 60 }
     );
 
     const summary = await getCachedSummary(businessId, todayStr);
@@ -487,8 +507,8 @@ export async function getRecentInvoices(limit = 5) {
           limit: limitNum,
         });
       },
-      ['dashboard-recent-invoices'],
-      { tags: ['dashboard_recent', `business_invoices_${businessId}`], revalidate: 3600 }
+      ['dashboard-recent-invoices', businessId],
+      { tags: [`business_invoices_${businessId}`], revalidate: 60 }
     );
 
     const invoiceList = await getCachedRecentInvoices(businessId, limit);
@@ -506,8 +526,32 @@ export async function getWeeklySalesData() {
 
     const getCachedWeeklySales = unstable_cache(
       async (bId: string) => {
-        const days: { date: string; label: string; total: number }[] = [];
+        const today = new Date();
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+        const startDate = getIndiaDateString(sevenDaysAgo);
+        const endDate = getIndiaDateString(today);
 
+        const rows = await db
+          .select({
+            date: invoices.invoiceDate,
+            total: sql<number>`COALESCE(SUM(${invoices.total}), 0)`,
+          })
+          .from(invoices)
+          .where(
+            and(
+              eq(invoices.businessId, bId),
+              eq(invoices.status, 'active'),
+              sql`${invoices.invoiceDate} >= ${startDate}`,
+              sql`${invoices.invoiceDate} <= ${endDate}`
+            )
+          )
+          .groupBy(invoices.invoiceDate)
+          .orderBy(invoices.invoiceDate);
+
+        const totalsByDate = new Map(rows.map(r => [r.date, Number(r.total)]));
+
+        const days: { date: string; label: string; total: number }[] = [];
         for (let i = 6; i >= 0; i--) {
           const d = new Date();
           d.setDate(d.getDate() - i);
@@ -516,28 +560,16 @@ export async function getWeeklySalesData() {
             weekday: 'short',
             timeZone: INDIA_TIME_ZONE,
           }).format(d);
-
-          const [result] = await db
-            .select({ total: sql<number>`COALESCE(SUM(${invoices.total}), 0)` })
-            .from(invoices)
-            .where(
-              and(
-                eq(invoices.businessId, bId),
-                eq(invoices.status, 'active'),
-                sql`${invoices.invoiceDate} = ${dateStr}`
-              )
-            );
-
           days.push({
             date: dateStr,
             label,
-            total: Number(result.total),
+            total: totalsByDate.get(dateStr) ?? 0,
           });
         }
         return days;
       },
-      ['dashboard-weekly-sales'],
-      { tags: ['dashboard_sales', `business_weekly_sales_${businessId}`], revalidate: 3600 }
+      ['dashboard-weekly-sales', businessId],
+      { tags: [`business_weekly_sales_${businessId}`], revalidate: 60 }
     );
 
     const days = await getCachedWeeklySales(businessId);

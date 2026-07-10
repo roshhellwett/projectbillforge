@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { X, Printer } from "lucide-react";
 import { formatCurrency, formatDate, formatReceiptDate } from "@/lib/formatters";
 
@@ -70,6 +70,30 @@ function getItemTotals(items: InvoiceItem[]) {
     );
 }
 
+const printIframeRef = useRef<HTMLIFrameElement | null>(null);
+
+function printIframe(html: string) {
+  let iframe = printIframeRef.current;
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.top = '-9999px';
+    iframe.style.left = '-9999px';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    document.body.appendChild(iframe);
+    printIframeRef.current = iframe;
+  }
+  const doc = iframe.contentWindow?.document;
+  if (!doc) return;
+  doc.open();
+  doc.write(html);
+  doc.close();
+  setTimeout(() => {
+    iframe?.contentWindow?.print();
+  }, 500);
+}
+
 export function InvoicePrintModal({
     invoice,
     businessProfile,
@@ -102,12 +126,7 @@ export function InvoicePrintModal({
                 </tr>
               `).join("");
 
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-            alert('Print window was blocked by your browser. Please allow pop-ups for this site and try again.');
-            return;
-        }
-        printWindow.document.write(`
+    const thermalHtml = `
         <html><head><title>Receipt ${safeInvoiceNumber}</title>
         <style>
           @page { margin: 0; }
@@ -134,7 +153,7 @@ export function InvoicePrintModal({
             ${safeBusinessPhone ? `<div>Ph: ${safeBusinessPhone}</div>` : ''}
             ${safeBusinessGstin ? `<div>GSTIN: ${safeBusinessGstin}</div>` : ''}
           </div>
-          
+
           <div class="border-b">
             <div><span class="font-bold">Date:</span> ${safeInvoiceDate}</div>
             <div><span class="font-bold">Inv No:</span> ${safeInvoiceNumber}</div>
@@ -179,12 +198,9 @@ export function InvoicePrintModal({
           <div class="text-center mt-4 pt-4 border-t">
             <div class="mb-2">*** Thank You ***</div>
           </div>
-          <script>
-            window.onload = function() { window.print(); window.close(); }
-          </script>
         </body></html>
-      `);
-        printWindow.document.close();
+      `;
+    printIframe(thermalHtml);
     };
 
     const handlePrintA4 = () => {
@@ -212,12 +228,7 @@ export function InvoicePrintModal({
                   </tr>
                 `).join("");
 
-        const printWindow = window.open('', '_blank');
-        if (!printWindow) {
-            alert('Print window was blocked by your browser. Please allow pop-ups for this site and try again.');
-            return;
-        }
-        printWindow.document.write(`
+    const a4Html = `
         <html><head><title>Invoice ${safeInvoiceNumber}</title>
         <style>
           @page { size: A4; margin: 20mm; }
@@ -346,12 +357,9 @@ export function InvoicePrintModal({
               </div>
             </div>
           </div>
-          <script>
-            window.onload = function() { window.print(); window.close(); }
-          </script>
         </body></html>
-      `);
-        printWindow.document.close();
+      `;
+    printIframe(a4Html);
     };
 
     return (

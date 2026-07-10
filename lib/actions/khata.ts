@@ -9,6 +9,7 @@ import { requireBusinessSession } from "@/lib/session";
 import { eq, sql, and, asc } from "drizzle-orm";
 import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
 import { allocatePaymentAcrossInvoices, calculateLateFee } from "@/lib/accounting";
+import { checkActionRateLimit } from "@/lib/rate-limit";
 
 type KhataTransactionRow = typeof khataTransactions.$inferSelect;
 
@@ -19,6 +20,9 @@ function errorMessage(error: unknown, fallback: string): string {
 export async function createKhataTransaction(data: KhataTransactionInput) {
   try {
     const session = await requireBusinessSession();
+
+    const rateCheck = await checkActionRateLimit(session.id, 'createKhataTransaction', 20, '60 s');
+    if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
 
     const validation = khataTransactionSchema.safeParse(data);
     if (!validation.success) {
@@ -157,8 +161,6 @@ export async function getKhataStatement(customerId: string) {
       orderBy: [asc(khataTransactions.createdAt)],
     });
 
-    const transactions = allTransactions.filter((t) => t.status !== 'cancelled');
-
     const invoicesList = await db.query.invoices.findMany({
       where: and(
         eq(invoices.customerId, customerId),
@@ -196,30 +198,28 @@ export async function getKhataStatement(customerId: string) {
 
     let runningBalance = new Decimal(0);
 
-    const sortedTransactions = [...transactions].sort((a, b) =>
+    const sortedTransactions = [...allTransactions].sort((a, b) =>
       new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
     );
 
     const transactionBalances: Record<string, number> = {};
 
     for (const t of sortedTransactions) {
-      if (t.type === 'credit') {
+      if (t.status === 'cancelled') {
+        transactionBalances[t.id] = runningBalance.toDecimalPlaces(2).toNumber();
+      } else if (t.type === 'credit') {
         runningBalance = runningBalance.plus(t.amount);
+        transactionBalances[t.id] = runningBalance.toDecimalPlaces(2).toNumber();
       } else {
         runningBalance = runningBalance.minus(t.amount);
+        transactionBalances[t.id] = runningBalance.toDecimalPlaces(2).toNumber();
       }
-      transactionBalances[t.id] = runningBalance.toDecimalPlaces(2).toNumber();
     }
 
-    const statement = statementWithAll.map((t) => {
-      if (t.status === 'cancelled') {
-        return { ...t };
-      }
-      return {
-        ...t,
-        runningBalance: transactionBalances[t.id] ?? 0,
-      };
-    }).reverse();
+    const statement = statementWithAll.map((t) => ({
+      ...t,
+      runningBalance: transactionBalances[t.id] ?? 0,
+    })).reverse();
 
     const totalBalanceWithFines = (customer.currentBalance ?? 0) + totalAccruedFines;
 
@@ -239,6 +239,9 @@ export async function getKhataStatement(customerId: string) {
 export async function deleteKhataTransaction(id: string) {
   try {
     const session = await requireBusinessSession();
+
+    const rateCheck = await checkActionRateLimit(session.id, 'deleteKhataTransaction', 10, '60 s');
+    if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
 
     const transaction = await db.query.khataTransactions.findFirst({
       where: eq(khataTransactions.id, id),

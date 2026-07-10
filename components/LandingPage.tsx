@@ -205,8 +205,8 @@ export default function LandingPage() {
                         
                         <div className="hidden md:flex items-center space-x-8">
                             <Link href="#features" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navFeatures')}</Link>
-                            <Link href="/dashboard/khata" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navKhata')}</Link>
-                            <Link href="/dashboard/invoices" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navInvoices')}</Link>
+                            <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navKhata')}</Link>
+                            <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navInvoices')}</Link>
                         </div>
 
                         

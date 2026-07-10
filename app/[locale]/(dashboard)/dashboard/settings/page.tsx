@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/routing";
 import { getBusinessProfile, updateBusinessProfile, resetAllKhataData } from "@/lib/actions/business";
-import { ConfirmDialog } from "@/lib/components/ui";
+import { ConfirmDialog } from "@/components/ui/ui";
 import { useTranslations } from "next-intl";
-import { StaggerContainer, StaggerItem, FadeIn } from "@/lib/components/MotionWrapper";
-import { SignOutButton } from "../../signout-button";
+import { StaggerContainer, StaggerItem, FadeIn } from "@/components/ui/MotionWrapper";
+import { SignOutButton } from "@/components/layout/signout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const defaultTerms = `1. Goods once sold cannot be returned or exchanged unless damaged or defective at the time of delivery.
@@ -156,10 +156,9 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">{t('phone')} *</label>
+              <label className="block text-sm font-medium text-[var(--foreground)]/80 mb-2">{t('phone')}</label>
               <input
                 type="tel"
-                required
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 className="w-full px-5 py-3.5 glass-input text-[var(--foreground)] transition-all font-medium focus:ring-0"

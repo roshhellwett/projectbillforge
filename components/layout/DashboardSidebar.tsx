@@ -11,10 +11,10 @@ import {
   Receipt,
   Search,
 } from "lucide-react";
-import { SignOutButton } from "./signout-button";
+import { SignOutButton } from "@/components/layout/signout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { FloatingIcon } from "@/lib/components/MotionWrapper";
+import { FloatingIcon } from "@/components/ui/MotionWrapper";
 
 interface DashboardSidebarProps {
   session: {

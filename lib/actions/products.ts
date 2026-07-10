@@ -6,6 +6,7 @@ import { productSchema, type ProductInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq, sql, and, desc } from "drizzle-orm";
 import { revalidateLocalizedPaths } from "@/lib/revalidate";
+import { checkActionRateLimit } from "@/lib/rate-limit";
 
 function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
@@ -14,6 +15,9 @@ function errorMessage(error: unknown, fallback: string): string {
 export async function createProduct(data: ProductInput) {
   try {
     const session = await requireBusinessSession();
+
+    const rateCheck = await checkActionRateLimit(session.id, 'createProduct', 20, '60 s');
+    if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
 
     const validation = productSchema.safeParse(data);
     if (!validation.success) {
@@ -38,6 +42,7 @@ export async function createProduct(data: ProductInput) {
       gstRate: data.gstRate,
       stockQuantity: data.stockQuantity,
       lowStockThreshold: data.lowStockThreshold,
+      metadata: data.metadata || null,
       isActive: true,
     }).returning();
 
@@ -140,16 +145,23 @@ export async function deleteProduct(id: string) {
   }
 }
 
-export async function getProducts() {
+export async function getProducts(limit = 50, offset = 0) {
   try {
     const session = await requireBusinessSession();
 
     const productList = await db.query.products.findMany({
       where: eq(products.businessId, session.id),
       orderBy: [desc(products.createdAt)],
+      limit,
+      offset,
     });
 
-    return { success: true, products: productList };
+    const [countResult] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(products)
+      .where(eq(products.businessId, session.id));
+
+    return { success: true, products: productList, total: Number(countResult.count) };
   } catch (error: unknown) {
     return { error: errorMessage(error, "Failed to fetch products") };
   }
