@@ -34,13 +34,12 @@ export interface Invoice {
   paymentStatus: string | null; amountPaid: number | null;
   items: InvoiceItem[] | null;
   customerGstin: string | null; customerAddress: string | null;
-  notes: string | null;
 }
 
 export interface InvoiceFormData {
   customerId: string; customerName: string;
   customerGstin: string; customerAddress: string;
-  invoiceDate: string; notes: string;
+  invoiceDate: string;
   paymentMode: "cash" | "upi" | "khata";
 }
 
@@ -56,14 +55,17 @@ interface InvoiceServerRow extends Omit<Invoice, "invoiceDate"> {
 
 export const PAGE_SIZE = 50;
 
-export function useInvoices() {
+export function useInvoices(initialData?: {
+  products?: Product[]; customers?: Customer[]; invoices?: Invoice[];
+  businessProfile?: BusinessProfile | null; totalInvoices?: number;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToast } = useToast();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(initialData?.products ?? []);
+  const [customers, setCustomers] = useState<Customer[]>(initialData?.customers ?? []);
+  const [invoices, setInvoices] = useState<Invoice[]>(initialData?.invoices ?? []);
+  const [loading, setLoading] = useState(!initialData);
   const [search, setSearch] = useState("");
   const [showNewInvoice, setShowNewInvoice] = useState(false);
   const [printFormat, setPrintFormat] = useState<"a4" | "thermal">("a4");
@@ -71,11 +73,11 @@ export function useInvoices() {
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
-  const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
+  const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(initialData?.businessProfile ?? null);
   const [showSettingsPrompt, setShowSettingsPrompt] = useState(false);
   const [settingsPromptMessage, setSettingsPromptMessage] = useState("");
-  const [offset, setOffset] = useState(0);
-  const [totalInvoices, setTotalInvoices] = useState(0);
+  const [offset, setOffset] = useState(initialData?.invoices?.length ?? 0);
+  const [totalInvoices, setTotalInvoices] = useState(initialData?.totalInvoices ?? 0);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -107,7 +109,7 @@ export function useInvoices() {
     setLoading(false);
   }, [addToast, router]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { if (!initialData) loadData(); }, []);
 
   useEffect(() => {
     if (searchParams.get("new") === "true") {
@@ -133,7 +135,6 @@ export function useInvoices() {
       customerId: formDataPayload.customerId || undefined,
       customerGstin: formDataPayload.customerGstin || undefined,
       customerAddress: formDataPayload.customerAddress || undefined,
-      notes: formDataPayload.notes || undefined,
       items: itemsPayload,
       isInterState: isInterStatePayload,
     });

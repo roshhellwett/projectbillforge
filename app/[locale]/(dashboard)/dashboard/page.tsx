@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { getSalesSummary, getRecentInvoices, getWeeklySalesData } from "@/lib/actions/invoices";
 import { getLowStockProducts, getProducts } from "@/lib/actions/products";
-import { getCustomers } from "@/lib/actions/customers";
+import { getTopReceivables } from "@/lib/actions/customers";
 import { StaggerContainer, StaggerItem } from "@/components/ui/MotionWrapper";
 
 import { WelcomeBanner } from "./components/WelcomeBanner";
@@ -19,7 +19,7 @@ import {
 export default function DashboardPage() {
   const salesPromise = getSalesSummary();
   const lowStockPromise = getLowStockProducts();
-  const customersPromise = getCustomers();
+  const customersPromise = getTopReceivables(5);
   const recentPromise = getRecentInvoices(5);
   const weeklyPromise = getWeeklySalesData();
   const productsPromise = getProducts();

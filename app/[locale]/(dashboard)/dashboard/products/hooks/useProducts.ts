@@ -29,16 +29,16 @@ export function getDefaultUnits(industry: IndustryType) {
   }
 }
 
-export function useProducts() {
+export function useProducts(initialData?: { products?: Product[]; totalProducts?: number; industryType?: IndustryType }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToast } = useToast();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(initialData?.products ?? []);
+  const [loading, setLoading] = useState(!initialData);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [industryType, setIndustryType] = useState<IndustryType>("custom");
+  const [industryType, setIndustryType] = useState<IndustryType>(initialData?.industryType ?? "custom");
   const [formData, setFormData] = useState({
     name: "", sku: "", hsnCode: "", unit: "piece", rate: "",
     gstRate: "0", stockQuantity: "", lowStockThreshold: "",
@@ -47,8 +47,8 @@ export function useProducts() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [offset, setOffset] = useState(0);
-  const [totalProducts, setTotalProducts] = useState(0);
+  const [offset, setOffset] = useState(initialData?.products?.length ?? 0);
+  const [totalProducts, setTotalProducts] = useState(initialData?.totalProducts ?? 0);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -68,7 +68,7 @@ export function useProducts() {
     setLoading(false);
   }, [addToast]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { if (!initialData) loadData(); }, []);
 
   useEffect(() => {
     if (searchParams.get("new") === "true") {

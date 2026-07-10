@@ -22,7 +22,5 @@ export function revalidateLocalizedPaths(paths: string[], type: "page" | "layout
 }
 
 export function revalidateDashboardCache(businessId: string) {
-  revalidateTag(`business_sales_${businessId}`);
-  revalidateTag(`business_invoices_${businessId}`);
-  revalidateTag(`business_weekly_sales_${businessId}`);
+  revalidateTag(`dashboard_${businessId}`);
 }

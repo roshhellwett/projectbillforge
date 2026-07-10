@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { customers, khataTransactions, invoices } from "@/lib/schema";
 import { customerSchema, type CustomerInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, gt } from "drizzle-orm";
 import { revalidateLocalizedPaths } from "@/lib/revalidate";
 import { checkActionRateLimit } from "@/lib/rate-limit";
 
@@ -151,5 +151,20 @@ export async function getCustomers(limit = 50, offset = 0) {
     return { success: true, customers: customerList, total: Number(countResult.count) };
   } catch (error: unknown) {
     return { error: errorMessage(error, "Failed to fetch customers") };
+  }
+}
+
+export async function getTopReceivables(limit = 5) {
+  try {
+    const session = await requireBusinessSession();
+    const rows = await db
+      .select({ id: customers.id, name: customers.name, currentBalance: customers.currentBalance })
+      .from(customers)
+      .where(and(eq(customers.businessId, session.id), gt(customers.currentBalance, 0)))
+      .orderBy(desc(customers.currentBalance))
+      .limit(limit);
+    return { success: true, customers: rows };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to fetch top receivables") };
   }
 }

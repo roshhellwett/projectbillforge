@@ -27,7 +27,6 @@ interface Invoice {
     items: InvoiceItem[] | null;
     customerGstin: string | null;
     customerAddress: string | null;
-    notes: string | null;
 }
 
 interface BusinessProfile {
@@ -213,7 +212,6 @@ export function InvoicePrintModal({
         const safeCustomerName = escapeHtml(invoice.customerName);
         const safeCustomerAddress = invoice.customerAddress ? escapeHtml(invoice.customerAddress).replace(/\n/g, "<br>") : "";
         const safeCustomerGstin = invoice.customerGstin ? escapeHtml(invoice.customerGstin) : "";
-        const safeInvoiceNotes = invoice.notes ? escapeHtml(invoice.notes).replace(/\n/g, "<br>") : "";
         const safeTerms = businessProfile.termsAndConditions ? escapeHtml(businessProfile.termsAndConditions).replace(/\n/g, "<br>") : "";
         const a4ItemsRows = invoiceItems.map((item, i) => `
                   <tr>
@@ -256,8 +254,6 @@ export function InvoicePrintModal({
           .summary-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; color: #475569; }
           .summary-row.total { font-weight: 700; font-size: 18px; color: #0f172a; border-bottom: none; border-top: 2px solid #e2e8f0; padding-top: 15px; margin-top: 5px; }
           .footer { clear: both; margin-top: 60px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 12px; }
-          .notes { margin-bottom: 15px; font-size: 13px; line-height: 1.5; }
-          .notes strong { color: #334155; display: block; margin-bottom: 4px; }
           .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 10px; }
           .badge-paid { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
           .badge-unpaid { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
@@ -339,12 +335,6 @@ export function InvoicePrintModal({
             </div>
 
             <div class="footer">
-              ${safeInvoiceNotes ? `
-                <div class="notes">
-                  <strong>Notes:</strong>
-                  ${safeInvoiceNotes}
-                </div>
-              ` : ''}
               ${safeTerms ? `
                 <div class="notes">
                   <strong>Terms & Conditions:</strong>
@@ -511,12 +501,6 @@ export function InvoicePrintModal({
 
                             <div className="pt-8 border-t border-slate-200 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-400 flex justify-between items-end">
                                 <div className="max-w-[60%]">
-                                    {invoice.notes && (
-                                        <div className="mb-4">
-                                            <strong className="block text-slate-900 dark:text-slate-300 font-bold mb-1">Notes:</strong>
-                                            <p className="whitespace-pre-line bg-slate-50 dark:bg-slate-800 p-3 rounded border border-slate-100 dark:border-slate-700">{invoice.notes}</p>
-                                        </div>
-                                    )}
                                     {businessProfile.termsAndConditions && (
                                         <div>
                                             <strong className="block text-slate-900 dark:text-slate-300 font-bold mb-1">Terms & Conditions:</strong>

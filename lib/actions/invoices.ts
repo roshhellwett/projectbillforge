@@ -223,7 +223,6 @@ export async function createInvoice(data: InvoiceInput) {
         igst: totalIgst.toNumber(),
         total,
         items: processedItems,
-        notes: data.notes || null,
         paymentMode,
         paymentStatus,
         amountPaid,

@@ -35,12 +35,12 @@ const defaultForm: CustomerFormData = {
   name: "", phone: "", email: "", gstin: "", address: "", creditLimit: "",
 };
 
-export function useCustomers() {
+export function useCustomers(initialData?: { customers?: Customer[]; totalCustomers?: number }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToast } = useToast();
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [customers, setCustomers] = useState<Customer[]>(initialData?.customers ?? []);
+  const [loading, setLoading] = useState(!initialData);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
@@ -49,8 +49,8 @@ export function useCustomers() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [syncingId, setSyncingId] = useState<string | null>(null);
-  const [offset, setOffset] = useState(0);
-  const [totalCustomers, setTotalCustomers] = useState(0);
+  const [offset, setOffset] = useState(initialData?.customers?.length ?? 0);
+  const [totalCustomers, setTotalCustomers] = useState(initialData?.totalCustomers ?? 0);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -65,7 +65,7 @@ export function useCustomers() {
     setLoading(false);
   }, [addToast]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { if (!initialData) loadData(); }, []);
 
   useEffect(() => {
     if (searchParams.get("new") === "true") {

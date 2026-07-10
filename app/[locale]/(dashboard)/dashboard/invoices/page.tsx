@@ -1,108 +1,40 @@
-"use client";
+import { getProducts } from "@/lib/actions/products";
+import { getCustomers } from "@/lib/actions/customers";
+import { getInvoices } from "@/lib/actions/invoices";
+import { getBusinessProfile } from "@/lib/actions/business";
+import InvoicesPageClient from "./InvoicesPageClient";
+import type { Invoice } from "./hooks/useInvoices";
 
-import { useInvoices, type Invoice } from "./hooks/useInvoices";
-import { InvoiceHeader } from "./components/InvoiceHeader";
-import { InvoiceSearchBar } from "./components/InvoiceSearchBar";
-import { InvoiceTable } from "./components/InvoiceTable";
-import { InvoiceLoadMore } from "./components/InvoiceLoadMore";
-import { EmptyState } from "./components/EmptyState";
-import { NewInvoiceModal } from "@/components/invoices/NewInvoiceModal";
-import { InvoicePrintModal } from "@/components/invoices/InvoicePrintModal";
-import { ConfirmDialog, SkeletonTable } from "@/components/ui/ui";
-import { StaggerContainer, StaggerItem } from "@/components/ui/MotionWrapper";
-import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/routing";
-import { formatCurrency } from "@/lib/formatters";
+const PAGE_SIZE = 50;
 
-export default function InvoicesPage() {
-  const t = useTranslations("Invoices");
-  const router = useRouter();
-  const {
-    products, customers, filteredInvoices, loading, search, showNewInvoice,
-    printFormat, saving, cancelId, cancelling, viewInvoice, businessProfile,
-    showSettingsPrompt, settingsPromptMessage, offset, totalInvoices,
-    setSearch, setShowNewInvoice, setPrintFormat, setCancelId,
-    setViewInvoice, setShowSettingsPrompt,
-    openNewInvoice, loadData, loadMoreInvoices, handleCreateSubmit, handleCancelInvoice,
-  } = useInvoices();
+export default async function InvoicesPage() {
+  const [productsResult, customersResult, invoicesResult, businessResult] = await Promise.all([
+    getProducts(), getCustomers(), getInvoices(PAGE_SIZE, 0), getBusinessProfile(),
+  ]);
 
-  const handleWhatsAppShare = (invoice: Invoice, customerPhone: string | null) => {
-    const amount = formatCurrency(invoice.total);
-    const vars = { businessName: businessProfile?.name || "", customerName: invoice.customerName, invoiceNumber: invoice.invoiceNumber, amount };
-    const message = t("whatsappMessage", vars);
-    const encoded = encodeURIComponent(message);
-    let phone = customerPhone?.replace(/\D/g, "") || "";
-    if (phone.length === 10 && /^[6-9]/.test(phone)) phone = "91" + phone;
-    window.open(`https://wa.me/${phone}?text=${encoded}`, "_blank");
+  if (!productsResult.success || !customersResult.success || !invoicesResult.success || !businessResult.success) {
+    return <InvoicesPageClient />;
+  }
+
+  const businessProfile = {
+    name: businessResult.business?.name || "",
+    gstin: businessResult.business?.gstin || null,
+    address: businessResult.business?.address || null,
+    phone: businessResult.business?.phone || null,
+    state: businessResult.business?.state || "",
+    pincode: businessResult.business?.pincode || null,
+    termsAndConditions: businessResult.business?.termsAndConditions || null,
   };
 
   return (
-    <StaggerContainer className="space-y-4 sm:space-y-6">
-      <InvoiceHeader onAdd={openNewInvoice} />
-
-      <StaggerItem className="glass-card overflow-hidden">
-        <InvoiceSearchBar value={search} onChange={setSearch} />
-
-        {loading ? (
-          <div className="p-4"><SkeletonTable rows={5} /></div>
-        ) : filteredInvoices.length === 0 ? (
-          <EmptyState visible />
-        ) : (
-          <InvoiceTable
-            invoices={filteredInvoices}
-            customers={customers}
-            businessName={businessProfile?.name || ""}
-            onView={(inv) => { if (businessProfile) setViewInvoice(inv); }}
-            onWhatsApp={handleWhatsAppShare}
-            onCancel={setCancelId}
-          />
-        )}
-
-        {!loading && (
-          <InvoiceLoadMore
-            remaining={totalInvoices - offset}
-            onLoadMore={loadMoreInvoices}
-          />
-        )}
-      </StaggerItem>
-
-      {showNewInvoice && (
-        <NewInvoiceModal
-          onClose={() => { setShowNewInvoice(false); loadData(); }}
-          onSubmit={handleCreateSubmit}
-          customers={customers}
-          products={products}
-          saving={saving}
-          error=""
-        />
-      )}
-
-      <ConfirmDialog
-        open={!!cancelId}
-        title={t("cancelInvoiceTitle")}
-        message={t("cancelInvoiceMessage")}
-        onConfirm={handleCancelInvoice}
-        onCancel={() => setCancelId(null)}
-        loading={cancelling}
-      />
-
-      <ConfirmDialog
-        open={showSettingsPrompt}
-        title={t("settingsPromptTitle")}
-        message={settingsPromptMessage + t("settingsPromptSuffix")}
-        onConfirm={() => { setShowSettingsPrompt(false); router.push("/dashboard/settings"); }}
-        onCancel={() => { setShowSettingsPrompt(false); }}
-      />
-
-      {viewInvoice && businessProfile && (
-        <InvoicePrintModal
-          invoice={viewInvoice}
-          businessProfile={businessProfile}
-          printFormat={printFormat}
-          onFormatChange={setPrintFormat}
-          onClose={() => setViewInvoice(null)}
-        />
-      )}
-    </StaggerContainer>
+    <InvoicesPageClient
+      initialData={{
+        products: productsResult.products,
+        customers: customersResult.customers,
+        invoices: invoicesResult.invoices.map((inv: { id: string; invoiceNumber: string; customerId: string | null; customerName: string; invoiceDate: string; total: number | null; status: string | null; paymentMode: string | null; paymentStatus: string | null; amountPaid: number | null; items: unknown; customerGstin: string | null; customerAddress: string | null }) => ({ ...inv, invoiceDate: new Date(inv.invoiceDate) })) as Invoice[],
+        businessProfile,
+        totalInvoices: invoicesResult.total ?? 0,
+      }}
+    />
   );
 }

@@ -1,64 +1,27 @@
-"use client";
+import { getProducts } from "@/lib/actions/products";
+import { getBusinessProfile } from "@/lib/actions/business";
+import ProductsPageClient from "./ProductsPageClient";
+import type { IndustryType } from "./hooks/useProducts";
 
-import { useProducts } from "./hooks/useProducts";
-import { ProductHeader } from "./components/ProductHeader";
-import { ProductSearchBar } from "./components/ProductSearchBar";
-import { ProductTable } from "./components/ProductTable";
-import { ProductModal } from "./components/ProductModal";
-import { EmptyState } from "./components/EmptyState";
-import { ConfirmDialog } from "@/components/ui/ui";
-import { StaggerContainer, StaggerItem, FadeIn } from "@/components/ui/MotionWrapper";
-import { useTranslations } from "next-intl";
+const PAGE_SIZE = 50;
 
-export default function ProductsPage() {
-  const t = useTranslations("Products");
-  const {
-    filteredProducts, loading, search, showModal, editingProduct,
-    industryType, formData, metadata, saving, deleteId, deleting,
-    offset, totalProducts,
-    setSearch, setShowModal, setFormData, setMetadata, setDeleteId,
-    openModal, handleEdit, handleSubmit, handleDelete, loadMoreProducts,
-  } = useProducts();
+export default async function ProductsPage() {
+  const [productsResult, businessResult] = await Promise.all([
+    getProducts(PAGE_SIZE, 0), getBusinessProfile(),
+  ]);
+
+  if (!productsResult.success) return <ProductsPageClient />;
+
+  const industryType = (businessResult.success && businessResult.business
+    ? businessResult.business.industryType : "custom") as IndustryType;
 
   return (
-    <StaggerContainer className="space-y-6">
-      <ProductHeader onAdd={openModal} />
-
-      <StaggerItem className="glass-card overflow-hidden">
-        <ProductSearchBar value={search} onChange={setSearch} />
-        <ProductTable
-          products={filteredProducts}
-          loading={loading}
-          offset={offset}
-          totalProducts={totalProducts}
-          onEdit={handleEdit}
-          onDelete={setDeleteId}
-          onLoadMore={loadMoreProducts}
-        />
-        <EmptyState visible={!loading && filteredProducts.length === 0} />
-      </StaggerItem>
-
-      <ProductModal
-        open={showModal}
-        saving={saving}
-        editingProduct={editingProduct}
-        industryType={industryType}
-        formData={formData}
-        metadata={metadata}
-        onClose={() => setShowModal(false)}
-        onSubmit={handleSubmit}
-        onFormChange={data => setFormData(prev => ({ ...prev, ...data }))}
-        onMetadataChange={setMetadata}
-      />
-
-      <ConfirmDialog
-        open={!!deleteId}
-        title={t("deleteTitle")}
-        message={t("deleteMessage")}
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteId(null)}
-        loading={deleting}
-      />
-    </StaggerContainer>
+    <ProductsPageClient
+      initialData={{
+        products: productsResult.products,
+        totalProducts: productsResult.total ?? 0,
+        industryType,
+      }}
+    />
   );
 }

@@ -42,7 +42,6 @@ interface InvoiceFormData {
     customerGstin: string;
     customerAddress: string;
     invoiceDate: string;
-    notes: string;
     paymentMode: "cash" | "upi" | "khata";
 }
 
@@ -80,7 +79,6 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
         customerGstin: "",
         customerAddress: "",
         invoiceDate: getISTDateString(),
-        notes: "",
         paymentMode: "cash" as "cash" | "upi" | "khata",
     });
 
@@ -244,42 +242,53 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                 <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
                     {error && <div className="p-3 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-lg text-sm border border-[var(--color-danger)]/20">{error}</div>}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Customer</label>
-                            <select
-                                value={formData.customerId}
-                                onChange={(e) => handleCustomerChange(e.target.value)}
-                                className="w-full glass-input"
-                            >
-                                <option value="">Select Customer (Optional)</option>
-                                {customers.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name} {c.phone ? `(${c.phone})` : ''}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-4">
+                        <div className="sm:col-span-7">
                             <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">{t('customerName')}</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.customerName}
-                                onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                                className="w-full glass-input"
-                            />
+                            <div className="flex gap-2">
+                                <select
+                                    value={formData.customerId}
+                                    onChange={(e) => handleCustomerChange(e.target.value)}
+                                    className="w-44 glass-input text-sm"
+                                >
+                                    <option value="">Select</option>
+                                    {customers.map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.customerName}
+                                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                                    className="w-full glass-input"
+                                    placeholder="Walk-in Customer"
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">GSTIN</label>
-                            <input
-                                type="text"
-                                value={formData.customerGstin}
-                                onChange={(e) => setFormData({ ...formData, customerGstin: e.target.value?.toUpperCase() })}
-                                className="w-full glass-input uppercase"
-                                pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$"
-                                title="Valid 15-character GSTIN"
-                            />
+                        <div className="sm:col-span-5">
+                            <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">{t('paymentMode')}</label>
+                            <div className="flex gap-1.5 p-1 bg-[var(--foreground)]/[0.05] rounded-xl">
+                                {(["cash", "upi", "khata"] as const).map(mode => (
+                                    <button
+                                        key={mode}
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, paymentMode: mode })}
+                                        className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                                            formData.paymentMode === mode
+                                                ? mode === "khata" ? "bg-amber-500 text-white shadow-sm" : "bg-white dark:bg-gray-700 text-[var(--foreground)] shadow-sm"
+                                                : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]/80"
+                                        }`}
+                                    >
+                                        {mode === "cash" ? "💵 Cash" : mode === "upi" ? "📱 UPI" : "📒 Khata"}
+                                    </button>
+                                ))}
+                            </div>
+                            {formData.paymentMode === 'khata' && !formData.customerId && (
+                                <p className="text-xs text-[var(--color-warning)] mt-1 font-medium">⚠ Select a customer for Khata</p>
+                            )}
                         </div>
-                        <div>
+                        <div className="sm:col-span-4">
                             <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">{t('invoiceDate')}</label>
                             <input
                                 type="date"
@@ -290,62 +299,18 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                                 className="w-full glass-input"
                             />
                         </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
-                        <input
-                            type="checkbox"
-                            id="isInterState"
-                            checked={isInterState}
-                            onChange={(e) => handleInterStateToggle(e.target.checked)}
-                            className="w-4 h-4"
-                        />
-                        <label htmlFor="isInterState" className="text-sm text-[var(--foreground)]/70">Inter-State (IGST instead of CGST+SGST)</label>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-2">{t('paymentMode')}</label>
-                        <div className="flex flex-wrap gap-3 sm:gap-4">
+                        <div className="sm:col-span-3 flex items-end pb-1">
                             <label className="flex items-center gap-2 cursor-pointer">
                                 <input
-                                    type="radio"
-                                    name="paymentMode"
-                                    value="cash"
-                                    checked={formData.paymentMode === 'cash'}
-                                    onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value as "cash" })}
-                                    className="w-4 h-4 text-[var(--color-primary)] bg-[var(--background)] border border-[var(--border)] focus:ring-[var(--color-primary)]"
+                                    type="checkbox"
+                                    id="isInterState"
+                                    checked={isInterState}
+                                    onChange={(e) => handleInterStateToggle(e.target.checked)}
+                                    className="w-4 h-4 rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                                 />
-                                <span className="text-sm text-[var(--foreground)]/70">{t('cash')}</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="paymentMode"
-                                    value="upi"
-                                    checked={formData.paymentMode === 'upi'}
-                                    onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value as "upi" })}
-                                    className="w-4 h-4 text-[var(--color-primary)] bg-[var(--background)] border border-[var(--border)] focus:ring-[var(--color-primary)]"
-                                />
-                                <span className="text-sm text-[var(--foreground)]/70">{t('upi')}</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="paymentMode"
-                                    value="khata"
-                                    checked={formData.paymentMode === 'khata'}
-                                    onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value as "khata" })}
-                                    className="w-4 h-4 text-[var(--color-primary)] bg-[var(--background)] border border-[var(--border)] focus:ring-[var(--color-primary)]"
-                                />
-                                <span className="text-sm text-[var(--foreground)]/70">{t('khataCredit')}</span>
+                                <span className="text-sm text-[var(--foreground)]/70">Inter-State</span>
                             </label>
                         </div>
-                        
-                        {formData.paymentMode === 'khata' && !formData.customerId && (
-                            <p className="text-xs text-[var(--color-warning)] mt-1 font-medium">
-                                ⚠ Please select a customer above to use Khata (credit) payment.
-                            </p>
-                        )}
                     </div>
 
                     <div className="border border-[var(--border)] rounded-xl p-3 sm:p-4">
@@ -488,17 +453,6 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                                 <span>{formatCurrency(grandTotal)}</span>
                             </div>
                         </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">{t('notes')}</label>
-                        <textarea
-                            value={formData.notes}
-                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                            rows={2}
-                            className="w-full glass-input"
-                            placeholder="Optional notes..."
-                        />
                     </div>
 
                     <div className="flex gap-3 pt-2 sm:pt-4">

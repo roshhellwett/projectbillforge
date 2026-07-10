@@ -3,16 +3,10 @@ import { Users, ArrowUpRight } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { Link } from "@/i18n/routing";
 
-interface Customer { id: string; name: string; currentBalance: number | null }
-
-export async function TopReceivables({ customersPromise }: { customersPromise: Promise<{ success?: boolean; customers?: Customer[] }> }) {
+export async function TopReceivables({ customersPromise }: { customersPromise: Promise<{ success?: boolean; customers?: { id: string; name: string; currentBalance: number | null }[] }> }) {
   const t = await getTranslations("Dashboard");
   const customersResult = await customersPromise;
-  const customers = customersResult.success && customersResult.customers ? customersResult.customers : [];
-  const topCustomers = customers
-    .filter((c) => c.currentBalance !== null && c.currentBalance > 0)
-    .sort((a, b) => (b.currentBalance ?? 0) - (a.currentBalance ?? 0))
-    .slice(0, 5);
+  const topCustomers = customersResult.success && customersResult.customers ? customersResult.customers : [];
 
   return (
     <div className="white-container p-5 sm:p-6 md:p-7 lg:p-8 h-full flex flex-col">

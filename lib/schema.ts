@@ -55,6 +55,7 @@ export const customers = pgTable('customers', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   businessIdIdx: index('idx_customers_business').on(table.businessId),
+  businessBalanceIdx: index('idx_customers_business_balance').on(table.businessId, table.currentBalance),
 }));
 
 export const products = pgTable('products', {
@@ -92,7 +93,6 @@ export const invoices = pgTable('invoices', {
   total: numeric2('total').notNull().default(0),
   amountPaid: numeric2('amount_paid').notNull().default(0),
   items: jsonb('items').$type<InvoiceItem[]>(),
-  notes: text('notes'),
   paymentMode: text('payment_mode', { enum: ['cash', 'upi', 'khata'] }).default('cash'),
   paymentStatus: text('payment_status', { enum: ['paid', 'unpaid', 'partial', 'paid_by_khata'] }).default('paid'),
   finesCollectedAt: timestamp('fines_collected_at'),
@@ -105,6 +105,7 @@ export const invoices = pgTable('invoices', {
   statusIdx: index('idx_invoices_status').on(table.status),
   invoiceDateIdx: index('idx_invoices_date').on(table.invoiceDate),
   paymentStatusIdx: index('idx_invoices_payment_status').on(table.paymentStatus),
+  businessStatusIdx: index('idx_invoices_business_status').on(table.businessId, table.status),
 }));
 
 export const khataTransactions = pgTable('khata_transactions', {
