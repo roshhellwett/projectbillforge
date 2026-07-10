@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "@/i18n/routing";
 import { getCustomers } from "@/lib/actions/customers";
-import { getKhataStatement, createKhataTransaction, deleteKhataTransaction, chargeLateFees, getOverdueCustomerIds } from "@/lib/actions/khata";
+import { getKhataStatement, createKhataTransaction, deleteKhataTransaction, chargeLateFees, getOverdueCustomerIds, resetCustomerKhata, getCustomerResetHistory } from "@/lib/actions/khata";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency } from "@/lib/formatters";
 
@@ -49,6 +49,9 @@ export function useKhata() {
   const [collectingFines, setCollectingFines] = useState(false);
   const [modalFormData, setModalFormData] = useState({ type: "credit" as "credit" | "debit", amount: "", note: "" });
   const [paymentData, setPaymentData] = useState({ amount: "", note: "", method: "cash" });
+  const [resetHistory, setResetHistory] = useState<{ id: string; resetDate: Date | string | null; amountReset: number; invoiceCount: number; createdAt: Date | string | null }[]>([]);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   const loadCustomers = useCallback(async () => {
     setLoading(true);
@@ -82,17 +85,26 @@ export function useKhata() {
     setStatementLoading(false);
   }, [addToast]);
 
+  const loadResetHistory = useCallback(async (customerId: string) => {
+    const result = await getCustomerResetHistory(customerId);
+    if (result.success) {
+      setResetHistory(result.resets ?? []);
+    }
+  }, []);
+
   const handleCustomerSelect = useCallback((customerId: string) => {
     setSelectedCustomer(customerId);
     setAccruedFines(0);
     setTotalBalanceDue(0);
+    setResetHistory([]);
     if (customerId) {
       loadStatement(customerId);
+      loadResetHistory(customerId);
     } else {
       setCustomer(null);
       setStatement([]);
     }
-  }, [loadStatement]);
+  }, [loadStatement, loadResetHistory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,14 +197,33 @@ export function useKhata() {
     setCollectingFines(false);
   }, [selectedCustomer, addToast, loadStatement, loadCustomers, router]);
 
+  const handleResetKhata = useCallback(async () => {
+    if (!selectedCustomer) return;
+    setResetting(true);
+    const result = await resetCustomerKhata(selectedCustomer, true);
+    if ('error' in result) {
+      addToast(result.error!, "error");
+    } else {
+      addToast(`Khata reset: ₹${fmt(result.amountReset)} from ${result.invoiceCount} invoice(s)`, "success");
+      setShowResetModal(false);
+      loadStatement(selectedCustomer);
+      loadCustomers();
+      loadResetHistory(selectedCustomer);
+      router.refresh();
+    }
+    setResetting(false);
+  }, [selectedCustomer, addToast, loadStatement, loadCustomers, loadResetHistory, router]);
+
   return {
     customers, customer, statement, loading, statementLoading, customerSearch,
     selectedCustomer, accruedFines, totalBalanceDue, overdueIds,
+    resetHistory, showResetModal, resetting,
     showModal, showPaymentModal, deleteId, deleting, saving, collectingFines,
     modalFormData, paymentData,
     setCustomerSearch, setShowModal, setShowPaymentModal,
     setModalFormData, setPaymentData, setDeleteId,
+    setShowResetModal,
     handleCustomerSelect, handleSubmit, handleDeleteTransaction, handlePaymentSubmit,
-    handleCollectFines,
+    handleCollectFines, handleResetKhata,
   };
 }

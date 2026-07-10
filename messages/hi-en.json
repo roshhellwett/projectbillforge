@@ -242,6 +242,7 @@
         "thActions": "Actions",
         "statusCancelled": "Cancelled",
         "statusUnpaid": "Unpaid (Baki)",
+        "statusPaidByKhata": "Khata (Udhaar)",
         "statusPartial": "Partial",
         "statusPaid": "Paid (Pura)",
         "createInvoice": "Invoice Banayein",

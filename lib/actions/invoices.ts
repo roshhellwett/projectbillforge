@@ -203,8 +203,9 @@ export async function createInvoice(data: InvoiceInput) {
 
     const total = subtotal.plus(totalCgst).plus(totalSgst).plus(totalIgst).toNumber();
     const paymentMode = data.paymentMode || 'cash';
-    const paymentStatus = 'unpaid';
-    const amountPaid = 0;
+    const isPaidDirect = paymentMode !== 'khata';
+    const paymentStatus = isPaidDirect ? 'paid' : 'paid_by_khata';
+    const amountPaid = isPaidDirect ? total : 0;
 
     const invoice = await db.transaction(async (tx) => {
       const [newInvoice] = await tx.insert(invoices).values({
@@ -276,12 +277,6 @@ export async function createInvoice(data: InvoiceInput) {
             updated_at = NOW()
           WHERE id IN (${sqlIds})
         `);
-      }
-
-      if (data.customerId && paymentMode !== 'khata') {
-        await tx.update(invoices)
-          .set({ paymentStatus: 'paid', amountPaid: total, updatedAt: new Date() })
-          .where(eq(invoices.id, newInvoice.id));
       }
 
       if (data.customerId && paymentMode === 'khata') {
@@ -457,7 +452,7 @@ export async function cancelInvoice(id: string) {
             sql`SELECT id, total, amount_paid FROM invoices 
                 WHERE customer_id = ${invoice.customerId} 
                 AND business_id = ${session.id}
-                AND payment_status IN ('unpaid', 'partial')
+                AND payment_status IN ('paid_by_khata', 'partial')
                 AND status = 'active'
                 AND id != ${invoice.id}
                 ORDER BY invoice_date ASC, created_at ASC 

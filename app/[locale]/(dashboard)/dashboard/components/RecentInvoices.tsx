@@ -40,7 +40,7 @@ export async function RecentInvoices({ recentPromise }: { recentPromise: Promise
                 </div>
                 <div className="text-right shrink-0">
                   <p className="font-bold text-sm text-[var(--foreground)]">{formatCurrency(inv.total)}</p>
-                  <span className={`inline-flex mt-1 items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${inv.paymentStatus === "paid" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400" : inv.paymentStatus === "partial" ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" : "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"}`}>{inv.paymentStatus}</span>
+                  <span className={`inline-flex mt-1 items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${inv.paymentStatus === "paid" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400" : inv.paymentStatus === "partial" ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" : "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"}`}>{inv.paymentStatus === "paid_by_khata" ? "Khata" : inv.paymentStatus}</span>
                 </div>
               </div>
             </InteractiveItem>

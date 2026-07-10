@@ -242,6 +242,7 @@
         "thActions": "Actions",
         "statusCancelled": "Cancelled",
         "statusUnpaid": "Unpaid",
+        "statusPaidByKhata": "Khata",
         "statusPartial": "Partial",
         "statusPaid": "Paid",
         "createInvoice": "Create Invoice",

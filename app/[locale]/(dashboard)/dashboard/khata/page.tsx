@@ -7,6 +7,7 @@ import { TransactionTable } from "./components/TransactionTable";
 import { EmptyState } from "./components/EmptyState";
 import { AddTransactionModal } from "./components/AddTransactionModal";
 import { RecordPaymentModal } from "./components/RecordPaymentModal";
+import { ResetKhataModal } from "./components/ResetKhataModal";
 import { ConfirmDialog } from "@/components/ui/ui";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/components/ui/MotionWrapper";
 import { useTranslations } from "next-intl";
@@ -17,10 +18,11 @@ export default function KhataPage() {
   const {
     customers, customer, statement, loading, statementLoading, customerSearch,
     selectedCustomer, accruedFines, showModal, showPaymentModal, deleteId, deleting, saving, collectingFines,
-    overdueIds, modalFormData, paymentData,
+    overdueIds, resetHistory, showResetModal, resetting, modalFormData, paymentData,
     setCustomerSearch, setShowModal, setShowPaymentModal,
-    setModalFormData, setPaymentData, setDeleteId,
-    handleCustomerSelect, handleSubmit, handleDeleteTransaction, handlePaymentSubmit, handleCollectFines,
+    setModalFormData, setPaymentData, setDeleteId, setShowResetModal,
+    handleCustomerSelect, handleSubmit, handleDeleteTransaction, handlePaymentSubmit,
+    handleCollectFines, handleResetKhata,
   } = useKhata();
 
   return (
@@ -55,7 +57,7 @@ export default function KhataPage() {
             </button>
           </div>
 
-          <CustomerInfoCards customer={customer} accruedFines={accruedFines} onRecordPayment={() => { setPaymentData({ amount: "", note: "", method: "cash" }); setShowPaymentModal(true); }} onCollectFines={handleCollectFines} />
+          <CustomerInfoCards customer={customer} accruedFines={accruedFines} resetHistory={resetHistory} onRecordPayment={() => { setPaymentData({ amount: "", note: "", method: "cash" }); setShowPaymentModal(true); }} onCollectFines={handleCollectFines} onResetKhata={() => setShowResetModal(true)} />
 
           <TransactionTable statement={statement} loading={statementLoading} onDelete={setDeleteId} />
         </>
@@ -90,6 +92,17 @@ export default function KhataPage() {
         onCancel={() => setDeleteId(null)}
         loading={deleting}
       />
+
+      {customer && (
+        <ResetKhataModal
+          open={showResetModal}
+          customerName={customer.name}
+          customerBalance={customer.currentBalance ?? 0}
+          loading={resetting}
+          onClose={() => setShowResetModal(false)}
+          onConfirm={handleResetKhata}
+        />
+      )}
     </StaggerContainer>
   );
 }

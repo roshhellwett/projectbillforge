@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import React from "react";
 import { useTranslations } from "next-intl";
 import { FadeIn } from "@/components/ui/MotionWrapper";
-import { formatCurrency } from "@/lib/formatters";
+import { formatCurrency, formatDate } from "@/lib/formatters";
 import { safeNum, fmt } from "../hooks/useKhata";
 
 interface Customer {
@@ -12,14 +12,24 @@ interface Customer {
   currentBalance: number | null; creditLimit?: number | null;
 }
 
+interface ResetRecord {
+  id: string;
+  resetDate: Date | string | null;
+  amountReset: number;
+  invoiceCount: number;
+  createdAt?: Date | string | null;
+}
+
 interface Props {
   customer: Customer;
   accruedFines: number;
+  resetHistory: ResetRecord[];
   onRecordPayment: () => void;
   onCollectFines?: () => void;
+  onResetKhata: () => void;
 }
 
-export const CustomerInfoCards = React.memo(function CustomerInfoCards({ customer, accruedFines, onRecordPayment, onCollectFines }: Props) {
+export const CustomerInfoCards = React.memo(function CustomerInfoCards({ customer, accruedFines, resetHistory, onRecordPayment, onCollectFines, onResetKhata }: Props) {
   const t = useTranslations("Khata");
   const bal = safeNum(customer.currentBalance);
   const creditLimit = safeNum(customer.creditLimit);
@@ -87,6 +97,34 @@ export const CustomerInfoCards = React.memo(function CustomerInfoCards({ custome
             )}
           </div>
         </div>
+      )}
+      {bal > 0 && (
+        <FadeIn delay={0.2} className="md:col-span-3">
+          <div className="glass-card p-5 border border-red-200/50 dark:border-red-900/30">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <p className="text-sm font-bold text-red-600 dark:text-red-400">Reset Khata</p>
+                <p className="text-xs text-[var(--foreground)]/50 mt-0.5">Delete all invoices and keep the balance as a lump sum</p>
+              </div>
+              <button onClick={onResetKhata} className="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-xl hover:bg-red-700 transition-colors shadow-sm">
+                Reset Khata
+              </button>
+            </div>
+            {resetHistory.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-[var(--border)]">
+                <p className="text-xs font-semibold text-[var(--foreground)]/50 uppercase tracking-wider mb-2">Reset History</p>
+                <div className="space-y-1.5">
+                  {resetHistory.map(r => (
+                    <div key={r.id} className="flex items-center justify-between text-xs text-[var(--foreground)]/70">
+                      <span>{new Date(r.resetDate ?? new Date()).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                      <span className="font-medium">₹{fmt(r.amountReset)} — {r.invoiceCount} invoice{r.invoiceCount !== 1 ? "s" : ""}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </FadeIn>
       )}
     </FadeIn>
   );

@@ -242,6 +242,7 @@
         "thActions": "कार्य",
         "statusCancelled": "रद्द (Cancelled)",
         "statusUnpaid": "बकाया (Unpaid)",
+        "statusPaidByKhata": "खाता (Khata)",
         "statusPartial": "विभाजित (Partial)",
         "statusPaid": "सफल (Paid)",
         "createInvoice": "बिल बनाएं",

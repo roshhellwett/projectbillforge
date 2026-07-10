@@ -3,10 +3,10 @@
 import { Decimal } from 'decimal.js';
 
 import { db } from "@/lib/db";
-import { khataTransactions, customers, businesses, invoices } from "@/lib/schema";
+import { khataTransactions, customers, businesses, invoices, khataResets } from "@/lib/schema";
 import { khataTransactionSchema, type KhataTransactionInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq, sql, and, asc } from "drizzle-orm";
+import { eq, sql, and, asc, desc } from "drizzle-orm";
 import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
 import { allocatePaymentAcrossInvoices, calculateLateFee } from "@/lib/accounting";
 import { checkActionRateLimit } from "@/lib/rate-limit";
@@ -85,7 +85,7 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
           sql`SELECT id, total, amount_paid FROM invoices 
               WHERE customer_id = ${data.customerId} 
               AND business_id = ${session.id}
-              AND payment_status IN ('unpaid', 'partial')
+              AND payment_status IN ('paid_by_khata', 'partial')
               AND status = 'active'
               ORDER BY invoice_date ASC, created_at ASC 
               FOR UPDATE`
@@ -172,7 +172,7 @@ export async function getKhataStatement(customerId: string) {
       where: and(
         eq(invoices.customerId, customerId),
         eq(invoices.businessId, session.id),
-        sql`${invoices.paymentStatus} IN ('unpaid', 'partial')`,
+        sql`${invoices.paymentStatus} IN ('paid_by_khata', 'partial')`,
         eq(invoices.status, 'active'),
         sql`${invoices.finesCollectedAt} IS NULL`
       ),
@@ -263,7 +263,7 @@ export async function chargeLateFees(customerId: string) {
         where: and(
           eq(invoices.customerId, customerId),
           eq(invoices.businessId, session.id),
-          sql`${invoices.paymentStatus} IN ('unpaid', 'partial')`,
+          sql`${invoices.paymentStatus} IN ('paid_by_khata', 'partial')`,
           eq(invoices.status, 'active'),
           sql`${invoices.finesCollectedAt} IS NULL`
         ),
@@ -350,7 +350,7 @@ export async function getOverdueCustomerIds() {
       where: and(
         eq(invoices.businessId, session.id),
         eq(invoices.status, 'active'),
-        sql`${invoices.paymentStatus} IN ('unpaid', 'partial')`,
+        sql`${invoices.paymentStatus} IN ('paid_by_khata', 'partial')`,
         sql`${invoices.invoiceDate} < CURRENT_DATE - INTERVAL '${sql.raw(String(redemptionDays))} days'`
       ),
       columns: { customerId: true, id: true, invoiceDate: true },
@@ -504,6 +504,72 @@ export async function deleteKhataTransaction(id: string) {
     return { success: true };
   } catch (error: unknown) {
     return { error: errorMessage(error, "Failed to cancel transaction") };
+  }
+}
+
+export async function resetCustomerKhata(customerId: string, consentAccepted: boolean) {
+  if (!consentAccepted) return { error: "You must accept the consent to reset khata" };
+  try {
+    const session = await requireBusinessSession();
+
+    const result = await db.transaction(async (tx) => {
+      const customerRows = await tx.execute(
+        sql`SELECT id, business_id, current_balance FROM customers WHERE id = ${customerId} FOR UPDATE`
+      ) as unknown as { id: string; business_id: string; current_balance: number | null }[];
+      const customer = customerRows[0];
+
+      if (!customer || customer.business_id !== session.id) {
+        throw new Error("Customer not found");
+      }
+
+      const [countResult] = await tx.execute(
+        sql`SELECT COUNT(*)::int as cnt FROM invoices WHERE customer_id = ${customerId} AND business_id = ${session.id} AND status = 'active'`
+      ) as unknown as { cnt: number }[];
+
+      const invoiceCount = Number(countResult?.cnt ?? 0);
+      if (invoiceCount === 0) throw new Error("No active invoices to reset");
+
+      const currentBalance = Number(customer.current_balance || 0);
+
+      await tx.execute(
+        sql`DELETE FROM invoices WHERE customer_id = ${customerId} AND business_id = ${session.id} AND status = 'active'`
+      );
+
+      const resetId = crypto.randomUUID();
+      await tx.insert(khataResets).values({
+        id: resetId,
+        businessId: session.id,
+        customerId,
+        amountReset: currentBalance,
+        invoiceCount,
+        consentAccepted: true,
+      });
+
+      return { amountReset: currentBalance, invoiceCount, resetDate: new Date() };
+    });
+
+    revalidateLocalizedPaths(['/dashboard/khata', '/dashboard', '/dashboard/customers']);
+    revalidateDashboardCache(session.id);
+    return { success: true, ...result };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to reset khata") };
+  }
+}
+
+export async function getCustomerResetHistory(customerId: string) {
+  try {
+    const session = await requireBusinessSession();
+    const resets = await db.query.khataResets.findMany({
+      where: and(
+        eq(khataResets.customerId, customerId),
+        eq(khataResets.businessId, session.id),
+      ),
+      orderBy: [desc(khataResets.resetDate)],
+      columns: { id: true, resetDate: true, amountReset: true, invoiceCount: true, createdAt: true },
+    });
+    return { success: true, resets };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to fetch reset history") };
   }
 }
 

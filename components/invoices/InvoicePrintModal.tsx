@@ -190,6 +190,7 @@ export function InvoicePrintModal({
 
           <div class="border-t mt-4 pt-4 text-center">
             ${invoice.paymentStatus === 'paid' ? '<div style="font-weight:bold;margin-bottom:4px;">STATUS: PAID</div>' : ''}
+            ${invoice.paymentStatus === 'paid_by_khata' ? '<div style="font-weight:bold;margin-bottom:4px;">STATUS: UNPAID (KHATA)</div>' : ''}
             ${invoice.paymentStatus === 'unpaid' ? '<div style="font-weight:bold;margin-bottom:4px;">STATUS: UNPAID</div>' : ''}
             ${invoice.paymentStatus === 'partial' ? `<div style="font-weight:bold;margin-bottom:4px;">PARTIAL PAYMENT: ${formatCurrency(invoice.amountPaid)}</div>` : ''}
             ${invoice.status === 'cancelled' ? '<div style="font-weight:bold;margin-bottom:4px;">** CANCELLED **</div>' : ''}
@@ -331,7 +332,8 @@ export function InvoicePrintModal({
               
               <div style="text-align: right; margin-top: 15px;">
                 ${invoice.paymentStatus === 'paid' ? `<span class="badge badge-paid">Fully Paid</span>` : ''}
-                ${invoice.paymentStatus === 'unpaid' ? `<span class="badge badge-unpaid">Unpaid / Khata</span>` : ''}
+                ${invoice.paymentStatus === 'paid_by_khata' ? `<span class="badge badge-unpaid">Unpaid (Khata)</span>` : ''}
+                ${invoice.paymentStatus === 'unpaid' ? `<span class="badge badge-unpaid">Unpaid</span>` : ''}
                 ${invoice.paymentStatus === 'partial' ? `<span class="badge badge-partial">Partially Paid (${formatCurrency(invoice.amountPaid)})</span>` : ''}
               </div>
             </div>
@@ -491,8 +493,11 @@ export function InvoicePrintModal({
                                         {invoice.paymentStatus === 'paid' && (
                                             <span className="inline-block px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold uppercase tracking-wider rounded border border-green-200 dark:border-green-800/50">Fully Paid</span>
                                         )}
+                                        {invoice.paymentStatus === 'paid_by_khata' && (
+                                            <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs font-bold uppercase tracking-wider rounded border border-yellow-200 dark:border-yellow-800/50">Unpaid (Khata)</span>
+                                        )}
                                         {invoice.paymentStatus === 'unpaid' && (
-                                            <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs font-bold uppercase tracking-wider rounded border border-yellow-200 dark:border-yellow-800/50">Unpaid / Khata</span>
+                                            <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs font-bold uppercase tracking-wider rounded border border-yellow-200 dark:border-yellow-800/50">Unpaid</span>
                                         )}
                                         {invoice.paymentStatus === 'partial' && (
                                             <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold uppercase tracking-wider rounded border border-blue-200 dark:border-blue-800/50">Partially Paid (₹{safeAmountPaid})</span>
@@ -585,6 +590,9 @@ export function InvoicePrintModal({
                             <div className="border-t-2 border-dashed border-slate-300 pt-3 text-xs text-center">
                                 {invoice.paymentStatus === 'paid' && (
                                     <div className="font-bold mb-1 text-green-700">STATUS: PAID</div>
+                                )}
+                                {invoice.paymentStatus === 'paid_by_khata' && (
+                                    <div className="font-bold mb-1 text-amber-700">STATUS: UNPAID (KHATA)</div>
                                 )}
                                 {invoice.paymentStatus === 'unpaid' && (
                                     <div className="font-bold mb-1 text-amber-700">STATUS: UNPAID</div>

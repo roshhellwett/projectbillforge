@@ -94,7 +94,7 @@ export const invoices = pgTable('invoices', {
   items: jsonb('items').$type<InvoiceItem[]>(),
   notes: text('notes'),
   paymentMode: text('payment_mode', { enum: ['cash', 'upi', 'khata'] }).default('cash'),
-  paymentStatus: text('payment_status', { enum: ['paid', 'unpaid', 'partial'] }).default('paid'),
+  paymentStatus: text('payment_status', { enum: ['paid', 'unpaid', 'partial', 'paid_by_khata'] }).default('paid'),
   finesCollectedAt: timestamp('fines_collected_at'),
   status: text('status', { enum: ['active', 'cancelled'] }).default('active'),
   createdAt: timestamp('created_at').defaultNow(),
@@ -123,6 +123,19 @@ export const khataTransactions = pgTable('khata_transactions', {
   customerIdIdx: index('idx_khata_customer').on(table.customerId),
   statusIdx: index('idx_khata_status').on(table.status),
   businessCustomerIdx: index('idx_khata_business_customer').on(table.businessId, table.customerId),
+}));
+
+export const khataResets = pgTable('khata_resets', {
+  id: text('id').primaryKey(),
+  businessId: text('business_id').notNull().references(() => businesses.id, { onDelete: 'cascade' }),
+  customerId: text('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
+  resetDate: timestamp('reset_date').defaultNow().notNull(),
+  amountReset: numeric2('amount_reset').notNull(),
+  invoiceCount: integer('invoice_count').notNull().default(0),
+  consentAccepted: boolean('consent_accepted').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  customerIdIdx: index('idx_resets_customer').on(table.customerId),
 }));
 
 export const accounts = pgTable('accounts', {
@@ -212,5 +225,16 @@ export const khataTransactionsRelations = relations(khataTransactions, ({ one })
   invoice: one(invoices, {
     fields: [khataTransactions.referenceInvoiceId],
     references: [invoices.id],
+  }),
+}));
+
+export const khataResetsRelations = relations(khataResets, ({ one }) => ({
+  business: one(businesses, {
+    fields: [khataResets.businessId],
+    references: [businesses.id],
+  }),
+  customer: one(customers, {
+    fields: [khataResets.customerId],
+    references: [customers.id],
   }),
 }));

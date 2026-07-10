@@ -71,7 +71,7 @@ export function calculateLateFee(
   if (!business.redemptionPeriodDays || !business.finePercentage || !business.fineFrequencyDays) {
     return 0;
   }
-  if (invoice.paymentStatus !== "unpaid" && invoice.paymentStatus !== "partial") {
+  if (invoice.paymentStatus !== "unpaid" && invoice.paymentStatus !== "partial" && invoice.paymentStatus !== "paid_by_khata") {
     return 0;
   }
 

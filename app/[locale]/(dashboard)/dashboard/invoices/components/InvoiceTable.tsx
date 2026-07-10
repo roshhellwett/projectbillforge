@@ -66,6 +66,9 @@ function StatusBadge({ invoice }: { invoice: Invoice }) {
   if (invoice.paymentStatus === "unpaid") {
     return <span className="px-2 sm:px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20">{t("statusUnpaid")}</span>;
   }
+  if (invoice.paymentStatus === "paid_by_khata") {
+    return <span className="px-2 sm:px-2.5 py-1 text-xs font-medium rounded-full bg-amber-50 text-amber-700 border border-amber-200">{t("statusPaidByKhata")}</span>;
+  }
   if (invoice.paymentStatus === "partial") {
     return (
       <div className="flex flex-col gap-1 items-start">
