@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { formatCurrency } from "@/lib/formatters";
 import { Decimal } from "decimal.js";
+import { ConfirmDialog } from "@/components/ui/ui";
 
 interface Product {
     id: string;
@@ -58,6 +59,13 @@ interface NewInvoiceModalProps {
 
 const round2 = (n: number): number => new Decimal(n).toDecimalPlaces(2).toNumber();
 
+// Match backend: CGST rounds down, SGST gets remainder (avoids 1-paisa mismatch)
+function splitGst(totalGst: number): { cgst: number; sgst: number } {
+  const cgst = Math.floor(totalGst * 100 / 2) / 100;
+  const sgst = Math.round((totalGst - cgst) * 100) / 100;
+  return { cgst, sgst };
+}
+
 
 const getISTDateString = (): string => {
     return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
@@ -82,6 +90,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
     const [selectedProduct, setSelectedProduct] = useState("");
     const [itemQuantity, setItemQuantity] = useState("");
     const [isInterState, setIsInterState] = useState(false);
+    const [pendingLowStock, setPendingLowStock] = useState<{ product: Product; qty: number } | null>(null);
 
     const addItem = () => {
         if (!selectedProduct) return;
@@ -93,13 +102,14 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
 
         
         if (product.stockQuantity !== null && product.stockQuantity >= 0 && qty > product.stockQuantity) {
-            const confirmOverStock = window.confirm(
-                `Warning: Only ${product.stockQuantity} ${product.unit ?? 'units'} of "${product.name}" in stock. Add ${qty} anyway?`
-            );
-            if (!confirmOverStock) return;
+            setPendingLowStock({ product, qty });
+            return;
         }
 
-        
+        addItemToInvoice(product, qty);
+    };
+
+    const addItemToInvoice = (product: Product, qty: number) => {
         const existingIndex = items.findIndex(i => i.productId === product.id);
         if (existingIndex !== -1) {
             const existing = items[existingIndex];
@@ -111,8 +121,8 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                 ...existing,
                 quantity: newQty,
                 amount: newAmount,
-                cgst: isInterState ? 0 : round2(newGstAmount / 2),
-                sgst: isInterState ? 0 : round2(newGstAmount / 2),
+                cgst: isInterState ? 0 : splitGst(newGstAmount).cgst,
+                sgst: isInterState ? 0 : splitGst(newGstAmount).sgst,
                 igst: isInterState ? round2(newGstAmount) : 0,
             };
             const newItems = [...items];
@@ -131,8 +141,9 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
         if (isInterState) {
             igst = round2(gstAmount);
         } else {
-            cgst = round2(gstAmount / 2);
-            sgst = round2(gstAmount / 2);
+            const split = splitGst(gstAmount);
+            cgst = split.cgst;
+            sgst = split.sgst;
         }
 
         const newItem: InvoiceItem = {
@@ -163,7 +174,8 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
             if (checked) {
                 return { ...item, cgst: 0, sgst: 0, igst: round2(gstAmount) };
             } else {
-                return { ...item, cgst: round2(gstAmount / 2), sgst: round2(gstAmount / 2), igst: 0 };
+                const split = splitGst(gstAmount);
+                return { ...item, cgst: split.cgst, sgst: split.sgst, igst: 0 };
             }
         }));
     };
@@ -483,6 +495,20 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                     </div>
                 </form>
             </div>
+            {pendingLowStock && (
+                <ConfirmDialog
+                    open={true}
+                    title="Low Stock Warning"
+                    message={`Only ${pendingLowStock.product.stockQuantity} ${pendingLowStock.product.unit ?? 'units'} of "${pendingLowStock.product.name}" in stock. Add ${pendingLowStock.qty} anyway?`}
+                    confirmLabel="Add Anyway"
+                    onConfirm={() => {
+                        addItemToInvoice(pendingLowStock.product, pendingLowStock.qty);
+                        setPendingLowStock(null);
+                    }}
+                    onCancel={() => setPendingLowStock(null)}
+                    variant="warning"
+                />
+            )}
         </div>
     );
 }

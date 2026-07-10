@@ -9,6 +9,7 @@ interface Transaction {
   id: string; type: "credit" | "debit"; amount: number;
   note: string | null; createdAt: Date | null;
   referenceInvoiceId: string | null; status?: string | null;
+  paymentMethod?: string | null;
   runningBalance?: number;
 }
 
@@ -64,7 +65,14 @@ export function TransactionTable({ statement, loading, onDelete }: Props) {
                     )}
                   </td>
                   <td className="px-5 py-4 text-sm text-[var(--foreground)]/70">
-                    {txn.status === "cancelled" ? <span className="line-through">{txn.note || "-"}</span> : txn.note || "-"}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {txn.status === "cancelled" ? <span className="line-through">{txn.note || "-"}</span> : txn.note || "-"}
+                      {txn.paymentMethod && txn.status !== "cancelled" && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 font-medium">
+                          {txn.paymentMethod}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-right font-medium text-[var(--foreground)]">
                     {txn.status === "cancelled" ? (

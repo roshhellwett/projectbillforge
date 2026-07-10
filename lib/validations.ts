@@ -83,6 +83,7 @@ export const khataTransactionSchema = z.object({
   customerId: z.string().min(1, "Customer is required"),
   type: z.enum(["credit", "debit"]),
   amount: z.number().positive("Amount must be positive"),
+  paymentMethod: z.string().optional(),
   note: z.string().optional().transform(s => s?.trim() || undefined),
 });
 

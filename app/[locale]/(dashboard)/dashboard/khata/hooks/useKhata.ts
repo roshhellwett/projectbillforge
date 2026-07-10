@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "@/i18n/routing";
 import { getCustomers } from "@/lib/actions/customers";
-import { getKhataStatement, createKhataTransaction, deleteKhataTransaction } from "@/lib/actions/khata";
+import { getKhataStatement, createKhataTransaction, deleteKhataTransaction, chargeLateFees } from "@/lib/actions/khata";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency } from "@/lib/formatters";
 
@@ -45,6 +45,7 @@ export function useKhata() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [collectingFines, setCollectingFines] = useState(false);
   const [modalFormData, setModalFormData] = useState({ type: "credit" as "credit" | "debit", amount: "", note: "" });
   const [paymentData, setPaymentData] = useState({ amount: "", note: "", method: "cash" });
 
@@ -106,6 +107,9 @@ export function useKhata() {
       addToast(result.error, "error");
     } else {
       addToast("Transaction added successfully", "success");
+      if (result.overpayment && result.overpayment > 0) {
+        addToast(`Overpayment of ₹${fmt(result.overpayment)} — customer now has credit balance`, "warning");
+      }
       setShowModal(false);
       setModalFormData({ type: "credit", amount: "", note: "" });
       loadStatement(selectedCustomer);
@@ -140,17 +144,17 @@ export function useKhata() {
       return;
     }
     setSaving(true);
-    const methodLabels: Record<string, string> = { cash: "Cash", upi: "UPI", bank: "Bank Transfer", cheque: "Cheque" };
-    const methodLabel = methodLabels[paymentData.method] || paymentData.method;
-    const noteText = paymentData.note ? `${paymentData.note} (via ${methodLabel})` : `Payment via ${methodLabel}`;
     const result = await createKhataTransaction({
       customerId: selectedCustomer, type: "debit",
-      amount, note: noteText,
+      amount, paymentMethod: paymentData.method, note: paymentData.note || undefined,
     });
     if (result.error) {
       addToast(result.error, "error");
     } else {
       addToast("Payment recorded successfully", "success");
+      if (result.overpayment && result.overpayment > 0) {
+        addToast(`Overpayment of ₹${fmt(result.overpayment)} — customer now has credit balance`, "warning");
+      }
       setShowPaymentModal(false);
       setPaymentData({ amount: "", note: "", method: "cash" });
       loadStatement(selectedCustomer);
@@ -160,13 +164,31 @@ export function useKhata() {
     setSaving(false);
   };
 
+  const handleCollectFines = useCallback(async () => {
+    if (!selectedCustomer) return;
+    setCollectingFines(true);
+    const result = await chargeLateFees(selectedCustomer);
+    if ('error' in result) {
+      addToast(result.error!, "error");
+    } else if (result.charged > 0) {
+      addToast(`Late fees of ₹${fmt(result.charged)} collected from ${result.count} invoice(s)`, "success");
+      loadStatement(selectedCustomer);
+      loadCustomers();
+      router.refresh();
+    } else {
+      addToast("No late fees to collect", "info");
+    }
+    setCollectingFines(false);
+  }, [selectedCustomer, addToast, loadStatement, loadCustomers, router]);
+
   return {
     customers, customer, statement, loading, statementLoading, customerSearch,
     selectedCustomer, accruedFines, totalBalanceDue,
-    showModal, showPaymentModal, deleteId, deleting, saving,
+    showModal, showPaymentModal, deleteId, deleting, saving, collectingFines,
     modalFormData, paymentData,
     setCustomerSearch, setShowModal, setShowPaymentModal,
     setModalFormData, setPaymentData, setDeleteId,
     handleCustomerSelect, handleSubmit, handleDeleteTransaction, handlePaymentSubmit,
+    handleCollectFines,
   };
 }

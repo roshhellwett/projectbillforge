@@ -16,11 +16,11 @@ export default function KhataPage() {
   const t = useTranslations("Khata");
   const {
     customers, customer, statement, loading, statementLoading, customerSearch,
-    selectedCustomer, accruedFines, showModal, showPaymentModal, deleteId, deleting, saving,
+    selectedCustomer, accruedFines, showModal, showPaymentModal, deleteId, deleting, saving, collectingFines,
     modalFormData, paymentData,
     setCustomerSearch, setShowModal, setShowPaymentModal,
     setModalFormData, setPaymentData, setDeleteId,
-    handleCustomerSelect, handleSubmit, handleDeleteTransaction, handlePaymentSubmit,
+    handleCustomerSelect, handleSubmit, handleDeleteTransaction, handlePaymentSubmit, handleCollectFines,
   } = useKhata();
 
   return (
@@ -54,7 +54,7 @@ export default function KhataPage() {
             </button>
           </div>
 
-          <CustomerInfoCards customer={customer} accruedFines={accruedFines} onRecordPayment={() => { setPaymentData({ amount: "", note: "", method: "cash" }); setShowPaymentModal(true); }} />
+          <CustomerInfoCards customer={customer} accruedFines={accruedFines} onRecordPayment={() => { setPaymentData({ amount: "", note: "", method: "cash" }); setShowPaymentModal(true); }} onCollectFines={handleCollectFines} />
 
           <TransactionTable statement={statement} loading={statementLoading} onDelete={setDeleteId} />
         </>
