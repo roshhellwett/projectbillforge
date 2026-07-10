@@ -41,7 +41,7 @@ export interface InvoiceFormData {
   customerId: string; customerName: string;
   customerGstin: string; customerAddress: string;
   invoiceDate: string; notes: string;
-  paymentMode: "cash" | "upi" | "khata"; recordPayment: boolean;
+  paymentMode: "cash" | "upi" | "khata";
 }
 
 export interface BusinessProfile {

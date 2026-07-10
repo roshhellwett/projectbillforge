@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { products } from "@/lib/schema";
 import { productSchema, type ProductInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq, sql, and, desc } from "drizzle-orm";
+import { eq, sql, and, desc, ilike } from "drizzle-orm";
 import { revalidateLocalizedPaths } from "@/lib/revalidate";
 import { checkActionRateLimit } from "@/lib/rate-limit";
 
@@ -166,6 +166,25 @@ export async function getProducts(limit = 50, offset = 0) {
     return { success: true, products: productList, total: Number(countResult.count) };
   } catch (error: unknown) {
     return { error: errorMessage(error, "Failed to fetch products") };
+  }
+}
+
+export async function searchProducts(search: string, limit = 15) {
+  limit = Math.max(1, Math.min(limit, 50));
+  try {
+    const session = await requireBusinessSession();
+    const results = await db.query.products.findMany({
+      where: and(
+        eq(products.businessId, session.id),
+        eq(products.isActive, true),
+        ilike(products.name, `%${search}%`),
+      ),
+      orderBy: [desc(products.createdAt)],
+      limit,
+    });
+    return { success: true, products: results };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to search products") };
   }
 }
 

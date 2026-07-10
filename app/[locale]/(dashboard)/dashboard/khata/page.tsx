@@ -17,7 +17,7 @@ export default function KhataPage() {
   const {
     customers, customer, statement, loading, statementLoading, customerSearch,
     selectedCustomer, accruedFines, showModal, showPaymentModal, deleteId, deleting, saving, collectingFines,
-    modalFormData, paymentData,
+    overdueIds, modalFormData, paymentData,
     setCustomerSearch, setShowModal, setShowPaymentModal,
     setModalFormData, setPaymentData, setDeleteId,
     handleCustomerSelect, handleSubmit, handleDeleteTransaction, handlePaymentSubmit, handleCollectFines,
@@ -37,6 +37,7 @@ export default function KhataPage() {
           customers={customers}
           selectedCustomer={selectedCustomer}
           customerSearch={customerSearch}
+          overdueIds={overdueIds}
           onSearchChange={setCustomerSearch}
           onSelect={handleCustomerSelect}
         />

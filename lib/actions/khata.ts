@@ -337,6 +337,48 @@ export async function chargeLateFees(customerId: string) {
   }
 }
 
+export async function getOverdueCustomerIds() {
+  try {
+    const session = await requireBusinessSession();
+
+    const business = await db.query.businesses.findFirst({
+      where: eq(businesses.id, session.id),
+    });
+    const redemptionDays = business?.redemptionPeriodDays ?? 30;
+
+    const overdueInvoices = await db.query.invoices.findMany({
+      where: and(
+        eq(invoices.businessId, session.id),
+        eq(invoices.status, 'active'),
+        sql`${invoices.paymentStatus} IN ('unpaid', 'partial')`,
+        sql`${invoices.invoiceDate} < CURRENT_DATE - INTERVAL '${sql.raw(String(redemptionDays))} days'`
+      ),
+      columns: { customerId: true, id: true, invoiceDate: true },
+    });
+
+    const overdueMap = new Map<string, { daysOverdue: number; invoiceCount: number }>();
+    for (const inv of overdueInvoices) {
+      if (!inv.customerId) continue;
+      const days = Math.floor((Date.now() - new Date(inv.invoiceDate).getTime()) / (1000 * 60 * 60 * 24)) - redemptionDays;
+      const existing = overdueMap.get(inv.customerId);
+      if (existing) {
+        existing.invoiceCount++;
+        if (days > existing.daysOverdue) existing.daysOverdue = days;
+      } else {
+        overdueMap.set(inv.customerId, { daysOverdue: Math.max(0, days), invoiceCount: 1 });
+      }
+    }
+
+    return {
+      success: true,
+      overdueIds: Array.from(overdueMap.keys()),
+      daysOverdue: Object.fromEntries(overdueMap.entries()),
+    };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to fetch overdue customers") };
+  }
+}
+
 export async function deleteKhataTransaction(id: string) {
   try {
     const session = await requireBusinessSession();

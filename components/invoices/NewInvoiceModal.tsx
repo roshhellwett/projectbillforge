@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { X } from "lucide-react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
+import { X, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { formatCurrency } from "@/lib/formatters";
@@ -44,7 +44,6 @@ interface InvoiceFormData {
     invoiceDate: string;
     notes: string;
     paymentMode: "cash" | "upi" | "khata";
-    recordPayment: boolean;
 }
 
 interface NewInvoiceModalProps {
@@ -83,7 +82,6 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
         invoiceDate: getISTDateString(),
         notes: "",
         paymentMode: "cash" as "cash" | "upi" | "khata",
-        recordPayment: false,
     });
 
     const [items, setItems] = useState<InvoiceItem[]>([]);
@@ -91,6 +89,25 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
     const [itemQuantity, setItemQuantity] = useState("");
     const [isInterState, setIsInterState] = useState(false);
     const [pendingLowStock, setPendingLowStock] = useState<{ product: Product; qty: number } | null>(null);
+    const [productSearch, setProductSearch] = useState("");
+    const [showProductDropdown, setShowProductDropdown] = useState(false);
+    const productRef = useRef<HTMLDivElement>(null);
+
+    const filteredProducts = useMemo(() => {
+      if (!productSearch) return products.filter(p => p.isActive);
+      const q = productSearch.toLowerCase();
+      return products.filter(p => p.isActive && p.name.toLowerCase().includes(q));
+    }, [products, productSearch]);
+
+    useEffect(() => {
+      const handleClick = (e: MouseEvent) => {
+        if (productRef.current && !productRef.current.contains(e.target as Node)) {
+          setShowProductDropdown(false);
+        }
+      };
+      document.addEventListener("mousedown", handleClick);
+      return () => document.removeEventListener("mousedown", handleClick);
+    }, []);
 
     const addItem = () => {
         if (!selectedProduct) return;
@@ -189,10 +206,9 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                 customerName: customer.name,
                 customerGstin: customer.gstin || "",
                 customerAddress: customer.address || "",
-                recordPayment: formData.recordPayment,
             });
         } else {
-            setFormData({ ...formData, customerId, customerName: "", customerGstin: "", customerAddress: "", recordPayment: false });
+            setFormData({ ...formData, customerId, customerName: "", customerGstin: "", customerAddress: "" });
         }
     };
 
@@ -330,33 +346,41 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                                 ⚠ Please select a customer above to use Khata (credit) payment.
                             </p>
                         )}
-                        {formData.customerId && formData.paymentMode !== 'khata' && (
-                            <label className="flex items-center gap-2 cursor-pointer mt-2">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.recordPayment}
-                                    onChange={(e) => setFormData({ ...formData, recordPayment: e.target.checked })}
-                                    className="w-4 h-4 text-[var(--color-primary)] bg-[var(--background)] border border-[var(--border)] focus:ring-[var(--color-primary)]"
-                                />
-                                <span className="text-sm text-[var(--foreground)]/70">Record payment immediately</span>
-                            </label>
-                        )}
                     </div>
 
                     <div className="border border-[var(--border)] rounded-xl p-3 sm:p-4">
                         <h3 className="font-semibold text-[var(--foreground)] mb-3 sm:mb-4">{t('items')}</h3>
 
                         <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 mb-3 sm:mb-4">
-                            <select
-                                value={selectedProduct}
-                                onChange={(e) => setSelectedProduct(e.target.value)}
-                                className="flex-1 glass-input min-h-[44px]"
-                            >
-                                <option value="">{t('selectProduct')}</option>
-                                {products.filter(p => p.isActive).map(p => (
-                                    <option key={p.id} value={p.id}>{p.name} - ₹{p.rate} ({p.gstRate}% GST)</option>
-                                ))}
-                            </select>
+                            <div ref={productRef} className="relative flex-1">
+                                <div className="relative">
+                                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground)]/40" />
+                                    <input
+                                        type="text"
+                                        value={productSearch}
+                                        onChange={e => { setProductSearch(e.target.value); setShowProductDropdown(true); }}
+                                        onFocus={() => setShowProductDropdown(true)}
+                                        placeholder={t('selectProduct')}
+                                        className="w-full glass-input min-h-[44px] pl-9"
+                                    />
+                                </div>
+                                {showProductDropdown && (
+                                    <div className="absolute z-50 mt-1 w-full glass-card max-h-48 overflow-y-auto border border-[var(--border)] rounded-xl shadow-lg">
+                                        {filteredProducts.length === 0 ? (
+                                            <div className="p-3 text-sm text-[var(--foreground)]/50 text-center">No products found</div>
+                                        ) : filteredProducts.map(p => (
+                                            <button
+                                                key={p.id} type="button"
+                                                className={`w-full text-left px-3 py-2 text-sm hover:bg-[var(--color-primary)]/10 transition-colors ${selectedProduct === p.id ? "bg-[var(--color-primary)]/10 font-medium" : ""}`}
+                                                onClick={() => { setSelectedProduct(p.id); setProductSearch(p.name); setShowProductDropdown(false); }}
+                                            >
+                                                {p.name} — ₹{p.rate} ({p.gstRate}% GST)
+                                                {p.unit && <span className="text-[var(--foreground)]/40 ml-1">/ {p.unit}</span>}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                             <button
                                 type="button"
                                 onClick={() => router.push('/dashboard/products')}

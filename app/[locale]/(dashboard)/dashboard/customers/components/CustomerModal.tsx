@@ -40,8 +40,8 @@ export function CustomerModal({ open, saving, editingCustomer, formData, onClose
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t("phone")}</label>
-              <input type="tel" value={formData.phone} onChange={set("phone")} className="w-full glass-input" pattern="^[6-9]\d{9}$" title="10-digit Indian mobile number starting with 6-9" />
+              <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t("phone")} <span className="text-red-500">*</span></label>
+              <input type="tel" required value={formData.phone} onChange={set("phone")} className="w-full glass-input" pattern="^[6-9]\d{9}$" title="10-digit Indian mobile number starting with 6-9" />
             </div>
             <div>
               <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t("email")}</label>
@@ -55,8 +55,8 @@ export function CustomerModal({ open, saving, editingCustomer, formData, onClose
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t("address")}</label>
-            <textarea value={formData.address} onChange={set("address")} rows={2} className="w-full glass-input" />
+            <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1.5">{t("address")} <span className="text-red-500">*</span></label>
+            <textarea required value={formData.address} onChange={set("address")} rows={2} className="w-full glass-input" />
           </div>
 
           <div>

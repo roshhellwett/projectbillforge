@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useTranslations } from "next-intl";
 import { ArrowUpCircle, ArrowDownCircle, Trash2, Lock } from "lucide-react";
 import { formatDate } from "@/lib/formatters";
@@ -19,7 +20,7 @@ interface Props {
   onDelete: (id: string) => void;
 }
 
-export function TransactionTable({ statement, loading, onDelete }: Props) {
+export const TransactionTable = React.memo(function TransactionTable({ statement, loading, onDelete }: Props) {
   const t = useTranslations("Khata");
 
   return (
@@ -114,4 +115,4 @@ export function TransactionTable({ statement, loading, onDelete }: Props) {
       )}
     </div>
   );
-}
+});

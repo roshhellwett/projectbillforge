@@ -28,10 +28,10 @@ export async function createCustomer(data: CustomerInput) {
       id: crypto.randomUUID(),
       businessId: session.id,
       name: data.name,
-      phone: data.phone || null,
+      phone: data.phone,
       email: data.email || null,
       gstin: data.gstin || null,
-      address: data.address || null,
+      address: data.address,
       creditLimit: data.creditLimit,
       currentBalance: 0,
     }).returning();
@@ -70,10 +70,10 @@ export async function updateCustomer(id: string, data: Partial<CustomerInput>) {
       creditLimit?: number;
     } = { updatedAt: new Date() };
     if (data.name !== undefined) updateFields.name = data.name;
-    if ('phone' in data) updateFields.phone = data.phone ?? null;
+    if (data.phone !== undefined) updateFields.phone = data.phone;
     if ('email' in data) updateFields.email = data.email ?? null;
     if ('gstin' in data) updateFields.gstin = data.gstin ?? null;
-    if ('address' in data) updateFields.address = data.address ?? null;
+    if (data.address !== undefined) updateFields.address = data.address;
     if (data.creditLimit !== undefined) updateFields.creditLimit = data.creditLimit;
 
     const [customer] = await db.update(customers)

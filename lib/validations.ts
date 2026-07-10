@@ -32,13 +32,10 @@ export const businessRegisterSchema = z.object({
 export const customerSchema = z.object({
   name: z.string().min(1, "Customer name is required").max(100).trim(),
   phone: z.string()
-    .regex(indianPhoneRegex, "Invalid Indian mobile number")
-    .optional()
-    .or(z.literal(''))
-    .transform(s => s?.trim() || undefined),
+    .regex(indianPhoneRegex, "Invalid Indian mobile number (10 digits starting with 6-9)"),
   email: z.string().email("Invalid email").optional().or(z.literal('')).transform(s => s?.trim().toLowerCase()),
   gstin: z.string().regex(gstinRegex, "Invalid GSTIN format").optional().or(z.literal('')),
-  address: z.string().optional().transform(s => s?.trim() || undefined),
+  address: z.string().min(1, "Address is required").max(500).trim(),
   creditLimit: z.number().min(0).default(0),
 });
 
@@ -75,9 +72,8 @@ export const invoiceSchema = z.object({
   items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
   notes: z.string().optional().transform(s => s?.trim() || undefined),
   isInterState: z.boolean().default(false),
-  paymentMode: z.enum(["cash", "upi", "khata"]).default("cash"),
-  recordPayment: z.boolean().default(false),
-});
+    paymentMode: z.enum(["cash", "upi", "khata"]).default("cash"),
+  });
 
 export const khataTransactionSchema = z.object({
   customerId: z.string().min(1, "Customer is required"),

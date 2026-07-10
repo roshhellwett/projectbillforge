@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "@/i18n/routing";
 import { getCustomers } from "@/lib/actions/customers";
-import { getKhataStatement, createKhataTransaction, deleteKhataTransaction, chargeLateFees } from "@/lib/actions/khata";
+import { getKhataStatement, createKhataTransaction, deleteKhataTransaction, chargeLateFees, getOverdueCustomerIds } from "@/lib/actions/khata";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency } from "@/lib/formatters";
 
@@ -32,6 +32,7 @@ export function useKhata() {
   const router = useRouter();
   const { addToast } = useToast();
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [overdueIds, setOverdueIds] = useState<string[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [statement, setStatement] = useState<Transaction[]>([]);
@@ -51,11 +52,14 @@ export function useKhata() {
 
   const loadCustomers = useCallback(async () => {
     setLoading(true);
-    const result = await getCustomers();
-    if (result.success) {
-      setCustomers(result.customers);
-    } else if (result.error) {
-      addToast(result.error, "error");
+    const [custResult, overdueResult] = await Promise.all([getCustomers(), getOverdueCustomerIds()]);
+    if (custResult.success) {
+      setCustomers(custResult.customers);
+    } else if (custResult.error) {
+      addToast(custResult.error, "error");
+    }
+    if (overdueResult.success) {
+      setOverdueIds(overdueResult.overdueIds ?? []);
     }
     setLoading(false);
   }, [addToast]);
@@ -183,7 +187,7 @@ export function useKhata() {
 
   return {
     customers, customer, statement, loading, statementLoading, customerSearch,
-    selectedCustomer, accruedFines, totalBalanceDue,
+    selectedCustomer, accruedFines, totalBalanceDue, overdueIds,
     showModal, showPaymentModal, deleteId, deleting, saving, collectingFines,
     modalFormData, paymentData,
     setCustomerSearch, setShowModal, setShowPaymentModal,

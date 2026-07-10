@@ -278,7 +278,7 @@ export async function createInvoice(data: InvoiceInput) {
         `);
       }
 
-      if (data.customerId && data.recordPayment && paymentMode !== 'khata') {
+      if (data.customerId && paymentMode !== 'khata') {
         await tx.update(invoices)
           .set({ paymentStatus: 'paid', amountPaid: total, updatedAt: new Date() })
           .where(eq(invoices.id, newInvoice.id));
@@ -295,16 +295,23 @@ export async function createInvoice(data: InvoiceInput) {
         if (customer.business_id !== session.id) {
           throw new Error("Customer does not belong to your business");
         }
+
+        let creditLimit = customer.credit_limit;
+        if (creditLimit === null || creditLimit === 0) {
+          creditLimit = 500;
+          await tx.update(customers)
+            .set({ creditLimit, updatedAt: new Date() })
+            .where(eq(customers.id, data.customerId));
+        }
+
         const currentBalance = new Decimal(customer.current_balance || 0);
         const invTotalStr = new Decimal(total);
         const newBalance = currentBalance.plus(invTotalStr);
 
-        if (customer.credit_limit !== null) {
-          const creditLimit = new Decimal(customer.credit_limit);
-          const availableCredit = Decimal.max(0, creditLimit.minus(currentBalance));
-          if (newBalance.greaterThan(creditLimit)) {
-            throw new Error(`Transaction exceeds customer credit limit. Credit Limit: ${creditLimit.toFixed(2)}, Available: ${availableCredit.toFixed(2)}, Invoice Total: ${invTotalStr.toFixed(2)}`);
-          }
+        const creditLimitDec = new Decimal(creditLimit);
+        const availableCredit = Decimal.max(0, creditLimitDec.minus(currentBalance));
+        if (newBalance.greaterThan(creditLimitDec)) {
+          throw new Error(`Transaction exceeds customer credit limit. Credit Limit: ${creditLimitDec.toFixed(2)}, Available: ${availableCredit.toFixed(2)}, Invoice Total: ${invTotalStr.toFixed(2)}`);
         }
         await tx.update(customers)
           .set({

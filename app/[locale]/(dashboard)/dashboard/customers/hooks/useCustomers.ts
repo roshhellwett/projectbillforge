@@ -117,9 +117,9 @@ export function useCustomers() {
     e.preventDefault();
     setSaving(true);
     const data = {
-      name: formData.name, phone: formData.phone || undefined,
+      name: formData.name, phone: formData.phone,
       email: formData.email || undefined, gstin: formData.gstin || undefined,
-      address: formData.address || undefined,
+      address: formData.address,
       creditLimit: formData.creditLimit ? Number(formData.creditLimit) : 0,
     };
     const result = editingCustomer

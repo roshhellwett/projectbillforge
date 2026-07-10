@@ -1,5 +1,7 @@
 "use client";
 
+import { useCallback } from "react";
+import React from "react";
 import { useTranslations } from "next-intl";
 import { FadeIn } from "@/components/ui/MotionWrapper";
 import { formatCurrency } from "@/lib/formatters";
@@ -17,7 +19,7 @@ interface Props {
   onCollectFines?: () => void;
 }
 
-export function CustomerInfoCards({ customer, accruedFines, onRecordPayment, onCollectFines }: Props) {
+export const CustomerInfoCards = React.memo(function CustomerInfoCards({ customer, accruedFines, onRecordPayment, onCollectFines }: Props) {
   const t = useTranslations("Khata");
   const bal = safeNum(customer.currentBalance);
   const creditLimit = safeNum(customer.creditLimit);
@@ -88,4 +90,4 @@ export function CustomerInfoCards({ customer, accruedFines, onRecordPayment, onC
       )}
     </FadeIn>
   );
-}
+});
