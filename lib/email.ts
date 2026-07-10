@@ -1,6 +1,4 @@
-import { Resend } from "resend";
-
-const resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
+import nodemailer from "nodemailer";
 
 type SendEmailParams = {
   to: string;
@@ -8,17 +6,28 @@ type SendEmailParams = {
   html: string;
 };
 
+function getTransport() {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: parseInt(process.env.SMTP_PORT || "587"),
+    secure: false,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+}
+
 export async function sendEmail({ to, subject, html }: SendEmailParams) {
-  if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === "re_placeholder") {
-    console.log(`[email] Skipped sending to ${to}: RESEND_API_KEY not configured`);
+  const transport = getTransport();
+  if (!transport) {
+    console.log(`[email] Skipped sending to ${to}: SMTP not configured`);
     return { success: true, skipped: true };
   }
 
-  const from = process.env.EMAIL_FROM || "BillForge <noreply@billforge.zenithopensource.com>";
+  const from = process.env.EMAIL_FROM || `"BillForge" <${process.env.SMTP_USER || "noreply@billforge.zenithopensource.com"}>`;
 
   try {
-    const result = await resend.emails.send({ from, to, subject, html });
-    return { success: true, id: result.data?.id };
+    await transport.sendMail({ from, to, subject, html });
+    return { success: true };
   } catch (err) {
     console.error("[email] Failed to send:", err);
     return { success: false, error: "Failed to send email" };
