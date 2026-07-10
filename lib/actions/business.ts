@@ -1,11 +1,10 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { businesses, customers, invoices, khataTransactions, type InvoiceItem } from "@/lib/schema";
+import { businesses, customers, invoices, khataResets } from "@/lib/schema";
 import { businessProfileSchema } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq, sql } from "drizzle-orm";
-import { compare } from "bcryptjs";
 import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
 
 function errorMessage(error: unknown, fallback: string): string {
@@ -89,75 +88,65 @@ export async function updateBusinessProfile(data: {
 }
 
 
-export async function resetAllKhataData(password: string) {
+export async function getResetAllKhataSummary() {
   try {
     const session = await requireBusinessSession();
-    const businessId = session.id;
+    const [result] = await db.execute(sql`
+      SELECT
+        COUNT(DISTINCT c.id)::int as customer_count,
+        COUNT(i.id)::int as invoice_count,
+        COALESCE(SUM(c.current_balance), 0) as total_balance
+      FROM customers c
+      LEFT JOIN invoices i ON i.customer_id = c.id AND i.business_id = c.business_id AND i.status = 'active'
+      WHERE c.business_id = ${session.id}
+    `) as unknown as { customer_count: number; invoice_count: number; total_balance: number }[];
+    return { success: true, ...result };
+  } catch (error: unknown) {
+    return { error: errorMessage(error, "Failed to get summary") };
+  }
+}
 
-    const business = await db.query.businesses.findFirst({
-      where: eq(businesses.id, businessId),
-    });
+export async function resetAllKhataData(consentAccepted: boolean) {
+  if (!consentAccepted) return { error: "You must accept the consent to reset all khata data" };
+  try {
+    const session = await requireBusinessSession();
 
-    if (!business) {
-      return { error: "Unable to verify credentials" };
-    }
+    const result = await db.transaction(async (tx) => {
+      const customerRows = await tx.execute(
+        sql`SELECT id, current_balance, business_id FROM customers WHERE business_id = ${session.id} FOR UPDATE`
+      ) as unknown as { id: string; current_balance: number | null; business_id: string }[];
 
-    
-    if (!business.passwordHash || business.passwordHash.length === 0) {
-      if (password !== "RESET ALL DATA") {
-        return { error: "Please type RESET ALL DATA to confirm" };
-      }
-    } else {
-      const isValidPassword = await compare(password, business.passwordHash);
-      if (!isValidPassword) {
-        return { error: "Incorrect password" };
-      }
-    }
+      let totalCustomers = 0, totalInvoices = 0, totalBalance = 0;
 
-    await db.transaction(async (tx) => {
-      
-      const activeInvoices = await tx.execute(sql`
-        SELECT id, items FROM invoices
-        WHERE business_id = ${businessId} AND status = 'active'
-      `) as unknown as { id: string; items: InvoiceItem[] | null }[];
+      for (const customer of customerRows) {
+        const [countResult] = await tx.execute(
+          sql`SELECT COUNT(*)::int as cnt FROM invoices WHERE customer_id = ${customer.id} AND business_id = ${session.id} AND status = 'active'`
+        ) as unknown as { cnt: number }[];
 
-      
-      const stockRestore = new Map<string, number>();
-      for (const inv of activeInvoices) {
-        if (inv.items) {
-          for (const item of inv.items) {
-            stockRestore.set(item.productId, (stockRestore.get(item.productId) ?? 0) + item.quantity);
-          }
-        }
-      }
+        const invoiceCount = Number(countResult?.cnt ?? 0);
+        if (invoiceCount === 0) continue;
 
-      
-      if (stockRestore.size > 0) {
-        const prodIds = Array.from(stockRestore.keys());
-        const sqlIds = sql.join(prodIds.map(id => sql`${id}`), sql`, `);
-        const cases = sql.join(
-          Array.from(stockRestore.entries()).map(([id, qty]) => sql`WHEN id = ${id} THEN stock_quantity + ${qty}`),
-          sql` `
+        const currentBalance = Number(customer.current_balance || 0);
+
+        await tx.execute(
+          sql`DELETE FROM invoices WHERE customer_id = ${customer.id} AND business_id = ${session.id} AND status = 'active'`
         );
-        await tx.execute(sql`
-          UPDATE products SET stock_quantity = CASE ${cases} ELSE stock_quantity END, updated_at = NOW()
-          WHERE id IN (${sqlIds}) AND business_id = ${businessId}
-        `);
+
+        await tx.insert(khataResets).values({
+          id: crypto.randomUUID(),
+          businessId: session.id,
+          customerId: customer.id,
+          amountReset: currentBalance,
+          invoiceCount,
+          consentAccepted: true,
+        });
+
+        totalCustomers++;
+        totalInvoices += invoiceCount;
+        totalBalance += currentBalance;
       }
 
-      
-      await tx.delete(khataTransactions)
-        .where(eq(khataTransactions.businessId, businessId));
-
-      
-      await tx.update(invoices)
-        .set({ status: 'cancelled', updatedAt: new Date(), amountPaid: 0 })
-        .where(eq(invoices.businessId, businessId));
-
-      
-      await tx.update(customers)
-        .set({ currentBalance: 0, updatedAt: new Date() })
-        .where(eq(customers.businessId, businessId));
+      return { totalCustomers, totalInvoices, totalBalance };
     });
 
     revalidateLocalizedPaths([
@@ -167,9 +156,9 @@ export async function resetAllKhataData(password: string) {
       '/dashboard/customers',
       '/dashboard/products',
     ]);
-    revalidateDashboardCache(businessId);
-    return { success: true, message: "All Khata data has been reset. All invoices and transactions marked as cancelled, balances zeroed." };
+    revalidateDashboardCache(session.id);
+    return { success: true, ...result };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to reset Khata data") };
+    return { error: errorMessage(error, "Failed to reset all khata data") };
   }
 }

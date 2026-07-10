@@ -13,7 +13,7 @@ import { StaggerContainer, StaggerItem } from "@/components/ui/MotionWrapper";
 export default function SettingsPage() {
   const {
     formData, setField, loading, saving, isDirty,
-    validationErrors, isOAuthUser, save,
+    validationErrors, save,
   } = useSettingsForm();
 
   if (loading) {
@@ -69,7 +69,7 @@ export default function SettingsPage() {
       </form>
 
       <StaggerItem>
-        <DangerZoneSection isOAuthUser={isOAuthUser} />
+        <DangerZoneSection />
       </StaggerItem>
 
       <StaggerItem>

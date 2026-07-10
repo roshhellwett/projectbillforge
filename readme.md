@@ -22,14 +22,14 @@ A powerful and streamlined business management utility — designed to simplify 
 
 ### Security & Reliability
 - **Secure Authentication**: Built with NextAuth.js for user session management.
-- **Data Integrity**: Drizzle ORM with PostgreSQL (Neon) for reliable data operations.
+- **Data Integrity**: Drizzle ORM with PostgreSQL (Supabase) for reliable data operations.
 - **Rate Limiting**: Upstash Redis rate limiting for application stability.
 - **Tech Stack**: Next.js 15, React 19, Tailwind CSS.
 
 ## 🛠️ Prerequisites
 To run BillForge locally, you will need:
 - **Node.js**: Version >= 20.9.0
-- **Database**: PostgreSQL (Neon database recommended)
+- **Database**: PostgreSQL (Supabase recommended)
 - **Redis**: Upstash Redis for rate limiting and session management
 - **Environment Variables**: See `.env.example` for required configuration.
 
