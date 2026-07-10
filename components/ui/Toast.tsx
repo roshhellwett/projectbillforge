@@ -65,7 +65,7 @@ function ToastContainer({ toasts, removeToast }: { toasts: Toast[]; removeToast:
   };
 
   return (
-    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm">
+    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm toast-container">
       {toasts.map((toast) => (
         <div
           key={toast.id}
@@ -75,7 +75,8 @@ function ToastContainer({ toasts, removeToast }: { toasts: Toast[]; removeToast:
           <p className="flex-1 text-sm font-medium text-[var(--foreground)]">{toast.message}</p>
           <button
             onClick={() => removeToast(toast.id)}
-            className="text-[var(--foreground)]/40 hover:text-[var(--foreground)] transition-colors"
+            className="p-2 text-[var(--foreground)]/40 hover:text-[var(--foreground)] transition-colors"
+            aria-label="Dismiss"
           >
             <X size={16} />
           </button>

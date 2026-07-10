@@ -1,629 +1,94 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "@/i18n/routing";
-import { getCustomers } from "@/lib/actions/customers";
-import { getKhataStatement, createKhataTransaction, deleteKhataTransaction } from "@/lib/actions/khata";
-import { formatCurrency, formatDate } from "@/lib/formatters";
+import { useKhata } from "./hooks/useKhata";
+import { CustomerSearchPanel } from "./components/CustomerSearchPanel";
+import { CustomerInfoCards } from "./components/CustomerInfoCards";
+import { TransactionTable } from "./components/TransactionTable";
+import { EmptyState } from "./components/EmptyState";
+import { AddTransactionModal } from "./components/AddTransactionModal";
+import { RecordPaymentModal } from "./components/RecordPaymentModal";
 import { ConfirmDialog } from "@/components/ui/ui";
-import { useTranslations } from "next-intl";
-import { Plus, Search, X, ArrowUpCircle, ArrowDownCircle, Trash2, Lock, BookOpen } from "lucide-react";
 import { StaggerContainer, StaggerItem, FadeIn } from "@/components/ui/MotionWrapper";
-
-
-const fmt = (v: string | number | null | undefined): string => {
-  const n = Number(v);
-  if (isNaN(n) || !isFinite(n)) return '0.00';
-  return formatCurrency(Math.abs(n)).replace('₹', '').trim();
-};
-const safeNum = (v: string | number | null | undefined): number => {
-  const n = Number(v);
-  return isNaN(n) || !isFinite(n) ? 0 : n;
-};
-
-interface Customer {
-  id: string;
-  name: string;
-  phone: string | null;
-  currentBalance: number | null;
-  creditLimit?: number | null;
-}
-
-interface Transaction {
-  id: string;
-  type: "credit" | "debit";
-  amount: number;
-  note: string | null;
-  createdAt: Date | null;
-  referenceInvoiceId: string | null;
-  status?: string | null;
-  runningBalance?: number;
-}
+import { useTranslations } from "next-intl";
+import { Plus } from "lucide-react";
 
 export default function KhataPage() {
-  const t = useTranslations('Khata');
-  const router = useRouter();
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<string>("");
-  const [customer, setCustomer] = useState<Customer | null>(null);
-  const [statement, setStatement] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [statementLoading, setStatementLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({
-    type: "credit" as "credit" | "debit",
-    amount: "",
-    note: "",
-  });
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [customerSearch, setCustomerSearch] = useState("");
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [accruedFines, setAccruedFines] = useState(0);
-  const [totalBalanceDue, setTotalBalanceDue] = useState(0);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentData, setPaymentData] = useState({
-    amount: "",
-    note: "",
-    method: "cash" as string,
-  });
-
-  useEffect(() => {
-    loadCustomers();
-  }, []);
-
-  const loadCustomers = async () => {
-    setLoading(true);
-    const result = await getCustomers();
-    if (result.success) {
-      setCustomers(result.customers);
-      setError("");
-    } else if (result.error) {
-      setError(result.error);
-    }
-    setLoading(false);
-  };
-
-  const loadStatement = async (customerId: string) => {
-    setStatementLoading(true);
-    const result = await getKhataStatement(customerId);
-    if (result.success) {
-      setCustomer(result.customer);
-      setStatement(result.statement.map((t: Transaction & { createdAt: Date | string | null }) => ({
-        ...t,
-        createdAt: t.createdAt ? new Date(t.createdAt) : new Date()
-      })));
-      setAccruedFines(result.accruedFines || 0);
-      setTotalBalanceDue(result.totalBalanceDue || 0);
-    } else if (result.error) {
-      setError(result.error);
-    }
-    setStatementLoading(false);
-  };
-
-  const handleCustomerSelect = (customerId: string) => {
-    setSelectedCustomer(customerId);
-    setAccruedFines(0);
-    setTotalBalanceDue(0);
-    setError("");
-    if (customerId) {
-      loadStatement(customerId);
-    } else {
-      setCustomer(null);
-      setStatement([]);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedCustomer) return;
-
-    const parsedAmount = Number(formData.amount);
-    if (!formData.amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      setError("Please enter a valid amount greater than 0.");
-      return;
-    }
-
-    setError("");
-    setSaving(true);
-
-    const result = await createKhataTransaction({
-      customerId: selectedCustomer,
-      type: formData.type,
-      amount: parsedAmount,
-      note: formData.note || undefined,
-    });
-
-    if (result.error) {
-      setError(result.error);
-    } else {
-      setShowModal(false);
-      setFormData({ type: "credit", amount: "", note: "" });
-      loadStatement(selectedCustomer);
-      loadCustomers();
-      router.refresh();
-    }
-    setSaving(false);
-  };
-
-  const handleDeleteTransaction = async () => {
-    if (!deleteId) return;
-    setDeleting(true);
-    const result = await deleteKhataTransaction(deleteId);
-    if (result.success && selectedCustomer) {
-      loadStatement(selectedCustomer);
-      loadCustomers();
-      router.refresh();
-    } else if (result.error) {
-      setError(result.error);
-    }
-    setDeleting(false);
-    setDeleteId(null);
-  };
-
-  const handlePaymentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedCustomer) return;
-
-    const amount = Number(paymentData.amount);
-    if (!amount || amount <= 0) {
-      setError("Please enter a valid payment amount");
-      return;
-    }
-
-    setError("");
-    setSaving(true);
-
-    const methodLabel = paymentData.method === 'cash' ? 'Cash' : paymentData.method === 'upi' ? 'UPI' : paymentData.method === 'bank' ? 'Bank Transfer' : 'Cheque';
-    const noteText = paymentData.note ? `${paymentData.note} (via ${methodLabel})` : `Payment via ${methodLabel}`;
-
-    const result = await createKhataTransaction({
-      customerId: selectedCustomer,
-      type: "debit",
-      amount: amount,
-      note: noteText,
-    });
-
-    if (result.error) {
-      setError(result.error);
-    } else {
-      setShowPaymentModal(false);
-      setPaymentData({ amount: "", note: "", method: "cash" });
-      loadStatement(selectedCustomer);
-      loadCustomers();
-      router.refresh();
-    }
-    setSaving(false);
-  };
+  const t = useTranslations("Khata");
+  const {
+    customers, customer, statement, loading, statementLoading, customerSearch,
+    selectedCustomer, accruedFines, showModal, showPaymentModal, deleteId, deleting, saving,
+    modalFormData, paymentData,
+    setCustomerSearch, setShowModal, setShowPaymentModal,
+    setModalFormData, setPaymentData, setDeleteId,
+    handleCustomerSelect, handleSubmit, handleDeleteTransaction, handlePaymentSubmit,
+  } = useKhata();
 
   return (
     <StaggerContainer className="space-y-6">
       <FadeIn className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">{t('title')}</h1>
-          <p className="text-[var(--foreground)]/60 mt-1">{t('subtitle')}</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">{t("title")}</h1>
+          <p className="text-[var(--foreground)]/60 mt-1">{t("subtitle")}</p>
         </div>
       </FadeIn>
 
-      {error && !showModal && !showPaymentModal && (
-        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl text-sm">
-          {error}
-          <button onClick={() => setError("")} className="float-right text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
-            <X size={16} />
-          </button>
-        </div>
-      )}
-
-      <StaggerItem className="glass-card p-6 overflow-hidden">
-        <label className="block text-sm font-semibold text-[var(--foreground)]/80 mb-4">Select Customer</label>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-[var(--color-primary)]/60 pointer-events-none" size={18} />
-          <input
-            type="text"
-            placeholder={t('searchCustomer')}
-            value={customerSearch}
-            onChange={(e) => setCustomerSearch(e.target.value)}
-            className="w-full pr-4 py-3.5 glass-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
-            style={{ paddingLeft: '2.5rem' }}
-          />
-        </div>
-        <div className="mt-4 max-h-60 overflow-y-auto border border-[var(--border)] rounded-xl">
-          {customers
-            .filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-              (c.phone && c.phone.includes(customerSearch)))
-            .length === 0 ? (
-            <div className="p-3 text-sm text-[var(--foreground)]/50 text-center">{t('noCustomers')}</div>
-          ) : (
-            customers
-              .filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-                (c.phone && c.phone.includes(customerSearch)))
-              .map(c => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => handleCustomerSelect(c.id)}
-                  className={`w-full text-left px-4 py-3 border-b border-[var(--border)] last:border-0 cursor-pointer transition-all hover:bg-[var(--color-primary)]/10 hover:shadow-sm ${selectedCustomer === c.id ? 'bg-[var(--color-primary)]/10 border-l-4 border-l-blue-500' : ''
-                    }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-[var(--foreground)]">{c.name}</div>
-                      <div className="text-sm text-[var(--foreground)]/50">
-                        {c.phone || 'No phone'}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className={`text-sm font-semibold ${safeNum(c.currentBalance) > 0 ? 'text-orange-600' : safeNum(c.currentBalance) < 0 ? 'text-blue-600' : 'text-green-600'}`}>
-                        {safeNum(c.currentBalance) < 0 ? '-' : ''}₹{fmt(c.currentBalance)}
-                      </div>
-                      <div className="text-xs text-[var(--foreground)]/40">{t('balance')}</div>
-                    </div>
-                  </div>
-                </button>
-              ))
-          )}
-        </div>
+      <StaggerItem>
+        <CustomerSearchPanel
+          customers={customers}
+          selectedCustomer={selectedCustomer}
+          customerSearch={customerSearch}
+          onSearchChange={setCustomerSearch}
+          onSelect={handleCustomerSelect}
+        />
       </StaggerItem>
 
       {customer && (
         <>
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => handleCustomerSelect("")}
-              className="text-sm text-[var(--foreground)]/60 hover:text-[var(--color-primary)] flex items-center gap-1 transition-colors"
-            >
-              {t('backToList')}
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <button onClick={() => handleCustomerSelect("")} className="text-sm text-[var(--foreground)]/60 hover:text-[var(--color-primary)] flex items-center gap-1 transition-colors">
+              {t("backToList")}
             </button>
-            <button
-              onClick={() => { setError(""); setFormData({ type: "credit", amount: "", note: "" }); setShowModal(true); }}
-              className="glass-btn-primary flex items-center gap-2"
-            >
+            <button onClick={() => { setModalFormData({ type: "credit", amount: "", note: "" }); setShowModal(true); }} className="glass-btn-primary flex items-center gap-2">
               <Plus size={20} />
-              {t('addTransaction')}
+              {t("addTransaction")}
             </button>
           </div>
 
-          <FadeIn delay={0.1} className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            <div className="glass-card p-6 hover:-translate-y-1 transition-all">
-              <p className="text-sm font-semibold text-[var(--foreground)]/60 mb-1">{t('customerName')}</p>
-              <p className="text-2xl font-bold text-[var(--foreground)] tracking-tight">{customer.name}</p>
-            </div>
-            <div className="glass-card p-6 hover:-translate-y-1 transition-all">
-              <p className="text-sm font-semibold text-[var(--foreground)]/60 mb-1">{t('phone')}</p>
-              <p className="text-2xl font-bold text-[var(--foreground)] tracking-tight">{customer.phone || "-"}</p>
-            </div>
-            <div className="glass-card p-6 hover:-translate-y-1 transition-all">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-[var(--foreground)]/60">{t('totalOwed')}</p>
-                  <p className={`text-2xl font-bold mt-1 tracking-tight ${(customer.currentBalance ?? 0) > 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
-                    ₹{fmt(customer.currentBalance)}
-                  </p>
-                </div>
-                {safeNum(customer.currentBalance) > 0 && (
-                  <button
-                    onClick={() => { setError(""); setPaymentData({ amount: "", note: "", method: "cash" }); setShowPaymentModal(true); }}
-                    className="px-4 py-2 bg-[var(--color-success)] text-white text-sm font-medium rounded-xl hover:opacity-90 transition-opacity shadow-sm"
-                  >
-                    {t('recordPayment')}
-                  </button>
-                )}
-              </div>
-            </div>
-            {(customer.creditLimit ?? 0) > 0 && (
-              <>
-                <div className="glass-card p-6 hover:-translate-y-1 transition-all">
-                  <p className="text-sm font-semibold text-[var(--foreground)]/60 mb-1">{t('creditLimit')}</p>
-                  <p className="text-2xl font-bold text-[var(--foreground)] tracking-tight">
-                    ₹{fmt(customer.creditLimit)}
-                  </p>
-                </div>
-                <div className="glass-card p-6 bg-[var(--color-success)]/5 border border-[var(--color-success)]/10 hover:-translate-y-1 transition-all">
-                  <p className="text-sm font-semibold text-[var(--color-success)] mb-1">{t('availableCredit')}</p>
-                  <p className="text-2xl font-bold text-[var(--color-success)] tracking-tight">
-                    ₹{fmt(Math.max(0, safeNum(customer.creditLimit) - safeNum(customer.currentBalance)))}
-                  </p>
-                </div>
-              </>
-            )}
-            {accruedFines > 0 && (
-              <div className="bg-[var(--color-danger)]/5 backdrop-blur-3xl p-6 rounded-3xl border border-[var(--color-danger)]/20 shadow-sm hover:shadow-md transition-shadow">
-                <p className="text-sm font-medium text-[var(--color-danger)]/80">{t('accruedFines')}</p>
-                <p className="text-2xl font-bold text-[var(--color-danger)] mt-1 tracking-tight">
-                  {formatCurrency(accruedFines)}
-                </p>
-              </div>
-            )}
-          </FadeIn>
+          <CustomerInfoCards customer={customer} accruedFines={accruedFines} onRecordPayment={() => { setPaymentData({ amount: "", note: "", method: "cash" }); setShowPaymentModal(true); }} />
 
-          <FadeIn delay={0.2} className="glass-card overflow-hidden mt-6">
-            <div className="p-6 border-b border-[var(--border)]/50">
-              <h2 className="font-bold text-[var(--foreground)] text-xl">{t('transactionHistory')}</h2>
-            </div>
-
-            {statementLoading ? (
-              <div className="p-12 flex items-center justify-center">
-                <div className="w-6 h-6 border-2 border-[var(--color-primary)]/30 border-t-[var(--color-primary)] rounded-full animate-spin" />
-              </div>
-            ) : statement.length === 0 ? (
-              <div className="p-12 text-center text-[var(--foreground)]/50 font-medium">{t('noTransactions')}</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-[var(--foreground)]/5 border-b border-[var(--border)]/30">
-                    <tr>
-                      <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">{t('thDate')}</th>
-                      <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">{t('thType')}</th>
-                      <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">{t('thNote')}</th>
-                      <th className="px-5 py-4 text-right text-sm font-semibold text-[var(--foreground)]/70">{t('thAmount')}</th>
-                      <th className="px-5 py-4 text-right text-sm font-semibold text-[var(--foreground)]/70" title="Running balance after this transaction">
-                        {t('thBalance')} <span className="text-xs font-normal text-[var(--foreground)]/40"></span>
-                      </th>
-                      <th className="px-5 py-4 text-left text-sm font-semibold text-[var(--foreground)]/70">{t('thActions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--border)]/30">
-                    {statement.map((txn) => (
-                      <tr key={txn.id} className={`hover:bg-[var(--foreground)]/[0.02] transition-colors ${txn.status === 'cancelled' ? 'opacity-50' : ''}`}>
-                        <td className="px-5 py-4 text-sm text-[var(--foreground)]/70">
-                          {formatDate(txn.createdAt)}
-                        </td>
-                        <td className="px-5 py-4">
-                          {txn.status === 'cancelled' ? (
-                            <span className="flex items-center gap-1.5 text-sm font-medium text-[var(--foreground)]/40 line-through">
-                              {txn.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
-                              {t('cancelled')}
-                            </span>
-                          ) : (
-                            <span className={`flex items-center gap-1.5 text-sm font-medium ${txn.type === 'credit' ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
-                              {txn.type === 'credit' ? <ArrowUpCircle size={16} /> : <ArrowDownCircle size={16} />}
-                              {txn.type === 'credit' ? t('saleAdded') : t('paymentReceived')}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-5 py-4 text-sm text-[var(--foreground)]/70">{txn.status === 'cancelled' ? <span className="line-through">{txn.note || "-"}</span> : txn.note || "-"}</td>
-                        <td className="px-5 py-4 text-right font-medium text-[var(--foreground)]">
-                          {txn.status === 'cancelled' ? (
-                            <span className="line-through text-[var(--foreground)]/40">₹{fmt(txn.amount)}</span>
-                          ) : (
-                            <span>₹{fmt(txn.amount)}</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-4 text-right font-semibold">
-                          {txn.status === 'cancelled' ? (
-                            <span className="text-[var(--foreground)]/40">-</span>
-                          ) : (
-                            <span className={safeNum(txn.runningBalance) >= 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}>
-                              {safeNum(txn.runningBalance) < 0 ? '-' : ''}₹{fmt(txn.runningBalance)}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-5 py-4">
-                          {txn.status === 'cancelled' ? (
-                            <span className="text-xs text-[var(--foreground)]/40">{t('cancelled')}</span>
-                          ) : txn.referenceInvoiceId ? (
-                            <div className="relative group">
-                              <button
-                                className="p-1.5 text-[var(--foreground)]/20 cursor-not-allowed"
-                                title="Cannot delete - cancel the associated invoice to reverse this transaction"
-                              >
-                                <Lock size={16} />
-                              </button>
-                              <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block w-48 p-3 bg-black/90 backdrop-blur-xl text-white text-xs rounded-xl z-10 border border-white/10 shadow-xl">
-                                Cannot delete. Cancel the associated invoice to reverse this transaction.
-                              </div>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => setDeleteId(txn.id)}
-                              className="p-1.5 text-[var(--foreground)]/40 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-colors"
-                              aria-label="Delete transaction"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </FadeIn>
+          <TransactionTable statement={statement} loading={statementLoading} onDelete={setDeleteId} />
         </>
       )}
 
-      {!selectedCustomer && !loading && (
-        <StaggerItem className="glass-card p-8 sm:p-12 text-center mt-6">
-          <BookOpen size={40} className="mx-auto mb-3 text-[var(--foreground)]/15" />
-          <p className="text-[var(--foreground)]/50 font-medium text-lg">{t('selectCustomerPrompt')}</p>
-          <p className="text-[var(--foreground)]/30 text-sm mt-1">Choose a customer above to view their Khata ledger</p>
-        </StaggerItem>
-      )}
+      {!selectedCustomer && <EmptyState loading={loading} />}
 
-      {showModal && (
-        <div className="glass-overlay" onKeyDown={(e) => { if (e.key === 'Escape') { setShowModal(false); setError(''); } }}>
-          <div className="glass-card glass-modal-panel max-w-md">
-            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--border)]/50">
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">{t('addTransaction')}</h2>
-              <button onClick={() => { setShowModal(false); setError(''); }} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
-                <X size={20} className="text-[var(--foreground)]/60" />
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-4 space-y-4">
-              {error && <div className="p-3 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-lg text-sm border border-[var(--color-danger)]/20">{error}</div>}
+      <AddTransactionModal
+        open={showModal}
+        saving={saving}
+        formData={modalFormData}
+        onClose={() => setShowModal(false)}
+        onChange={setModalFormData}
+        onSubmit={handleSubmit}
+      />
 
-              <div>
-                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-2">Transaction Type</label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, type: "credit" })}
-                    className={`flex-1 py-2 rounded-xl border-2 ${formData.type === 'credit' ? 'border-orange-500 bg-orange-500/10 text-orange-700' : 'border-[var(--border)]'}`}
-                  >
-                    Sale (Add to Khata)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, type: "debit" })}
-                    className={`flex-1 py-2 rounded-xl border-2 ${formData.type === 'debit' ? 'border-green-500 bg-green-500/10 text-green-700' : 'border-[var(--border)]'}`}
-                  >
-                    Payment Received
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Amount (₹)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  required
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full glass-input"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Note (Optional)</label>
-                <input
-                  type="text"
-                  value={formData.note}
-                  onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                  className="w-full glass-input"
-                  placeholder="e.g., Cash payment, Partial payment"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => { setShowModal(false); setError(''); }}
-                  className="glass-btn-secondary flex-1"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="glass-btn-primary flex-1"
-                >
-                  {saving ? "Saving..." : "Add Transaction"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <RecordPaymentModal
+        open={showPaymentModal}
+        saving={saving}
+        customer={customer}
+        paymentData={paymentData}
+        onClose={() => setShowPaymentModal(false)}
+        onChange={setPaymentData}
+        onSubmit={handlePaymentSubmit}
+      />
 
       <ConfirmDialog
         open={!!deleteId}
-        title="Delete Transaction"
-        message="Are you sure you want to delete this transaction? This will adjust the customer's balance."
+        title={t("deleteTitle")}
+        message={t("deleteMessage")}
         onConfirm={handleDeleteTransaction}
         onCancel={() => setDeleteId(null)}
         loading={deleting}
       />
-
-      {showPaymentModal && (
-        <div className="glass-overlay" onKeyDown={(e) => { if (e.key === 'Escape') { setShowPaymentModal(false); setError(''); } }}>
-          <div className="glass-card glass-modal-panel max-w-md">
-            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--border)]/50">
-              <h2 className="text-lg font-semibold text-[var(--foreground)]">Record Payment</h2>
-              <button onClick={() => { setShowPaymentModal(false); setError(''); }} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors" aria-label="Close">
-                <X size={20} className="text-[var(--foreground)]/60" />
-              </button>
-            </div>
-            <form onSubmit={handlePaymentSubmit} className="p-4 space-y-4">
-              {error && <div className="p-3 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-lg text-sm border border-[var(--color-danger)]/20">{error}</div>}
-
-              <div className="bg-[var(--color-success)]/10 p-4 rounded-xl border border-[var(--color-success)]/20">
-                <p className="text-sm text-[var(--color-success)]">
-                  Recording payment for <strong>{customer?.name}</strong>
-                </p>
-                <p className="text-lg font-bold text-[var(--color-success)] mt-1">
-                  Current Due: ₹{fmt(customer?.currentBalance)}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Payment Amount (₹)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  required
-                  value={paymentData.amount}
-                  onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
-                  className="w-full glass-input"
-                  placeholder="0.00"
-                />
-                <div className="flex gap-2 mt-2">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentData({ ...paymentData, amount: String(safeNum(customer?.currentBalance)) })}
-                    className="text-xs px-2 py-1 bg-[var(--foreground)]/5 hover:bg-[var(--foreground)]/10 rounded border border-[var(--border)] text-[var(--foreground)]/70"
-                  >
-                    Pay Full
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentData({ ...paymentData, amount: (safeNum(customer?.currentBalance) / 2).toFixed(2) })}
-                    className="text-xs px-2 py-1 bg-[var(--foreground)]/5 hover:bg-[var(--foreground)]/10 rounded border border-[var(--border)] text-[var(--foreground)]/70"
-                  >
-                    Pay Half
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Payment Method</label>
-                <select
-                  value={paymentData.method}
-                  onChange={(e) => setPaymentData({ ...paymentData, method: e.target.value })}
-                  className="w-full glass-input"
-                >
-                  <option value="cash">Cash</option>
-                  <option value="upi">UPI</option>
-                  <option value="bank">Bank Transfer</option>
-                  <option value="cheque">Cheque</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-1">Note (Optional)</label>
-                <input
-                  type="text"
-                  value={paymentData.note}
-                  onChange={(e) => setPaymentData({ ...paymentData, note: e.target.value })}
-                  className="w-full glass-input"
-                  placeholder="e.g., Cash received, UPI payment"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => { setShowPaymentModal(false); setError(''); }}
-                  className="glass-btn-secondary flex-1"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="glass-btn-primary flex-1"
-                >
-                  {saving ? "Processing..." : "Record Payment"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </StaggerContainer>
   );
 }

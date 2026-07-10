@@ -463,10 +463,33 @@ body {
     border-radius: 1.25rem;
   }
 
-  .glass-btn-primary {
+  .glass-btn-primary, .glass-btn-secondary {
     padding: 0.625rem 1.5rem;
     font-size: 0.875rem;
+    min-height: 44px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+}
+
+@media (max-width: 640px) {
+  .toast-container {
+    right: 0.5rem;
+    left: 0.5rem;
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-slide-in, .animate-slide-up, .animate-scale-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 

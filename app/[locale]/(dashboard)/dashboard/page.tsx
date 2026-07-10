@@ -4,28 +4,19 @@ import { getLowStockProducts, getProducts } from "@/lib/actions/products";
 import { getCustomers } from "@/lib/actions/customers";
 import { StaggerContainer, StaggerItem } from "@/components/ui/MotionWrapper";
 
+import { WelcomeBanner } from "./components/WelcomeBanner";
+import { OverviewCards } from "./components/OverviewCards";
+import { SalesTrend } from "./components/SalesTrend";
+import { BusinessSnapshot } from "./components/BusinessSnapshot";
+import { RecentInvoices } from "./components/RecentInvoices";
+import { TopReceivables } from "./components/TopReceivables";
+import { LowStockAlerts } from "./components/LowStockAlerts";
 import {
-  WelcomeBannerServer,
-  OverviewCardsServer,
-  SalesTrendServer,
-  BusinessSnapshotServer,
-  RecentInvoicesServer,
-  TopReceivablesServer,
-  LowStockAlertsServer
-} from "@/components/dashboard/DashboardServerComponents";
-import {
-  WelcomeBannerSkeleton,
-  OverviewCardsSkeleton,
-  SalesTrendSkeleton,
-  BusinessSnapshotSkeleton,
-  RecentInvoicesSkeleton,
-  TopReceivablesSkeleton,
-  LowStockSkeleton
-} from "@/components/dashboard/Skeletons";
+  WelcomeBannerSkeleton, OverviewCardsSkeleton, SalesTrendSkeleton,
+  BusinessSnapshotSkeleton, RecentInvoicesSkeleton, TopReceivablesSkeleton, LowStockSkeleton,
+} from "./components/skeletons";
 
 export default function DashboardPage() {
-  
-  
   const salesPromise = getSalesSummary();
   const lowStockPromise = getLowStockProducts();
   const customersPromise = getCustomers();
@@ -37,30 +28,26 @@ export default function DashboardPage() {
     <StaggerContainer className="space-y-6 sm:space-y-8 lg:space-y-10">
       <StaggerItem>
         <Suspense fallback={<WelcomeBannerSkeleton />}>
-          <WelcomeBannerServer salesPromise={salesPromise} />
+          <WelcomeBanner salesPromise={salesPromise} />
         </Suspense>
       </StaggerItem>
 
       <StaggerItem>
         <Suspense fallback={<OverviewCardsSkeleton />}>
-          <OverviewCardsServer salesPromise={salesPromise} />
+          <OverviewCards salesPromise={salesPromise} />
         </Suspense>
       </StaggerItem>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 items-stretch">
         <StaggerItem className="md:col-span-1 xl:col-span-2">
           <Suspense fallback={<SalesTrendSkeleton />}>
-            <SalesTrendServer weeklyPromise={weeklyPromise} />
+            <SalesTrend weeklyPromise={weeklyPromise} />
           </Suspense>
         </StaggerItem>
 
         <StaggerItem>
           <Suspense fallback={<BusinessSnapshotSkeleton />}>
-            <BusinessSnapshotServer
-              salesPromise={salesPromise}
-              productsPromise={productsPromise}
-              lowStockPromise={lowStockPromise}
-            />
+            <BusinessSnapshot salesPromise={salesPromise} productsPromise={productsPromise} lowStockPromise={lowStockPromise} />
           </Suspense>
         </StaggerItem>
       </div>
@@ -68,20 +55,20 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 items-stretch">
         <StaggerItem>
           <Suspense fallback={<RecentInvoicesSkeleton />}>
-            <RecentInvoicesServer recentPromise={recentPromise} />
+            <RecentInvoices recentPromise={recentPromise} />
           </Suspense>
         </StaggerItem>
 
         <StaggerItem>
           <Suspense fallback={<TopReceivablesSkeleton />}>
-            <TopReceivablesServer customersPromise={customersPromise} />
+            <TopReceivables customersPromise={customersPromise} />
           </Suspense>
         </StaggerItem>
       </div>
 
       <StaggerItem>
         <Suspense fallback={<LowStockSkeleton />}>
-          <LowStockAlertsServer lowStockPromise={lowStockPromise} />
+          <LowStockAlerts lowStockPromise={lowStockPromise} />
         </Suspense>
       </StaggerItem>
     </StaggerContainer>

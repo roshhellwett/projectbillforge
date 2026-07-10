@@ -1,438 +1,86 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
-import { useRouter } from "@/i18n/routing";
-import { useSearchParams } from "next/navigation";
-import { getProducts } from "@/lib/actions/products";
-import { getCustomers } from "@/lib/actions/customers";
-import { getInvoices, createInvoice, cancelInvoice } from "@/lib/actions/invoices";
-import { getBusinessProfile } from "@/lib/actions/business";
-import { ConfirmDialog, SkeletonTable } from "@/components/ui/ui";
-import { useTranslations, useLocale } from "next-intl";
-import { Plus, Search, X, Trash2, Printer, MessageCircle, FileText } from "lucide-react";
-import { StaggerContainer, StaggerItem, FadeIn } from "@/components/ui/MotionWrapper";
+import { useInvoices, type Invoice } from "./hooks/useInvoices";
+import { InvoiceHeader } from "./components/InvoiceHeader";
+import { InvoiceSearchBar } from "./components/InvoiceSearchBar";
+import { InvoiceTable } from "./components/InvoiceTable";
+import { InvoiceLoadMore } from "./components/InvoiceLoadMore";
+import { EmptyState } from "./components/EmptyState";
 import { NewInvoiceModal } from "@/components/invoices/NewInvoiceModal";
 import { InvoicePrintModal } from "@/components/invoices/InvoicePrintModal";
-import { formatCurrency, formatDate } from "@/lib/formatters";
-
-interface Product {
-  id: string;
-  name: string;
-  rate: number;
-  gstRate: number | null;
-  stockQuantity: number | null;
-  unit: string | null;
-  isActive: boolean | null;
-}
-
-interface Customer {
-  id: string;
-  name: string;
-  phone: string | null;
-  gstin: string | null;
-  address: string | null;
-}
-
-interface InvoiceItem {
-  productId: string;
-  productName: string;
-  quantity: number;
-  rate: number;
-  gstRate: number;
-  amount: number;
-  cgst: number;
-  sgst: number;
-  igst: number;
-}
-
-interface Invoice {
-  id: string;
-  invoiceNumber: string;
-  customerId?: string | null;
-  customerName: string;
-  invoiceDate: Date;
-  total: number | null;
-  status: string | null;
-  paymentMode: string | null;
-  paymentStatus: string | null;
-  amountPaid: number | null;
-  items: InvoiceItem[] | null;
-  customerGstin: string | null;
-  customerAddress: string | null;
-  notes: string | null;
-}
-
-interface BusinessProfile {
-  name: string;
-  gstin: string | null;
-  address: string | null;
-  phone: string | null;
-  state: string;
-  pincode: string | null;
-  termsAndConditions: string | null;
-}
-
-interface InvoiceFormData {
-  customerId: string;
-  customerName: string;
-  customerGstin: string;
-  customerAddress: string;
-  invoiceDate: string;
-  notes: string;
-  paymentMode: "cash" | "upi" | "khata";
-  recordPayment: boolean;
-}
-
-interface InvoiceServerRow extends Omit<Invoice, "invoiceDate"> {
-  invoiceDate: string;
-}
-
-interface CreateInvoiceResult {
-  error?: string;
-  redirectToSettings?: boolean;
-}
+import { ConfirmDialog, SkeletonTable } from "@/components/ui/ui";
+import { StaggerContainer, StaggerItem } from "@/components/ui/MotionWrapper";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/routing";
+import { formatCurrency } from "@/lib/formatters";
 
 export default function InvoicesPage() {
-  const t = useTranslations('Invoices');
-  const locale = useLocale();
+  const t = useTranslations("Invoices");
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [showNewInvoice, setShowNewInvoice] = useState(false);
-  const [printFormat, setPrintFormat] = useState<"a4" | "thermal">("a4");
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [cancelId, setCancelId] = useState<string | null>(null);
-  const [cancelling, setCancelling] = useState(false);
-  const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
-  const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
-  const [showSettingsPrompt, setShowSettingsPrompt] = useState(false);
-  const [settingsPromptMessage, setSettingsPromptMessage] = useState("");
-  const [offset, setOffset] = useState(0);
-  const [totalInvoices, setTotalInvoices] = useState(0);
-  const PAGE_SIZE = 50;
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    if (searchParams.get('new') === 'true') {
-      setError("");
-      setShowNewInvoice(true);
-      router.replace('/dashboard/invoices');
-    }
-  }, [searchParams]);
-
-  const loadData = async () => {
-    setLoading(true);
-    const [productsResult, customersResult, invoicesResult, businessResult] = await Promise.all([
-      getProducts(),
-      getCustomers(),
-      getInvoices(PAGE_SIZE, 0),
-      getBusinessProfile(),
-    ]);
-    const errs: string[] = [];
-    if (productsResult.success) setProducts(productsResult.products);
-    else if (productsResult.error) errs.push(productsResult.error);
-    if (customersResult.success) setCustomers(customersResult.customers);
-    if (invoicesResult.success) {
-      setInvoices(invoicesResult.invoices.map((inv: InvoiceServerRow) => ({
-        ...inv,
-        invoiceDate: new Date(inv.invoiceDate)
-      })));
-      setTotalInvoices(invoicesResult.total ?? 0);
-      setOffset(invoicesResult.invoices.length);
-    } else if (invoicesResult.error) {
-      if (invoicesResult.error === "Unauthorized") { router.push('/en/login'); return; }
-      errs.push(invoicesResult.error);
-    }
-    if (businessResult.success && businessResult.business) {
-      setBusinessProfile({
-        name: businessResult.business.name || "",
-        gstin: businessResult.business.gstin || null,
-        address: businessResult.business.address || null,
-        phone: businessResult.business.phone || null,
-        state: businessResult.business.state || "",
-        pincode: businessResult.business.pincode || null,
-        termsAndConditions: businessResult.business.termsAndConditions || null,
-      });
-    }
-    setError(errs.length > 0 ? errs.join(". ") : "");
-    setLoading(false);
-  };
-
-  const loadMoreInvoices = async () => {
-    const result = await getInvoices(PAGE_SIZE, offset);
-    if (result.success && result.invoices) {
-      setInvoices(prev => [...prev, ...result.invoices.map((inv: InvoiceServerRow) => ({
-        ...inv,
-        invoiceDate: new Date(inv.invoiceDate)
-      }))]);
-      setOffset(prev => prev + result.invoices.length);
-    }
-  };
-
-
-
-  const handleCreateSubmit = async (formDataPayload: InvoiceFormData, itemsPayload: InvoiceItem[], isInterStatePayload: boolean) => {
-    if (itemsPayload.length === 0) {
-      setError("Add at least one item");
-      return;
-    }
-    if (!formDataPayload.customerName) {
-      setError("Customer name is required");
-      return;
-    }
-
-    setError("");
-    setSaving(true);
-
-    const result = await createInvoice({
-      ...formDataPayload,
-      customerId: formDataPayload.customerId || undefined,
-      customerGstin: formDataPayload.customerGstin || undefined,
-      customerAddress: formDataPayload.customerAddress || undefined,
-      notes: formDataPayload.notes || undefined,
-      items: itemsPayload,
-      isInterState: isInterStatePayload,
-    });
-
-    const typedResult = result as CreateInvoiceResult;
-    if (typedResult.error) {
-      if (typedResult.redirectToSettings) {
-        setSettingsPromptMessage(typedResult.error);
-        setShowSettingsPrompt(true);
-      } else {
-        setError(typedResult.error);
-      }
-    } else {
-      setShowNewInvoice(false);
-      loadData();
-      router.refresh();
-    }
-    setSaving(false);
-  };
-
-  const handleCancelInvoice = async () => {
-    if (!cancelId) return;
-    setCancelling(true);
-    const result = await cancelInvoice(cancelId);
-    if (result.success) {
-      loadData();
-      router.refresh();
-    } else if (result.error) {
-      if (result.error === "Unauthorized") { router.push('/en/login'); return; }
-      setError(result.error);
-    }
-    setCancelling(false);
-    setCancelId(null);
-  };
+  const {
+    products, customers, filteredInvoices, loading, search, showNewInvoice,
+    printFormat, saving, cancelId, cancelling, viewInvoice, businessProfile,
+    showSettingsPrompt, settingsPromptMessage, offset, totalInvoices,
+    setSearch, setShowNewInvoice, setPrintFormat, setCancelId,
+    setViewInvoice, setShowSettingsPrompt,
+    openNewInvoice, loadData, loadMoreInvoices, handleCreateSubmit, handleCancelInvoice,
+  } = useInvoices();
 
   const handleWhatsAppShare = (invoice: Invoice, customerPhone: string | null) => {
-    let message = "";
     const amount = formatCurrency(invoice.total);
-
-    if (locale === 'hi') {
-      message = `*${businessProfile?.name}*\n\nनमस्ते ${invoice.customerName},\nआपका बिल (नंबर: ${invoice.invoiceNumber}) तैयार है।\n*कुल राशि: ${amount}*\n\nधन्यवाद!`;
-    } else if (locale === 'hi-en') {
-      message = `*${businessProfile?.name}*\n\nNamaste ${invoice.customerName},\nAapka invoice (No: ${invoice.invoiceNumber}) tayar hai.\n*Total Amount: ${amount}*\n\nDhanyawad!`;
-    } else {
-      message = `*${businessProfile?.name}*\n\nHello ${invoice.customerName},\nYour invoice (No: ${invoice.invoiceNumber}) is ready.\n*Total Amount: ${amount}*\n\nThank you!`;
-    }
-
-    const encodedMessage = encodeURIComponent(message);
-    let url = `https://wa.me/`;
-    if (customerPhone) {
-      
-      let cleanPhone = customerPhone.replace(/\D/g, '');
-      if (cleanPhone.length === 10 && /^[6-9]/.test(cleanPhone)) {
-        cleanPhone = '91' + cleanPhone;
-      }
-      url += `${cleanPhone}?text=${encodedMessage}`;
-    } else {
-      url += `?text=${encodedMessage}`;
-    }
-
-    window.open(url, '_blank');
+    const vars = { businessName: businessProfile?.name || "", customerName: invoice.customerName, invoiceNumber: invoice.invoiceNumber, amount };
+    const message = t("whatsappMessage", vars);
+    const encoded = encodeURIComponent(message);
+    let phone = customerPhone?.replace(/\D/g, "") || "";
+    if (phone.length === 10 && /^[6-9]/.test(phone)) phone = "91" + phone;
+    window.open(`https://wa.me/${phone}?text=${encoded}`, "_blank");
   };
-
-
-  const filteredInvoices = invoices.filter(inv =>
-    inv.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
-    inv.customerName.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <StaggerContainer className="space-y-4 sm:space-y-6">
-      <FadeIn className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)]">{t('title')}</h1>
-          <p className="text-[var(--foreground)]/60 mt-1 text-sm">{t('subtitle')}</p>
-        </div>
-        <button
-          onClick={() => { setError(""); setShowNewInvoice(true); }}
-          className="glass-btn-primary flex items-center gap-2 min-h-[44px] px-4 sm:px-6"
-        >
-          <Plus size={18} />
-          <span className="hidden sm:inline">{t('newInvoice')}</span>
-          <span className="sm:hidden">New</span>
-        </button>
-      </FadeIn>
-
-      {error && !showNewInvoice && (
-        <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 text-[var(--color-danger)] px-4 py-3 rounded-xl text-sm flex items-center justify-between gap-2">
-          <span>{error}</span>
-          <span className="flex items-center gap-2 shrink-0">
-            <button onClick={() => { setError(""); loadData(); }} className="text-[var(--color-danger)]/70 hover:text-[var(--color-danger)] underline text-xs">
-              Retry
-            </button>
-            <button onClick={() => setError("")} className="text-[var(--color-danger)]/70 hover:text-[var(--color-danger)]">
-              <X size={16} />
-            </button>
-          </span>
-        </div>
-      )}
+      <InvoiceHeader onAdd={openNewInvoice} />
 
       <StaggerItem className="glass-card overflow-hidden">
-        <div className="p-3 sm:p-4 md:p-6 border-b border-[var(--border)]/50">
-          <div className="relative max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 z-10 text-[var(--color-primary)]/60 pointer-events-none" size={18} />
-            <input
-              type="text"
-              placeholder={t('searchInvoices')}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pr-4 py-3 glass-input text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 font-medium focus:ring-0"
-              style={{ paddingLeft: '2.75rem' }}
-            />
-          </div>
-        </div>
+        <InvoiceSearchBar value={search} onChange={setSearch} />
 
         {loading ? (
           <div className="p-4"><SkeletonTable rows={5} /></div>
         ) : filteredInvoices.length === 0 ? (
-          <div className="p-8 sm:p-12 text-center">
-            <FileText size={40} className="mx-auto mb-3 text-[var(--foreground)]/15" />
-            <p className="text-[var(--foreground)]/50 font-medium">{t('noInvoices')}</p>
-          </div>
+          <EmptyState visible />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px]">
-              <thead className="bg-[var(--foreground)]/5 border-b border-[var(--border)]/30">
-                <tr>
-                  <th className="px-3 sm:px-5 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-[var(--foreground)]/70">{t('thInvoice')}</th>
-                  <th className="px-3 sm:px-5 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-[var(--foreground)]/70">{t('thDate')}</th>
-                  <th className="px-3 sm:px-5 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-[var(--foreground)]/70">{t('thCustomer')}</th>
-                  <th className="px-3 sm:px-5 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-[var(--foreground)]/70">{t('thAmount')}</th>
-                  <th className="px-3 sm:px-5 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-[var(--foreground)]/70">{t('thStatus')}</th>
-                  <th className="px-3 sm:px-5 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-[var(--foreground)]/70">{t('thActions')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border)]/30">
-                {filteredInvoices.map((invoice) => (
-                  <tr key={invoice.id} className="hover:bg-[var(--foreground)]/[0.02] transition-colors">
-                    <td className="px-3 sm:px-5 py-3 sm:py-4 font-medium text-[var(--foreground)] text-sm">{invoice.invoiceNumber}</td>
-                    <td className="px-3 sm:px-5 py-3 sm:py-4 text-[var(--foreground)]/70 text-xs sm:text-sm">{formatDate(invoice.invoiceDate)}</td>
-                    <td className="px-3 sm:px-5 py-3 sm:py-4 text-[var(--foreground)] font-medium text-sm">{invoice.customerName}</td>
-                    <td className="px-3 sm:px-5 py-3 sm:py-4 font-semibold text-[var(--foreground)]">{formatCurrency(invoice.total)}</td>
-                    <td className="px-3 sm:px-5 py-3 sm:py-4">
-                      {invoice.status === 'cancelled' ? (
-                        <span className="px-2 sm:px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-danger)]/10 text-[var(--color-danger)] border border-[var(--color-danger)]/20">
-                          {t('statusCancelled')}
-                        </span>
-                      ) : invoice.paymentStatus === 'unpaid' ? (
-                        <span className="px-2 sm:px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-warning)]/10 text-[var(--color-warning)] border border-[var(--color-warning)]/20">
-                          {t('statusUnpaid')}
-                        </span>
-                      ) : invoice.paymentStatus === 'partial' ? (
-                        <div className="flex flex-col gap-1 items-start">
-                          <span className="px-2 sm:px-2.5 py-1 text-xs font-medium rounded-full bg-blue-500/10 text-blue-600 border border-blue-500/20">
-                            {t('statusPartial')}
-                          </span>
-                          <span className="text-[10px] text-[var(--foreground)]/50 font-medium px-1">
-                            {formatCurrency(invoice.amountPaid)} paid
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="px-2 sm:px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20">
-                          {t('statusPaid')}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-3 sm:px-5 py-3 sm:py-4">
-                      <div className="flex items-center gap-1" style={{ opacity: 1 }}>
-                        {invoice.status !== 'cancelled' && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const customer = customers.find(c =>
-                              (invoice.customerId && c.id === invoice.customerId) || c.name === invoice.customerName
-                            );
-                            handleWhatsAppShare(invoice, customer?.phone || null);
-                          }}
-                          className="p-1.5 sm:p-2 text-[var(--foreground)]/40 hover:text-[#25D366] hover:bg-[#25D366]/10 rounded-lg transition-colors"
-                          aria-label="Share via WhatsApp"
-                          title="Share via WhatsApp"
-                        >
-                          <MessageCircle size={16} />
-                        </button>
-                        )}
-                        <button
-                          onClick={() => {
-                            if (!businessProfile) { setError("Business profile not loaded yet. Please wait."); return; }
-                            setViewInvoice(invoice);
-                          }}
-                          className="p-1.5 sm:p-2 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-colors"
-                          aria-label="View invoice"
-                        >
-                          <Printer size={16} />
-                        </button>
-                        {invoice.status === 'active' && (
-                          <button
-                            onClick={() => setCancelId(invoice.id)}
-                            className="p-1.5 sm:p-2 text-[var(--foreground)]/40 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-colors"
-                            aria-label="Cancel invoice"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <InvoiceTable
+            invoices={filteredInvoices}
+            customers={customers}
+            businessName={businessProfile?.name || ""}
+            onView={(inv) => { if (businessProfile) setViewInvoice(inv); }}
+            onWhatsApp={handleWhatsAppShare}
+            onCancel={setCancelId}
+          />
         )}
-        {offset < totalInvoices && !loading && (
-          <div className="p-4 text-center">
-            <button onClick={loadMoreInvoices} className="glass-btn-primary px-6 py-2 text-sm min-h-[44px]">
-              Load More ({totalInvoices - offset} remaining)
-            </button>
-          </div>
+
+        {!loading && (
+          <InvoiceLoadMore
+            remaining={totalInvoices - offset}
+            onLoadMore={loadMoreInvoices}
+          />
         )}
       </StaggerItem>
 
       {showNewInvoice && (
         <NewInvoiceModal
-          onClose={() => { setShowNewInvoice(false); setError(""); }}
+          onClose={() => { setShowNewInvoice(false); loadData(); }}
           onSubmit={handleCreateSubmit}
           customers={customers}
           products={products}
           saving={saving}
-          error={error}
+          error=""
         />
       )}
 
       <ConfirmDialog
         open={!!cancelId}
-        title="Cancel Invoice"
-        message="Are you sure you want to cancel this invoice? This will restore the stock and adjust the customer's balance."
+        title={t("cancelInvoiceTitle")}
+        message={t("cancelInvoiceMessage")}
         onConfirm={handleCancelInvoice}
         onCancel={() => setCancelId(null)}
         loading={cancelling}
@@ -440,10 +88,10 @@ export default function InvoicesPage() {
 
       <ConfirmDialog
         open={showSettingsPrompt}
-        title="Complete Your Business Profile"
-        message={settingsPromptMessage + " Go to Settings now?"}
+        title={t("settingsPromptTitle")}
+        message={settingsPromptMessage + t("settingsPromptSuffix")}
         onConfirm={() => { setShowSettingsPrompt(false); router.push("/dashboard/settings"); }}
-        onCancel={() => setShowSettingsPrompt(false)}
+        onCancel={() => { setShowSettingsPrompt(false); }}
       />
 
       {viewInvoice && businessProfile && (
