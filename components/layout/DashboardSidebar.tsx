@@ -49,7 +49,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
   };
 
   return (
-    <aside className="hidden md:flex fixed md:static inset-y-0 left-0 z-30 w-[280px] lg:w-[280px] bg-[var(--surface)]/95 backdrop-blur-xl border-r border-[var(--border)] shadow-[4px_0_24px_rgba(0,0,0,0.02)] h-full flex-col transition-all">
+    <aside className="hidden md:flex fixed md:static inset-y-0 left-0 z-30 w-[280px] lg:w-[280px] bg-[var(--surface)]/95 backdrop-blur-xl border-r border-[var(--border)] shadow-[4px_0_24px_rgba(0,0,0,0.02)] h-full min-h-full self-stretch flex-col transition-all">
       {/* Brand Header */}
       <div className="p-6 flex flex-col gap-4 shrink-0 border-b border-[var(--border)]/60">
         <div className="flex items-center justify-between">
