@@ -49,7 +49,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
   };
 
   return (
-    <aside className="hidden md:flex fixed md:static inset-y-0 left-0 z-50 w-[280px] lg:w-[280px] bg-[var(--surface)]/95 backdrop-blur-xl border-r border-[var(--border)] shadow-[4px_0_24px_rgba(0,0,0,0.02)] h-full flex-col transition-all">
+    <aside className="hidden md:flex fixed md:static inset-y-0 left-0 z-30 w-[280px] lg:w-[280px] bg-[var(--surface)]/95 backdrop-blur-xl border-r border-[var(--border)] shadow-[4px_0_24px_rgba(0,0,0,0.02)] h-full flex-col transition-all">
       {/* Brand Header */}
       <div className="p-6 flex flex-col gap-4 shrink-0 border-b border-[var(--border)]/60">
         <div className="flex items-center justify-between">
@@ -153,29 +153,32 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
           </a>
         </div>
 
-        {/* User Profile & Controls */}
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center gap-2.5 overflow-hidden flex-1 min-w-0 pr-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+        {/* Quick Preferences Bar (Theme Toggle) */}
+        <div className="flex items-center justify-between px-3 py-2 bg-[var(--surface)] dark:bg-slate-900/60 rounded-xl border border-[var(--border)] shadow-2xs">
+          <span className="text-xs font-semibold text-[var(--foreground)]/80">Theme</span>
+          <div className="transform scale-80 origin-right">
+            <ThemeToggle />
+          </div>
+        </div>
+
+        {/* User Profile & Sign Out */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-2.5 overflow-hidden flex-1 min-w-0 pr-1">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ring-1 ring-[var(--border)]">
               {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}
             </div>
             <div className="flex flex-col overflow-hidden min-w-0">
               <span className="font-bold text-xs text-[var(--foreground)] truncate">
                 {session?.user?.name || "Merchant"}
               </span>
-              <span className="text-[10px] text-[var(--foreground)]/50 truncate font-medium">
-                Verified Pro
+              <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1 truncate">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" /> Verified Pro
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            <div className="transform scale-[0.68] origin-right" title="Toggle Dark/Light Theme">
-              <ThemeToggle />
-            </div>
-            <div className="pl-1 border-l border-[var(--border)]/60">
-              <SignOutButton iconOnly />
-            </div>
+          <div className="shrink-0">
+            <SignOutButton iconOnly />
           </div>
         </div>
       </div>

@@ -27,7 +27,7 @@ export default function MobileHeader({ session }: MobileHeaderProps) {
 
   return (
     <>
-      <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[var(--surface)]/85 backdrop-blur-xl border-b border-[var(--border)] pt-[env(safe-area-inset-top)] shadow-sm transition-all duration-300">
+      <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-[var(--surface)]/85 backdrop-blur-xl border-b border-[var(--border)] pt-[env(safe-area-inset-top)] shadow-sm transition-all duration-300">
         <div className="flex items-center justify-between px-4 h-16">
           {/* Brand Logo */}
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
