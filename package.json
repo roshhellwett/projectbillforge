@@ -21,7 +21,7 @@
   "dependencies": {
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.2",
-    "bcryptjs": "^2.4.3",
+    "bcryptjs": "^3.0.3",
     "decimal.js": "^10.6.0",
     "drizzle-orm": "^0.39.3",
     "framer-motion": "^12.34.0",
@@ -38,7 +38,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/bcryptjs": "^2.4.6",
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20",
     "@types/nodemailer": "^8.0.1",
     "@types/react": "^19",
