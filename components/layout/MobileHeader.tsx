@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Link } from "@/i18n/routing";
 import { Search, Menu, X, Receipt, Shield, Sparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -18,6 +18,12 @@ interface MobileHeaderProps {
 
 export default function MobileHeader({ session }: MobileHeaderProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  const closeDrawer = () => {
+    setIsDrawerOpen(false);
+    requestAnimationFrame(() => menuButtonRef.current?.focus());
+  };
 
   const triggerSearch = () => {
     document.dispatchEvent(
@@ -57,6 +63,7 @@ export default function MobileHeader({ session }: MobileHeaderProps) {
             <ThemeToggle />
 
             <button
+              ref={menuButtonRef}
               onClick={() => setIsDrawerOpen(true)}
               className="p-2 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 active:scale-95 transition-all flex items-center justify-center relative"
               aria-label="Open Menu"
@@ -71,7 +78,7 @@ export default function MobileHeader({ session }: MobileHeaderProps) {
       {/* Slide-over Profile Drawer */}
       <MobileDrawer
         isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
+        onClose={closeDrawer}
         session={session}
         onTriggerSearch={triggerSearch}
       />

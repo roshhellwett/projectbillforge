@@ -58,10 +58,10 @@ function ToastContainer({ toasts, removeToast }: { toasts: Toast[]; removeToast:
   };
 
   const backgrounds = {
-    success: "bg-zinc-100 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700",
+    success: "bg-zinc-100 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 border-zinc-300 dark:border-zinc-700",
     error: "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-800 dark:border-zinc-200",
-    info: "bg-zinc-200 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700",
-    warning: "bg-zinc-200 dark:bg-zinc-800 border-zinc-400 dark:border-zinc-600",
+    info: "bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 border-zinc-300 dark:border-zinc-700",
+    warning: "bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 border-zinc-400 dark:border-zinc-600",
   };
 
   return (
@@ -72,10 +72,10 @@ function ToastContainer({ toasts, removeToast }: { toasts: Toast[]; removeToast:
           className={`flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-lg shadow-lg animate-slide-in ${backgrounds[toast.type]}`}
         >
           {icons[toast.type]}
-          <p className="flex-1 text-sm font-medium text-[var(--foreground)]">{toast.message}</p>
+          <p className="flex-1 text-sm font-medium">{toast.message}</p>
           <button
             onClick={() => removeToast(toast.id)}
-            className="p-2 text-[var(--foreground)]/40 hover:text-[var(--foreground)] transition-colors"
+            className="p-2 opacity-60 hover:opacity-100 transition-opacity"
             aria-label="Dismiss"
           >
             <X size={16} />

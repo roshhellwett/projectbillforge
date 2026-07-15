@@ -44,6 +44,15 @@ export function CommandMenu() {
         return () => document.removeEventListener("keydown", down);
     }, []);
 
+    useEffect(() => {
+        if (!open) return;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [open]);
+
     const actions: Action[] = [
         {
             id: "dashboard",
@@ -194,6 +203,9 @@ export function CommandMenu() {
 
                     
                     <motion.div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Command menu"
                         initial={{ opacity: 0, scale: 0.95, y: -20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -20 }}
@@ -230,7 +242,8 @@ export function CommandMenu() {
                                 filteredActions.map((action, i) => {
                                     const isActive = i === selectedIndex;
                                     return (
-                                        <div
+                                        <button
+                                            type="button"
                                             key={action.id}
                                             className={`
                         flex items-center justify-between gap-3 px-3 py-2.5 sm:py-3 rounded-xl cursor-pointer transition-all duration-200
@@ -269,7 +282,7 @@ export function CommandMenu() {
                                                     ))}
                                                 </div>
                                             )}
-                                        </div>
+                                        </button>
                                     );
                                 })
                             )}

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Link, usePathname } from "@/i18n/routing";
-import { LayoutDashboard, Receipt, Users, Package, BookOpen, Settings } from "lucide-react";
+import { LayoutDashboard, Receipt, Users, Package, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface BottomNavigationProps {
@@ -18,7 +18,6 @@ export default function BottomNavigation({ currentPage = "dashboard" }: BottomNa
     { href: "/dashboard/customers", label: "Customers", icon: Users },
     { href: "/dashboard/products", label: "Products", icon: Package },
     { href: "/dashboard/khata", label: "Khata", icon: BookOpen },
-    { href: "/dashboard/settings", label: "Settings", icon: Settings },
   ];
 
   const isActive = (href: string) => {
@@ -27,7 +26,7 @@ export default function BottomNavigation({ currentPage = "dashboard" }: BottomNa
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] px-3 pointer-events-none">
+    <nav aria-label="Primary navigation" className="fixed bottom-0 left-0 right-0 z-50 md:hidden pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] px-3 pointer-events-none">
       <div className="bg-[var(--surface)]/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-[var(--border)] shadow-[0_10px_30px_rgba(0,0,0,0.15)] rounded-2xl p-1.5 pointer-events-auto flex items-center justify-around">
         {navItems.map((item) => {
           const active = isActive(item.href);
@@ -35,7 +34,8 @@ export default function BottomNavigation({ currentPage = "dashboard" }: BottomNa
             <Link
               key={item.href}
               href={item.href}
-              className={`relative flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all ${
+              aria-current={active ? "page" : undefined}
+              className={`relative min-w-11 min-h-11 flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl transition-all ${
                 active ? "text-[var(--color-primary)]" : "text-[var(--foreground)]/50 hover:text-[var(--foreground)]"
               }`}
             >

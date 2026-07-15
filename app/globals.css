@@ -84,6 +84,8 @@
 html {
   scroll-behavior: smooth;
   height: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -94,8 +96,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100dvh;
+  overscroll-behavior-y: none;
   transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
     color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 
 @theme {
@@ -549,6 +560,13 @@ body {
 
 /* Responsive Overrides & Touch Optimization */
 @media (max-width: 768px) {
+  /* Safari zooms the whole page when editable controls are below 16px. */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
   .glass-card {
     border-radius: 1.25rem;
     box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08);
