@@ -13,7 +13,7 @@ export function TermsSection({ value, onChange }: Props) {
   return (
     <div className="glass-card p-6 sm:p-8 border border-[var(--border)] card-hover-lift">
       <div className="flex items-center gap-2.5 mb-2">
-        <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-500">
+        <div className="p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)]">
           <FileText size={18} />
         </div>
         <div>

@@ -24,7 +24,7 @@ export function FineSettingsSection({ redemptionPeriodDays, finePercentage, fine
   return (
     <div className="glass-card p-6 sm:p-8 border border-[var(--border)] card-hover-lift">
       <div className="flex items-center gap-2.5 mb-2">
-        <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500">
+        <div className="p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)]">
           <Calculator size={18} />
         </div>
         <div>
@@ -51,7 +51,7 @@ export function FineSettingsSection({ redemptionPeriodDays, finePercentage, fine
 
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-[var(--foreground)]/70 mb-2 flex items-center gap-1.5">
-            <Percent size={14} className="text-amber-500" /> {t("finePercentage")} (%)
+            <Percent size={14} className="text-[var(--foreground)]" /> {t("finePercentage")} (%)
           </label>
           <input
             type="number"

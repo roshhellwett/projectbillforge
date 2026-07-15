@@ -38,7 +38,7 @@ export default function MobileHeader({ session }: MobileHeaderProps) {
               <span className="font-bold text-base tracking-tight text-[var(--foreground)] leading-tight">
                 Bill<span className="text-[var(--foreground)]/60 font-medium">Forge</span>
               </span>
-              <span className="text-[9px] font-bold tracking-wider uppercase text-emerald-500 flex items-center gap-0.5">
+              <span className="text-[9px] font-bold tracking-wider uppercase text-[var(--foreground)]/80 flex items-center gap-0.5">
                 • PRO
               </span>
             </div>

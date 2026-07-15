@@ -60,7 +60,7 @@ export const CustomerInfoCards = React.memo(function CustomerInfoCards({ custome
 
         <div className="glass-card p-6 card-hover-lift flex flex-col justify-between">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-500">
+            <div className="p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)]">
               <Phone size={18} />
             </div>
             <span className="text-xs font-bold uppercase tracking-wider text-[var(--foreground)]/60">
@@ -75,7 +75,7 @@ export const CustomerInfoCards = React.memo(function CustomerInfoCards({ custome
         <div className="glass-card p-6 card-hover-lift flex flex-col justify-between sm:col-span-2 lg:col-span-1 border border-[var(--color-primary)]/20">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500">
+              <div className="p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)]">
                 <Wallet size={18} />
               </div>
               <span className="text-xs font-bold uppercase tracking-wider text-[var(--foreground)]/60">
@@ -101,7 +101,7 @@ export const CustomerInfoCards = React.memo(function CustomerInfoCards({ custome
             {bal > 0 ? (
               <button
                 onClick={onRecordPayment}
-                className="px-5 py-2.5 bg-[var(--color-success)] hover:bg-emerald-600 text-white text-xs font-extrabold rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5 shrink-0"
+                className="px-5 py-2.5 bg-zinc-900 dark:bg-zinc-100 hover:brightness-110 text-white dark:text-zinc-900 text-xs font-extrabold rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5 shrink-0"
               >
                 <Sparkles size={14} /> {t("recordPayment")}
               </button>
@@ -135,7 +135,7 @@ export const CustomerInfoCards = React.memo(function CustomerInfoCards({ custome
             <div className="w-full bg-[var(--surface-elevated)] h-2 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  isUtilDanger ? "bg-red-500" : isUtilWarning ? "bg-amber-500" : "bg-emerald-500"
+                  isUtilDanger ? "bg-zinc-900 dark:bg-zinc-100" : isUtilWarning ? "bg-zinc-600 dark:bg-zinc-400" : "bg-zinc-300 dark:bg-zinc-700"
                 }`}
                 style={{ width: `${Math.min(utilPct, 100)}%` }}
               />
@@ -146,14 +146,14 @@ export const CustomerInfoCards = React.memo(function CustomerInfoCards({ custome
 
       {/* Accrued Fines Card */}
       {accruedFines > 0 && (
-        <div className="p-6 rounded-3xl bg-red-500/10 border border-red-500/25 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-6 rounded-3xl bg-[var(--surface-elevated)] border border-[var(--border)] shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-red-500/20 text-red-500 shrink-0">
+            <div className="p-3 rounded-2xl bg-zinc-200 dark:bg-zinc-800 text-[var(--foreground)] shrink-0">
               <ShieldAlert size={24} />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-red-500">{t("accruedFines")}</p>
-              <p className="text-2xl sm:text-3xl font-black font-mono text-red-600 dark:text-red-400 mt-0.5">
+              <p className="text-xs font-bold uppercase tracking-wider text-[var(--foreground)]/60">{t("accruedFines")}</p>
+              <p className="text-2xl sm:text-3xl font-black font-mono text-[var(--foreground)] mt-0.5">
                 {formatCurrency(accruedFines)}
               </p>
             </div>
@@ -161,7 +161,7 @@ export const CustomerInfoCards = React.memo(function CustomerInfoCards({ custome
           {onCollectFines && (
             <button
               onClick={onCollectFines}
-              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm rounded-xl shadow-md transition-all active:scale-95"
+              className="px-6 py-3 bg-zinc-900 dark:bg-zinc-100 hover:brightness-110 text-white dark:text-zinc-900 font-extrabold text-sm rounded-xl shadow-md transition-all active:scale-95"
             >
               {t("collectFines")}
             </button>
@@ -171,12 +171,12 @@ export const CustomerInfoCards = React.memo(function CustomerInfoCards({ custome
 
       {/* Reset Khata Section */}
       {bal > 0 && (
-        <div className="glass-card p-6 border border-red-500/20">
+        <div className="glass-card p-6 border border-[var(--border)]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <RefreshCcw size={16} className="text-red-500" />
-                <h3 className="text-sm font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wide">
+                <RefreshCcw size={16} className="text-[var(--foreground)]" />
+                <h3 className="text-sm font-extrabold text-[var(--foreground)] uppercase tracking-wide">
                   Reset Khata Ledger
                 </h3>
               </div>
@@ -186,7 +186,7 @@ export const CustomerInfoCards = React.memo(function CustomerInfoCards({ custome
             </div>
             <button
               onClick={onResetKhata}
-              className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold rounded-xl transition-all shadow-sm active:scale-95 self-start sm:self-auto"
+              className="px-6 py-2.5 bg-zinc-900 dark:bg-zinc-100 hover:brightness-110 text-white dark:text-zinc-900 text-xs font-extrabold rounded-xl transition-all shadow-sm active:scale-95 self-start sm:self-auto"
             >
               Reset Khata Now
             </button>

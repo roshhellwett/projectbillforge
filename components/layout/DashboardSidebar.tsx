@@ -61,7 +61,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
               <span className="font-bold text-base tracking-tight text-[var(--foreground)] block leading-none">
                 Bill<span className="text-[var(--foreground)]/60 font-medium">Forge</span>
               </span>
-              <span className="text-[10px] font-bold text-emerald-500 tracking-wider uppercase block mt-0.5">
+              <span className="text-[10px] font-bold text-[var(--foreground)]/80 tracking-wider uppercase block mt-0.5">
                 • PRO LEDGER
               </span>
             </div>
@@ -158,8 +158,8 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
               <span className="font-bold text-xs text-[var(--foreground)] truncate">
                 {session?.user?.name || "Merchant"}
               </span>
-              <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1 truncate">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" /> Verified Pro
+              <span className="text-[10px] font-medium text-[var(--foreground)]/80 flex items-center gap-1 truncate">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-800 dark:bg-zinc-200 animate-pulse shrink-0" /> Verified Pro
               </span>
             </div>
           </div>

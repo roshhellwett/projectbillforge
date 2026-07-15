@@ -52,8 +52,8 @@ export function CommandMenu() {
             shortcut: ["G", "D"],
             keywords: ["home", "main"],
             perform: () => router.push("/dashboard"),
-            color: "#10b981",
-            bgColor: "bg-emerald-500/10 dark:bg-emerald-500/15",
+            color: "var(--foreground)",
+            bgColor: "bg-zinc-200 dark:bg-zinc-800",
         },
         {
             id: "khata",
@@ -62,8 +62,8 @@ export function CommandMenu() {
             shortcut: ["G", "K"],
             keywords: ["ledger", "khata", "finance"],
             perform: () => router.push("/dashboard/khata"),
-            color: "#f43f5e",
-            bgColor: "bg-rose-500/10 dark:bg-rose-500/15",
+            color: "var(--foreground)",
+            bgColor: "bg-zinc-200 dark:bg-zinc-800",
         },
         {
             id: "invoices",
@@ -72,8 +72,8 @@ export function CommandMenu() {
             shortcut: ["G", "I"],
             keywords: ["billing", "receipts", "sales"],
             perform: () => router.push("/dashboard/invoices"),
-            color: "#6366f1",
-            bgColor: "bg-indigo-500/10 dark:bg-indigo-500/15",
+            color: "var(--foreground)",
+            bgColor: "bg-zinc-200 dark:bg-zinc-800",
         },
         {
             id: "customers",
@@ -82,8 +82,8 @@ export function CommandMenu() {
             shortcut: ["G", "C"],
             keywords: ["people", "clients", "users"],
             perform: () => router.push("/dashboard/customers"),
-            color: "#f59e0b",
-            bgColor: "bg-amber-500/10 dark:bg-amber-500/15",
+            color: "var(--foreground)",
+            bgColor: "bg-zinc-200 dark:bg-zinc-800",
         },
         {
             id: "products",
@@ -92,8 +92,8 @@ export function CommandMenu() {
             shortcut: ["G", "P"],
             keywords: ["inventory", "stock", "items"],
             perform: () => router.push("/dashboard/products"),
-            color: "#a855f7",
-            bgColor: "bg-purple-500/10 dark:bg-purple-500/15",
+            color: "var(--foreground)",
+            bgColor: "bg-zinc-200 dark:bg-zinc-800",
         },
         {
             id: "settings",
@@ -102,8 +102,8 @@ export function CommandMenu() {
             shortcut: ["G", "S"],
             keywords: ["preferences", "profile", "account"],
             perform: () => router.push("/dashboard/settings"),
-            color: "#64748b",
-            bgColor: "bg-slate-500/10 dark:bg-slate-500/15",
+            color: "var(--foreground)",
+            bgColor: "bg-zinc-200 dark:bg-zinc-800",
         },
         {
             id: "logout",
@@ -111,8 +111,8 @@ export function CommandMenu() {
             icon: LogOut,
             keywords: ["logout", "exit", "leave"],
             perform: () => signOut({ callbackUrl: `/${locale}/login` }),
-            color: "#ef4444",
-            bgColor: "bg-red-500/10 dark:bg-red-500/15",
+            color: "var(--foreground)",
+            bgColor: "bg-zinc-200 dark:bg-zinc-800",
         },
     ];
 
@@ -249,8 +249,7 @@ export function CommandMenu() {
                                                 <div className={`p-2 shrink-0 rounded-lg ${isActive ? action.bgColor : 'bg-transparent border border-transparent'} transition-colors duration-200`}>
                                                     <action.icon
                                                         size={18}
-                                                        style={{ color: isActive ? action.color : 'var(--foreground)' }}
-                                                        className={!isActive ? "opacity-60" : ""}
+                                                        className={`text-[var(--foreground)] ${!isActive ? "opacity-60" : ""}`}
                                                     />
                                                 </div>
                                                 <span className={`text-sm sm:text-base font-medium ${isActive ? 'text-[var(--foreground)]' : 'text-[var(--foreground)]/80'}`}>

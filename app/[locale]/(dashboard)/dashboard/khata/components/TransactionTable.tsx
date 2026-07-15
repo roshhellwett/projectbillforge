@@ -85,15 +85,15 @@ export const TransactionTable = React.memo(function TransactionTable({ statement
                   </td>
                   <td className="px-5 py-4">
                     {txn.status === "cancelled" ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-red-500/10 text-red-500 line-through">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-zinc-200 dark:bg-zinc-800 text-[var(--foreground)]/60 border border-zinc-300 dark:border-zinc-700 line-through">
                         <ArrowUpCircle size={15} /> {t("cancelled")}
                       </span>
                     ) : (
                       <span
                         className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${
                           txn.type === "credit"
-                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                            : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                            ? "bg-zinc-200 dark:bg-zinc-800 text-[var(--foreground)] border-zinc-300 dark:border-zinc-700"
+                            : "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-800 dark:border-zinc-200"
                         }`}
                       >
                         {txn.type === "credit" ? <ArrowUpCircle size={15} /> : <ArrowDownCircle size={15} />}
@@ -145,7 +145,7 @@ export const TransactionTable = React.memo(function TransactionTable({ statement
                     ) : (
                       <button
                         onClick={() => onDelete(txn.id)}
-                        className="p-2 text-[var(--foreground)]/60 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all shadow-sm active:scale-95 flex items-center justify-center ml-auto"
+                        className="p-2 text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition-all shadow-sm active:scale-95 flex items-center justify-center ml-auto"
                         aria-label="Delete transaction"
                       >
                         <Trash2 size={16} />

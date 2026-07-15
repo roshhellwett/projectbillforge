@@ -101,11 +101,11 @@ export function ProductTable({ products, loading, offset, totalProducts, onEdit,
                   </td>
                   <td className="px-5 py-4 text-sm font-mono font-bold">
                     {isLowStock ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/15 text-red-500 border border-red-500/20 text-xs">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border border-zinc-800 dark:border-zinc-200 text-xs font-bold">
                         <AlertTriangle size={13} /> {p.stockQuantity ?? 0} {p.unit ?? "pcs"} (Low)
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100 dark:bg-zinc-900 text-[var(--foreground)] border border-zinc-300 dark:border-zinc-700 text-xs font-semibold">
                         <CheckCircle2 size={13} /> {p.stockQuantity ?? 0} {p.unit ?? "pcs"}
                       </span>
                     )}
@@ -122,7 +122,7 @@ export function ProductTable({ products, loading, offset, totalProducts, onEdit,
                       </button>
                       <button
                         onClick={() => onDelete(p.id)}
-                        className="p-2 text-[var(--foreground)]/60 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all shadow-sm active:scale-95 border border-transparent hover:border-red-500/20 flex items-center justify-center"
+                        className="p-2 text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition-all shadow-sm active:scale-95 border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 flex items-center justify-center"
                         aria-label="Delete product"
                         title="Delete product"
                       >

@@ -51,17 +51,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 function ToastContainer({ toasts, removeToast }: { toasts: Toast[]; removeToast: (id: string) => void }) {
   const icons = {
-    success: <CheckCircle size={18} className="text-emerald-500" />,
-    error: <AlertCircle size={18} className="text-red-500" />,
-    info: <Info size={18} className="text-blue-500" />,
-    warning: <AlertTriangle size={18} className="text-amber-500" />,
+    success: <CheckCircle size={18} className="text-[var(--foreground)]" />,
+    error: <AlertCircle size={18} className="text-[var(--foreground)]" />,
+    info: <Info size={18} className="text-[var(--foreground)]" />,
+    warning: <AlertTriangle size={18} className="text-[var(--foreground)]" />,
   };
 
   const backgrounds = {
-    success: "bg-emerald-500/10 border-emerald-500/20",
-    error: "bg-red-500/10 border-red-500/20",
-    info: "bg-blue-500/10 border-blue-500/20",
-    warning: "bg-amber-500/10 border-amber-500/20",
+    success: "bg-zinc-100 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700",
+    error: "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-800 dark:border-zinc-200",
+    info: "bg-zinc-200 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700",
+    warning: "bg-zinc-200 dark:bg-zinc-800 border-zinc-400 dark:border-zinc-600",
   };
 
   return (

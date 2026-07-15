@@ -276,7 +276,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                                         onClick={() => setFormData({ ...formData, paymentMode: mode })}
                                         className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ${
                                             formData.paymentMode === mode
-                                                ? mode === "khata" ? "bg-amber-500 text-white shadow-sm" : "bg-white dark:bg-gray-700 text-[var(--foreground)] shadow-sm"
+                                                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm font-bold"
                                                 : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]/80"
                                         }`}
                                     >

@@ -54,7 +54,7 @@ export default function SettingsPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`px-5 py-3 rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2.5 shrink-0 border cursor-pointer ${
                 isActive
-                  ? "bg-gradient-to-r from-[var(--color-primary)] to-indigo-600 text-white shadow-md shadow-blue-500/20 border-transparent scale-[1.02]"
+                  ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-md border-transparent scale-[1.02]"
                   : "bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] text-[var(--foreground)]/70 border-[var(--border)]"
               }`}
             >
@@ -116,15 +116,15 @@ export default function SettingsPage() {
 
         {/* Global Save Button for Dirty Forms */}
         {isDirty && (activeTab === "profile" || activeTab === "fines") && (
-          <div className="sticky bottom-4 z-40 p-4 rounded-2xl glass-card border border-[var(--color-primary)]/40 shadow-2xl flex items-center justify-between bg-[var(--surface-elevated)]/95 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-3 duration-300">
+          <div className="sticky bottom-4 z-40 p-4 rounded-2xl glass-card border border-[var(--border)] shadow-2xl flex items-center justify-between bg-[var(--surface-elevated)]/95 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-3 duration-300">
             <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-[var(--foreground)]">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
+              <span className="w-2.5 h-2.5 rounded-full bg-zinc-900 dark:bg-zinc-100 animate-ping" />
               <span>You have unsaved configuration changes</span>
             </div>
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-2.5 bg-gradient-to-r from-[var(--color-primary)] to-indigo-600 hover:brightness-110 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all active:scale-95"
+              className="px-6 py-2.5 bg-zinc-900 dark:bg-zinc-100 hover:brightness-110 text-white dark:text-zinc-900 font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition-all active:scale-95"
             >
               {saving ? "Saving..." : "Save Changes Now"}
             </button>

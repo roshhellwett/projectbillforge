@@ -24,7 +24,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
                 defaultValue={locale}
                 disabled={isPending}
                 onChange={onSelectChange}
-                className={`appearance-none bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg font-medium text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-600 cursor-pointer disabled:opacity-50 transition-colors
+                className={`appearance-none bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg font-medium text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 cursor-pointer disabled:opacity-50 transition-colors
                     ${compact ? 'py-1.5 pl-2 pr-6 text-xs' : 'py-2 pl-3 pr-8 text-sm'}
                 `}
             >

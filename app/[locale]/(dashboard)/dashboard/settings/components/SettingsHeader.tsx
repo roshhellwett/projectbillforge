@@ -39,7 +39,7 @@ export function SettingsHeader({ saving, isDirty, onSave }: Props) {
         <Save size={18} className={saving ? "animate-spin" : ""} />
         <span>{saving ? t("saving") : t("saveChanges")}</span>
         {isDirty && !saving && (
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping ml-1" />
+          <span className="w-2.5 h-2.5 rounded-full bg-zinc-400 dark:bg-zinc-600 animate-ping ml-1" />
         )}
       </button>
     </FadeIn>

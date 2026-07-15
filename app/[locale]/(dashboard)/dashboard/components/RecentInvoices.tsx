@@ -47,10 +47,10 @@ export async function RecentInvoices({ recentPromise }: { recentPromise: Promise
                   <div
                     className={`p-2.5 rounded-xl shrink-0 transition-transform group-hover:scale-110 ${
                       inv.paymentStatus === "paid"
-                        ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                        ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border border-zinc-800 dark:border-zinc-200"
                         : inv.paymentStatus === "partial"
-                        ? "bg-blue-500/10 text-blue-500 border border-blue-500/20"
-                        : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                        ? "bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 border border-zinc-300 dark:border-zinc-700"
+                        : "bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800"
                     }`}
                   >
                     {inv.paymentStatus === "paid" ? <ArrowDownRight size={18} /> : <ArrowUpRight size={18} />}
@@ -69,10 +69,10 @@ export async function RecentInvoices({ recentPromise }: { recentPromise: Promise
                   <span
                     className={`inline-flex mt-1 items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
                       inv.paymentStatus === "paid"
-                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                        ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border border-zinc-800 dark:border-zinc-200"
                         : inv.paymentStatus === "partial"
-                        ? "bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                        : "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                        ? "bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 border border-zinc-300 dark:border-zinc-700"
+                        : "bg-zinc-100 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800"
                     }`}
                   >
                     {inv.paymentStatus === "paid_by_khata" ? "Khata Sync" : inv.paymentStatus}

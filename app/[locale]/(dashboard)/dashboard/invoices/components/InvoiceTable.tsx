@@ -90,21 +90,21 @@ function StatusBadge({ invoice }: { invoice: Invoice }) {
   const t = useTranslations("Invoices");
   if (invoice.status === "cancelled") {
     return (
-      <span className="px-3 py-1 text-xs font-bold rounded-full bg-red-500/10 text-red-500 border border-red-500/20">
+      <span className="px-3 py-1 text-xs font-bold rounded-full bg-zinc-200 dark:bg-zinc-800 text-[var(--foreground)]/60 border border-zinc-300 dark:border-zinc-700 line-through">
         {t("statusCancelled")}
       </span>
     );
   }
   if (invoice.paymentStatus === "unpaid") {
     return (
-      <span className="px-3 py-1 text-xs font-bold rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+      <span className="px-3 py-1 text-xs font-bold rounded-full bg-zinc-100 dark:bg-zinc-900 text-[var(--foreground)] border border-zinc-300 dark:border-zinc-700">
         {t("statusUnpaid")}
       </span>
     );
   }
   if (invoice.paymentStatus === "paid_by_khata") {
     return (
-      <span className="px-3 py-1 text-xs font-bold rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+      <span className="px-3 py-1 text-xs font-bold rounded-full bg-zinc-200 dark:bg-zinc-800 text-[var(--foreground)] border border-zinc-300 dark:border-zinc-700">
         {t("statusPaidByKhata")}
       </span>
     );
@@ -112,7 +112,7 @@ function StatusBadge({ invoice }: { invoice: Invoice }) {
   if (invoice.paymentStatus === "partial") {
     return (
       <div className="flex flex-col gap-1 items-start">
-        <span className="px-3 py-1 text-xs font-bold rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+        <span className="px-3 py-1 text-xs font-bold rounded-full bg-zinc-200 dark:bg-zinc-800 text-[var(--foreground)] border border-zinc-300 dark:border-zinc-700">
           {t("statusPartial")}
         </span>
         <span className="text-[10px] text-[var(--foreground)]/60 font-mono font-semibold">
@@ -122,7 +122,7 @@ function StatusBadge({ invoice }: { invoice: Invoice }) {
     );
   }
   return (
-    <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+    <span className="px-3 py-1 text-xs font-bold rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border border-zinc-800 dark:border-zinc-200">
       {t("statusPaid")}
     </span>
   );
@@ -146,7 +146,7 @@ function ActionButtons({ invoice, customers, businessName, onView, onWhatsApp, o
     <div className="flex items-center justify-end gap-1.5">
       <button
         onClick={handleWhatsApp}
-        className="p-2 text-[var(--foreground)]/60 hover:text-white hover:bg-[#25D366] rounded-xl transition-all shadow-sm active:scale-95 border border-transparent hover:border-[#25D366]/20 flex items-center justify-center"
+        className="p-2 text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition-all shadow-sm active:scale-95 border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 flex items-center justify-center"
         aria-label={t("whatsappShare")}
         title={t("whatsappShare")}
       >
@@ -162,7 +162,7 @@ function ActionButtons({ invoice, customers, businessName, onView, onWhatsApp, o
       {invoice.status === "active" && (
         <button
           onClick={() => onCancel(invoice.id)}
-          className="p-2 text-[var(--foreground)]/60 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all shadow-sm active:scale-95 border border-transparent hover:border-red-500/20 flex items-center justify-center"
+          className="p-2 text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-xl transition-all shadow-sm active:scale-95 border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 flex items-center justify-center"
           aria-label={t("cancelInvoice")}
         >
           <Trash2 size={17} />

@@ -12,7 +12,7 @@ export async function TopReceivables({ customersPromise }: { customersPromise: P
     <div className="glass-card p-6 sm:p-8 h-full flex flex-col justify-between card-hover-lift">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="p-2.5 bg-blue-500/10 text-blue-500 rounded-xl">
+          <div className="p-2.5 bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)] rounded-xl">
             <BookOpen size={18} />
           </div>
           <h2 className="text-base sm:text-lg font-extrabold tracking-tight text-[var(--foreground)]">

@@ -168,7 +168,7 @@ export default function RegisterPage() {
             className="w-full max-w-sm"
           >
             <div className="mb-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-semibold mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-200/50 dark:bg-zinc-800/50 border border-zinc-300 dark:border-zinc-700 text-[var(--foreground)] text-xs font-semibold mb-3">
                 <ShieldCheck size={14} className="animate-pulse" />
                 <span>Unhackable Bcrypt & Cloudflare Turnstile Protected</span>
               </div>
@@ -250,7 +250,7 @@ export default function RegisterPage() {
                     <div className="p-3.5 rounded-xl bg-[var(--surface)] border border-[var(--border)] space-y-2.5">
                       <div className="flex justify-between items-center text-xs font-semibold">
                         <span className="text-[var(--foreground)]/70">Password Security Meter</span>
-                        <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${pwdScore === 4 ? "bg-emerald-500/20 text-emerald-500 dark:text-emerald-400" : pwdScore === 3 ? "bg-amber-500/20 text-amber-500" : "bg-red-500/20 text-red-500"}`}>
+                        <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${pwdScore === 4 ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900" : pwdScore === 3 ? "bg-zinc-200 dark:bg-zinc-800 text-[var(--foreground)]" : "bg-zinc-200 dark:bg-zinc-800 text-[var(--foreground)]"}`}>
                           {pwdScore === 4 ? "🔒 Bank-Grade Unhackable" : pwdScore === 3 ? "Moderate" : "Weak"}
                         </span>
                       </div>
@@ -258,21 +258,21 @@ export default function RegisterPage() {
                         {[1, 2, 3, 4].map((level) => (
                           <div
                             key={level}
-                            className={`h-1.5 rounded-full transition-all duration-300 ${pwdScore >= level ? (pwdScore === 4 ? "bg-emerald-500 shadow-sm shadow-emerald-500/50" : pwdScore === 3 ? "bg-amber-500" : "bg-red-500") : "bg-[var(--border)]"}`}
+                            className={`h-1.5 rounded-full transition-all duration-300 ${pwdScore >= level ? (pwdScore === 4 ? "bg-[var(--foreground)] shadow-sm" : pwdScore === 3 ? "bg-[var(--foreground)]/70" : "bg-[var(--foreground)]/40") : "bg-[var(--border)]"}`}
                           />
                         ))}
                       </div>
                       <div className="grid grid-cols-2 gap-1 text-[11px] text-[var(--foreground)]/60 pt-1">
-                        <span className={`flex items-center gap-1 ${formData.password.length >= 8 ? "text-emerald-500 font-semibold" : ""}`}>
+                        <span className={`flex items-center gap-1 ${formData.password.length >= 8 ? "text-[var(--foreground)] font-semibold" : ""}`}>
                           {formData.password.length >= 8 ? "✓" : "○"} Min 8 characters
                         </span>
-                        <span className={`flex items-center gap-1 ${/[A-Z]/.test(formData.password) ? "text-emerald-500 font-semibold" : ""}`}>
+                        <span className={`flex items-center gap-1 ${/[A-Z]/.test(formData.password) ? "text-[var(--foreground)] font-semibold" : ""}`}>
                           {/[A-Z]/.test(formData.password) ? "✓" : "○"} Uppercase letter
                         </span>
-                        <span className={`flex items-center gap-1 ${/[a-z]/.test(formData.password) ? "text-emerald-500 font-semibold" : ""}`}>
+                        <span className={`flex items-center gap-1 ${/[a-z]/.test(formData.password) ? "text-[var(--foreground)] font-semibold" : ""}`}>
                           {/[a-z]/.test(formData.password) ? "✓" : "○"} Lowercase letter
                         </span>
-                        <span className={`flex items-center gap-1 ${/[0-9]/.test(formData.password) ? "text-emerald-500 font-semibold" : ""}`}>
+                        <span className={`flex items-center gap-1 ${/[0-9]/.test(formData.password) ? "text-[var(--foreground)] font-semibold" : ""}`}>
                           {/[0-9]/.test(formData.password) ? "✓" : "○"} Numeric digit
                         </span>
                       </div>
@@ -293,7 +293,7 @@ export default function RegisterPage() {
                     <input type="text" placeholder="GSTIN (optional - e.g. 27AAAAA0000A1Z5)" value={formData.gstin} onChange={(e) => update("gstin", e.target.value.toUpperCase())} className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm focus:ring-2 focus:ring-[var(--color-primary)]/40 focus:border-[var(--color-primary)] transition-all" style={{ paddingLeft: '2.75rem' }} />
                   </div>
                   {formData.gstin && (
-                    <div className={`text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg ${isGstinValid ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border border-amber-500/20"}`}>
+                    <div className="text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-300 dark:border-zinc-700">
                       {isGstinValid ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
                       <span>{isGstinValid ? "Valid Indian GSTIN format verified" : "Checking GSTIN structure (15 alphanumeric characters)"}</span>
                     </div>
@@ -304,7 +304,7 @@ export default function RegisterPage() {
                     <input type="tel" inputMode="tel" placeholder="Indian Mobile (optional - 10 digits)" value={formData.phone} onChange={(e) => update("phone", e.target.value)} className="w-full soft-input min-h-[48px] py-3 text-base sm:text-sm focus:ring-2 focus:ring-[var(--color-primary)]/40 focus:border-[var(--color-primary)] transition-all" style={{ paddingLeft: '2.75rem' }} />
                   </div>
                   {formData.phone && (
-                    <div className={`text-xs flex items-center gap-1.5 px-3 py-1 rounded-lg ${isPhoneValid ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-600"}`}>
+                    <div className="text-xs flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border border-zinc-300 dark:border-zinc-700">
                       {isPhoneValid ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
                       <span>{isPhoneValid ? "Valid Indian mobile format" : "Must be 10 digits starting with 6, 7, 8, or 9"}</span>
                     </div>
@@ -384,7 +384,7 @@ export default function RegisterPage() {
           <div className="relative z-10 w-full max-w-xl">
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Award size={18} className="text-purple-400 animate-pulse" />
+                <Award size={18} className="text-white animate-pulse" />
                 <span className="text-white font-bold text-sm tracking-wide uppercase">Zero-Trust Enterprise Identity</span>
               </div>
               <span className="text-xs text-white/60 bg-white/10 px-3 py-1 rounded-full border border-white/15">
@@ -396,10 +396,10 @@ export default function RegisterPage() {
               {/* Card 1: Anti-Bot Defense */}
               <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-5 text-white shadow-xl">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-400">
+                  <div className="p-2.5 rounded-xl bg-white/20 text-white">
                     <ShieldCheck size={20} />
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 uppercase tracking-wider">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/20 text-white uppercase tracking-wider">
                     Scrape Protected
                   </span>
                 </div>
@@ -412,10 +412,10 @@ export default function RegisterPage() {
               {/* Card 2: Ledger Isolation */}
               <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-5 text-white shadow-xl">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400">
+                  <div className="p-2.5 rounded-xl bg-white/20 text-white">
                     <Cpu size={20} />
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 uppercase tracking-wider">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/20 text-white uppercase tracking-wider">
                     PostgreSQL Isolation
                   </span>
                 </div>
@@ -430,14 +430,14 @@ export default function RegisterPage() {
             <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-6 text-white shadow-2xl relative">
               <div className="text-[11px] font-bold uppercase tracking-wider text-white/50 mb-4 flex items-center justify-between">
                 <span>Simulated Secure Ledger Engine</span>
-                <span className="text-emerald-400 font-bold">✓ 0 Security Warnings</span>
+                <span className="text-white font-bold">✓ 0 Security Warnings</span>
               </div>
 
               <div className="grid grid-cols-3 gap-3 mb-5">
                 {[
-                  { label: "Revenue Protected", value: "₹4.2L", color: "text-emerald-400" },
-                  { label: "Encrypted Invoices", value: "256", color: "text-blue-400" },
-                  { label: "Khata Customers", value: "89", color: "text-purple-400" },
+                  { label: "Revenue Protected", value: "₹4.2L", color: "text-white" },
+                  { label: "Encrypted Invoices", value: "256", color: "text-white/90" },
+                  { label: "Khata Customers", value: "89", color: "text-white/80" },
                 ].map((stat) => (
                   <div key={stat.label} className="bg-black/25 border border-white/10 rounded-xl p-3 text-center">
                     <div className="text-white/50 text-[10px] font-semibold tracking-wider uppercase mb-1">{stat.label}</div>
@@ -454,7 +454,7 @@ export default function RegisterPage() {
                 ].map((item, i) => (
                   <div key={i} className="flex items-center justify-between py-2.5 px-3.5 bg-white/5 rounded-xl border border-white/5">
                     <span className="text-white/80 text-xs font-medium">{item.text}</span>
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">{item.badge}</span>
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-white/20 text-white">{item.badge}</span>
                   </div>
                 ))}
               </div>

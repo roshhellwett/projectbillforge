@@ -21,8 +21,8 @@ function VerifyStatus({ token }: { token: string }) {
       )}
       {status === "success" && (
         <div className="space-y-4">
-          <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto">
-            <span className="text-3xl text-emerald-600">✓</span>
+          <div className="w-16 h-16 bg-zinc-200 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto">
+            <span className="text-3xl text-[var(--foreground)]">✓</span>
           </div>
           <h2 className="text-2xl font-bold text-[var(--foreground)]">Email verified!</h2>
           <p className="text-sm text-[var(--foreground)]/60">Your email has been successfully verified.</p>
@@ -33,8 +33,8 @@ function VerifyStatus({ token }: { token: string }) {
       )}
       {status === "error" && (
         <div className="space-y-4">
-          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto">
-            <span className="text-3xl text-red-600">✗</span>
+          <div className="w-16 h-16 bg-zinc-200 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto">
+            <span className="text-3xl text-[var(--foreground)]">✗</span>
           </div>
           <h2 className="text-2xl font-bold text-[var(--foreground)]">Verification failed</h2>
           <p className="text-sm text-[var(--foreground)]/60">This link is invalid or expired.</p>

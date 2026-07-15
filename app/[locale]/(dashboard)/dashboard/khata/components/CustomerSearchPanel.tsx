@@ -73,7 +73,7 @@ export const CustomerSearchPanel = React.memo(function CustomerSearchPanel({ cus
                   isSelected
                     ? "bg-[var(--color-primary)]/15 border-l-4 border-l-[var(--color-primary)]"
                     : isOverdue
-                    ? "bg-red-500/10 border-l-4 border-l-red-500 hover:bg-red-500/15"
+                    ? "bg-zinc-200 dark:bg-zinc-800 border-l-4 border-l-[var(--foreground)] hover:bg-zinc-300 dark:hover:bg-zinc-700"
                     : "hover:bg-[var(--surface-hover)]"
                 }`}
               >
@@ -85,7 +85,7 @@ export const CustomerSearchPanel = React.memo(function CustomerSearchPanel({ cus
                     {c.phone || t("noPhone")}
                   </div>
                   {isOverdue && (
-                    <span className="inline-flex items-center gap-1 mt-1 text-[9px] font-bold text-red-600 dark:text-red-400 bg-red-500/15 border border-red-500/20 px-2 py-0.5 rounded-full">
+                    <span className="inline-flex items-center gap-1 mt-1 text-[9px] font-bold text-[var(--foreground)] bg-zinc-200 dark:bg-zinc-800 border border-zinc-400 dark:border-zinc-600 px-2 py-0.5 rounded-full">
                       <AlertCircle size={10} /> OVERDUE ALERT
                     </span>
                   )}

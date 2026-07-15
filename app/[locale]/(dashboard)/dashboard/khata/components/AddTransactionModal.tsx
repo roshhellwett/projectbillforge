@@ -30,11 +30,11 @@ export function AddTransactionModal({ open, saving, formData, onClose, onChange,
             <label className="block text-sm font-medium text-[var(--foreground)]/70 mb-2">{t("transactionType")}</label>
             <div className="flex gap-2">
               <button type="button" onClick={() => onChange({ ...formData, type: "credit" })}
-                className={`flex-1 py-2 rounded-xl border-2 ${formData.type === "credit" ? "border-orange-500 bg-orange-500/10 text-orange-700" : "border-[var(--border)]"}`}>
+                className={`flex-1 py-2 rounded-xl border-2 font-bold transition-all ${formData.type === "credit" ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900" : "border-[var(--border)] text-[var(--foreground)]/70 hover:text-[var(--foreground)]"}`}>
                 {t("saleOption")}
               </button>
               <button type="button" onClick={() => onChange({ ...formData, type: "debit" })}
-                className={`flex-1 py-2 rounded-xl border-2 ${formData.type === "debit" ? "border-green-500 bg-green-500/10 text-green-700" : "border-[var(--border)]"}`}>
+                className={`flex-1 py-2 rounded-xl border-2 font-bold transition-all ${formData.type === "debit" ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900" : "border-[var(--border)] text-[var(--foreground)]/70 hover:text-[var(--foreground)]"}`}>
                 {t("paymentOption")}
               </button>
             </div>

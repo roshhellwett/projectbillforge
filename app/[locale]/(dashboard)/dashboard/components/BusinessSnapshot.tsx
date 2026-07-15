@@ -17,15 +17,15 @@ export async function BusinessSnapshot({
   const lowStock = lowStockResult.success ? (lowStockResult.products || []) : [];
 
   const items = [
-    { icon: Users, label: t("snapshotCustomers"), value: summary.totalCustomers, colorClass: "text-blue-500", bgClass: "bg-blue-500/10 border-blue-500/20" },
-    { icon: Package, label: t("snapshotProducts"), value: totalProducts, colorClass: "text-indigo-500", bgClass: "bg-indigo-500/10 border-indigo-500/20" },
-    { icon: FileText, label: t("snapshotInvoices"), value: summary.totalInvoices, colorClass: "text-amber-500", bgClass: "bg-amber-500/10 border-amber-500/20" },
+    { icon: Users, label: t("snapshotCustomers"), value: summary.totalCustomers, colorClass: "text-[var(--foreground)]", bgClass: "bg-[var(--surface-elevated)] border-[var(--border)]" },
+    { icon: Package, label: t("snapshotProducts"), value: totalProducts, colorClass: "text-[var(--foreground)]", bgClass: "bg-[var(--surface-elevated)] border-[var(--border)]" },
+    { icon: FileText, label: t("snapshotInvoices"), value: summary.totalInvoices, colorClass: "text-[var(--foreground)]", bgClass: "bg-[var(--surface-elevated)] border-[var(--border)]" },
     {
       icon: AlertTriangle,
       label: t("snapshotLowStock"),
       value: lowStock?.length || 0,
-      colorClass: (lowStock?.length || 0) > 0 ? "text-red-500" : "text-emerald-500",
-      bgClass: (lowStock?.length || 0) > 0 ? "bg-red-500/10 border-red-500/20" : "bg-emerald-500/10 border-emerald-500/20",
+      colorClass: (lowStock?.length || 0) > 0 ? "text-[var(--foreground)] font-bold" : "text-[var(--foreground)]/70",
+      bgClass: "bg-[var(--surface-elevated)] border-[var(--border)]",
     },
   ];
 

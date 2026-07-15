@@ -12,7 +12,7 @@ export async function LowStockAlerts({ lowStockPromise }: { lowStockPromise: Pro
     <div className="glass-card p-6 sm:p-8 card-hover-lift">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="p-2.5 bg-red-500/10 text-red-500 rounded-xl">
+          <div className="p-2.5 bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)] rounded-xl">
             <AlertTriangle size={18} />
           </div>
           <h2 className="text-base sm:text-lg font-extrabold tracking-tight text-[var(--foreground)]">
@@ -29,23 +29,23 @@ export async function LowStockAlerts({ lowStockPromise }: { lowStockPromise: Pro
 
       {(!lowStock || lowStock.length === 0) ? (
         <div className="text-center py-10 bg-[var(--surface-elevated)] rounded-2xl border border-[var(--border)] flex flex-col items-center justify-center">
-          <div className="p-3 rounded-full bg-[var(--color-success)]/10 text-[var(--color-success)] mb-2">
+          <div className="p-3 rounded-full bg-zinc-200 dark:bg-zinc-800 text-[var(--foreground)] mb-2">
             <CheckCircle2 size={28} />
           </div>
-          <p className="text-[var(--color-success)] font-bold text-sm">{t("lowStockWellStocked")}</p>
+          <p className="text-[var(--foreground)] font-bold text-sm">{t("lowStockWellStocked")}</p>
           <p className="text-xs text-[var(--foreground)]/50 mt-1">All catalog items are currently above minimum threshold.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {lowStock?.map((product) => (
             <InteractiveItem key={product.id}>
-              <div className="flex items-center justify-between p-4 bg-[var(--surface-elevated)] rounded-2xl border border-red-500/20 hover:bg-red-500/5 transition-all duration-200 cursor-pointer group">
+              <div className="flex items-center justify-between p-4 bg-[var(--surface-elevated)] rounded-2xl border border-[var(--border)] hover:bg-[var(--surface-hover)] transition-all duration-200 cursor-pointer group">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-red-500/10 text-red-500 shrink-0">
+                  <div className="p-2 rounded-lg bg-zinc-200 dark:bg-zinc-800 text-[var(--foreground)] shrink-0">
                     <Package size={16} />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-bold text-[var(--foreground)] text-sm truncate group-hover:text-red-500 transition-colors">
+                    <p className="font-bold text-[var(--foreground)] text-sm truncate group-hover:text-[var(--color-primary)] transition-colors">
                       {product.name}
                     </p>
                     <p className="text-[11px] text-[var(--foreground)]/50">

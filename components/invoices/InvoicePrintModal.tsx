@@ -403,12 +403,12 @@ export function InvoicePrintModal({
                                     {businessProfile.gstin && <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">GSTIN: {businessProfile.gstin}</p>}
                                 </div>
                                 <div className="text-right">
-                                    <h2 className="text-3xl font-extrabold text-blue-600 dark:text-blue-500 uppercase tracking-wider mb-4">INVOICE</h2>
+                                    <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white uppercase tracking-wider mb-4">INVOICE</h2>
                                     <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg inline-block text-left border border-slate-100 dark:border-slate-700">
                                         <p className="text-sm mb-1"><strong className="text-slate-700 dark:text-slate-300 inline-block w-20">Inv No:</strong> <span className="text-slate-900 dark:text-white font-medium">{invoice.invoiceNumber}</span></p>
                                         <p className="text-sm"><strong className="text-slate-700 dark:text-slate-300 inline-block w-20">Date:</strong> <span className="text-slate-900 dark:text-white font-medium">{formatReceiptDate(invoice.invoiceDate)}</span></p>
                                         {invoice.paymentMode === 'khata' && (
-                                            <p className="text-sm mt-1 text-orange-600 dark:text-orange-400 font-medium">Khata (Credit) Payment</p>
+                                            <p className="text-sm mt-1 text-[var(--foreground)] font-bold">Khata (Credit) Payment</p>
                                         )}
                                     </div>
                                 </div>
@@ -477,23 +477,23 @@ export function InvoicePrintModal({
                                     )}
                                     <div className="flex justify-between py-4 text-lg font-bold text-slate-900 dark:text-white border-t-2 border-slate-200 dark:border-slate-700 mt-2">
                                         <span>Total Amount</span>
-                                        <span className="text-blue-600 dark:text-blue-500">₹{(invoice.total ?? 0).toFixed(2)}</span>
+                                        <span className="text-slate-900 dark:text-white font-black">₹{(invoice.total ?? 0).toFixed(2)}</span>
                                     </div>
                                     <div className="text-right mt-2">
                                         {invoice.paymentStatus === 'paid' && (
-                                            <span className="inline-block px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold uppercase tracking-wider rounded border border-green-200 dark:border-green-800/50">Fully Paid</span>
+                                            <span className="inline-block px-3 py-1 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 text-xs font-bold uppercase tracking-wider rounded border border-zinc-800 dark:border-zinc-200">Fully Paid</span>
                                         )}
                                         {invoice.paymentStatus === 'paid_by_khata' && (
-                                            <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs font-bold uppercase tracking-wider rounded border border-yellow-200 dark:border-yellow-800/50">Unpaid (Khata)</span>
+                                            <span className="inline-block px-3 py-1 bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 text-xs font-bold uppercase tracking-wider rounded border border-zinc-300 dark:border-zinc-700">Unpaid (Khata)</span>
                                         )}
                                         {invoice.paymentStatus === 'unpaid' && (
-                                            <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs font-bold uppercase tracking-wider rounded border border-yellow-200 dark:border-yellow-800/50">Unpaid</span>
+                                            <span className="inline-block px-3 py-1 bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 text-xs font-bold uppercase tracking-wider rounded border border-zinc-300 dark:border-zinc-700">Unpaid</span>
                                         )}
                                         {invoice.paymentStatus === 'partial' && (
-                                            <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 text-xs font-bold uppercase tracking-wider rounded border border-blue-200 dark:border-blue-800/50">Partially Paid (₹{safeAmountPaid})</span>
+                                            <span className="inline-block px-3 py-1 bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 text-xs font-bold uppercase tracking-wider rounded border border-zinc-300 dark:border-zinc-700">Partially Paid (₹{safeAmountPaid})</span>
                                         )}
                                         {invoice.status === 'cancelled' && (
-                                            <span className="inline-block px-3 py-1 bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 text-xs font-bold uppercase tracking-wider rounded border border-red-200 dark:border-red-800/50">CANCELLED</span>
+                                            <span className="inline-block px-3 py-1 bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 text-xs font-bold uppercase tracking-wider rounded border border-zinc-300 dark:border-zinc-700 line-through">CANCELLED</span>
                                         )}
                                     </div>
                                 </div>
@@ -573,19 +573,19 @@ export function InvoicePrintModal({
 
                             <div className="border-t-2 border-dashed border-slate-300 pt-3 text-xs text-center">
                                 {invoice.paymentStatus === 'paid' && (
-                                    <div className="font-bold mb-1 text-green-700">STATUS: PAID</div>
+                                    <div className="font-bold mb-1 text-slate-900">STATUS: PAID</div>
                                 )}
                                 {invoice.paymentStatus === 'paid_by_khata' && (
-                                    <div className="font-bold mb-1 text-amber-700">STATUS: UNPAID (KHATA)</div>
+                                    <div className="font-bold mb-1 text-slate-800">STATUS: UNPAID (KHATA)</div>
                                 )}
                                 {invoice.paymentStatus === 'unpaid' && (
-                                    <div className="font-bold mb-1 text-amber-700">STATUS: UNPAID</div>
+                                    <div className="font-bold mb-1 text-slate-800">STATUS: UNPAID</div>
                                 )}
                                 {invoice.paymentStatus === 'partial' && (
-                                    <div className="font-bold mb-1 text-blue-700">PARTIAL PAYMENT: ₹{safeAmountPaid}</div>
+                                    <div className="font-bold mb-1 text-slate-800">PARTIAL PAYMENT: ₹{safeAmountPaid}</div>
                                 )}
                                 {invoice.status === 'cancelled' && (
-                                    <div className="font-bold mb-1 text-red-700">** CANCELLED **</div>
+                                    <div className="font-bold mb-1 text-slate-700 line-through">** CANCELLED **</div>
                                 )}
                             </div>
                             <div className="text-center pt-4 border-t-2 border-dashed border-slate-300 text-xs">

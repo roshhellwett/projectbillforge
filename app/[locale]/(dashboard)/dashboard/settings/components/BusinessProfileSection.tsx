@@ -60,11 +60,11 @@ export function BusinessProfileSection({ data, errors, onChange }: Props) {
               inputMode="tel"
               value={data.phone}
               onChange={e => onChange("phone", e.target.value)}
-              className={`${inputClass} pl-10 ${errors.phone ? "border-red-500" : ""}`}
+              className={`${inputClass} pl-10 ${errors.phone ? "border-[var(--foreground)] ring-1 ring-[var(--foreground)]" : ""}`}
               placeholder="+91 9876543210"
             />
           </div>
-          {errors.phone && <p className="text-xs text-red-500 font-semibold mt-1.5">{errors.phone}</p>}
+          {errors.phone && <p className="text-xs text-[var(--foreground)] font-bold italic mt-1.5">{errors.phone}</p>}
         </div>
 
         <div>
@@ -92,12 +92,12 @@ export function BusinessProfileSection({ data, errors, onChange }: Props) {
               type="text"
               value={data.gstin}
               onChange={e => onChange("gstin", e.target.value.toUpperCase())}
-              className={`${inputClass} pl-10 font-mono font-bold ${errors.gstin ? "border-red-500" : ""}`}
+              className={`${inputClass} pl-10 font-mono font-bold ${errors.gstin ? "border-[var(--foreground)] ring-1 ring-[var(--foreground)]" : ""}`}
               placeholder="27AABCU9603R1ZM"
               maxLength={15}
             />
           </div>
-          {errors.gstin && <p className="text-xs text-red-500 font-semibold mt-1.5">{errors.gstin}</p>}
+          {errors.gstin && <p className="text-xs text-[var(--foreground)] font-bold italic mt-1.5">{errors.gstin}</p>}
         </div>
 
         <div className="md:col-span-2">
@@ -143,11 +143,11 @@ export function BusinessProfileSection({ data, errors, onChange }: Props) {
             pattern="[0-9]*"
             value={data.pincode}
             onChange={e => onChange("pincode", e.target.value)}
-            className={`${inputClass} font-mono font-bold ${errors.pincode ? "border-red-500" : ""}`}
+            className={`${inputClass} font-mono font-bold ${errors.pincode ? "border-[var(--foreground)] ring-1 ring-[var(--foreground)]" : ""}`}
             placeholder="400001"
             maxLength={6}
           />
-          {errors.pincode && <p className="text-xs text-red-500 font-semibold mt-1.5">{errors.pincode}</p>}
+          {errors.pincode && <p className="text-xs text-[var(--foreground)] font-bold italic mt-1.5">{errors.pincode}</p>}
         </div>
       </div>
     </div>

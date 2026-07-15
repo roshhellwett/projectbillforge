@@ -30,9 +30,9 @@ export function ConfirmDialog({
   if (!open) return null;
 
   const buttonStyle = {
-    danger: "bg-red-600 hover:bg-red-700 text-white shadow-sm",
-    warning: "bg-amber-600 hover:bg-amber-700 text-white shadow-sm",
-    default: "bg-zinc-900 dark:bg-zinc-100 hover:brightness-110 text-white dark:text-zinc-900 shadow-sm",
+    danger: "bg-zinc-900 dark:bg-zinc-100 hover:brightness-110 text-white dark:text-zinc-900 shadow-sm font-bold",
+    warning: "bg-zinc-800 dark:bg-zinc-200 hover:brightness-110 text-white dark:text-zinc-900 shadow-sm font-bold",
+    default: "bg-zinc-900 dark:bg-zinc-100 hover:brightness-110 text-white dark:text-zinc-900 shadow-sm font-bold",
   }[variant];
 
   return (

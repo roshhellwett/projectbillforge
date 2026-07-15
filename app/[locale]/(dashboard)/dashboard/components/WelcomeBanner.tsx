@@ -11,7 +11,7 @@ export async function WelcomeBanner({ salesPromise }: { salesPromise: Promise<{ 
     <div className="glass-card p-6 sm:p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between relative overflow-hidden bg-[var(--surface)] border border-[var(--border)] card-hover-lift shadow-sm">
       <div className="relative z-10 max-w-xl">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)]/80 text-xs font-bold mb-3">
-          <Sparkles size={13} className="text-amber-500" /> Cloud Workspace Sync
+          <Sparkles size={13} className="text-[var(--foreground)]" /> Cloud Workspace Sync
         </div>
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-[var(--foreground)] tracking-tight leading-tight">
           {t("welcomeTitle")}

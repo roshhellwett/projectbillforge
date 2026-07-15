@@ -88,7 +88,7 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
             className="w-full max-w-sm"
           >
             <div className="mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-200/50 dark:bg-zinc-800/50 border border-zinc-300 dark:border-zinc-700 text-[var(--foreground)] text-xs font-semibold mb-4">
                 <ShieldCheck size={14} className="animate-pulse" />
                 <span>256-Bit SSL & Zero-Knowledge Architecture</span>
               </div>
@@ -126,7 +126,7 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl text-sm font-medium border border-emerald-500/30 mb-5 flex items-center gap-3"
+                className="p-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-xl text-sm font-medium border border-zinc-300 dark:border-zinc-700 mb-5 flex items-center gap-3"
               >
                 <CheckCircle2 size={18} className="flex-shrink-0" />
                 <span>Account created & secured! Check your email for the verification link.</span>
@@ -137,7 +137,7 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl text-sm font-medium border border-emerald-500/30 mb-5 flex items-center gap-3"
+                className="p-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 rounded-xl text-sm font-medium border border-zinc-300 dark:border-zinc-700 mb-5 flex items-center gap-3"
               >
                 <CheckCircle2 size={18} className="flex-shrink-0" />
                 <span>Password reset successfully. Sign in securely below.</span>
@@ -196,7 +196,7 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
 
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-1.5 text-xs text-[var(--foreground)]/50">
-                  <LockKeyhole size={12} className="text-emerald-500" />
+                  <LockKeyhole size={12} className="text-[var(--foreground)]" />
                   <span>Bcrypt 12-round check</span>
                 </div>
                 <Link href="/forgot-password" className="text-xs font-semibold text-[var(--color-primary)] hover:text-[var(--color-primary-light)] transition-colors">
@@ -235,9 +235,9 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
             </div>
 
             <div className="mt-6 flex items-center justify-center gap-4 text-[11px] text-[var(--foreground)]/40">
-              <span className="flex items-center gap-1"><Zap size={11} className="text-amber-500" /> Upstash Guard</span>
+              <span className="flex items-center gap-1"><Zap size={11} className="text-[var(--foreground)]" /> Upstash Guard</span>
               <span>•</span>
-              <span className="flex items-center gap-1"><Cpu size={11} className="text-blue-500" /> Zero-Trust Auth</span>
+              <span className="flex items-center gap-1"><Cpu size={11} className="text-[var(--foreground)]" /> Zero-Trust Auth</span>
               <span>•</span>
               <span>RBI Audit Ready</span>
             </div>
@@ -260,7 +260,7 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
             {/* Toggle Switch between Security Posture and Live Command Demo */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+                <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
                 <span className="text-white font-bold text-sm tracking-wide uppercase">BillForge Security Shield</span>
               </div>
               <div className="flex rounded-full bg-white/10 p-1 backdrop-blur-md border border-white/15">
@@ -294,10 +294,10 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
                   {/* Card 1: Zero-Knowledge Bcrypt */}
                   <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-5 text-white shadow-xl">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400">
+                      <div className="p-2.5 rounded-xl bg-white/20 text-white">
                         <LockKeyhole size={20} />
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 uppercase tracking-wider">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/20 text-white uppercase tracking-wider">
                         NIST Best Practice
                       </span>
                     </div>
@@ -310,10 +310,10 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
                   {/* Card 2: Upstash Rate Limiter */}
                   <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-5 text-white shadow-xl">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400">
+                      <div className="p-2.5 rounded-xl bg-white/20 text-white">
                         <Activity size={20} />
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 uppercase tracking-wider">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/20 text-white uppercase tracking-wider">
                         Sliding Window
                       </span>
                     </div>
@@ -326,10 +326,10 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
                   {/* Card 3: Session Security & CSRF */}
                   <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-5 text-white shadow-xl">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-400">
+                      <div className="p-2.5 rounded-xl bg-white/20 text-white">
                         <ShieldCheck size={20} />
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 uppercase tracking-wider">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/20 text-white uppercase tracking-wider">
                         Active Shield
                       </span>
                     </div>
@@ -342,10 +342,10 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
                   {/* Card 4: Indian Financial Compliance */}
                   <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-5 text-white shadow-xl">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="p-2.5 rounded-xl bg-purple-500/20 text-purple-400">
+                      <div className="p-2.5 rounded-xl bg-white/20 text-white">
                         <Cpu size={20} />
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 uppercase tracking-wider">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/20 text-white uppercase tracking-wider">
                         Audit Immutable
                       </span>
                     </div>
@@ -369,9 +369,9 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
                       <div className="text-white font-bold text-xl">Invoice #BF-2026-001</div>
                       <div className="text-white/60 text-xs mt-0.5">Automated GST Calculation Engine</div>
                     </div>
-                    <div className="px-3.5 py-1.5 bg-emerald-500/30 border border-emerald-400/40 rounded-full flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                      <span className="text-emerald-300 text-xs font-bold">VERIFIED PAID</span>
+                    <div className="px-3.5 py-1.5 bg-white/20 border border-white/30 rounded-full flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-white animate-ping" />
+                      <span className="text-white text-xs font-bold">VERIFIED PAID</span>
                     </div>
                   </div>
 
@@ -393,7 +393,7 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
                   <div className="flex justify-between items-center pt-2 border-t border-white/15">
                     <div>
                       <span className="text-white/70 text-xs uppercase tracking-wider font-semibold block">Total Payable</span>
-                      <span className="text-emerald-400 text-xs font-medium">Includes CGST & SGST Breakup</span>
+                      <span className="text-white/80 text-xs font-medium">Includes CGST & SGST Breakup</span>
                     </div>
                     <span className="text-white font-extrabold text-2xl">₹1,39,000</span>
                   </div>

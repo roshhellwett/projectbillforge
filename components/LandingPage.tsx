@@ -37,35 +37,35 @@ const testimonials = [
     role: "Kirana Store Owner, Delhi",
     text: "BillForge has made handling daily credit (Udhaar) so much easier. I can now track every rupee with just a few taps on my phone.",
     initials: "RK",
-    color: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    color: "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-800 dark:border-zinc-200",
   },
   {
     name: "Priya Sharma",
     role: "Hardware Merchant, Jaipur",
     text: "Invoicing used to be a headache every month. Now, I generate professional GST-ready invoices in seconds. My customers love the speed!",
     initials: "PS",
-    color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+    color: "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-zinc-200 dark:border-zinc-700",
   },
   {
     name: "Arun Varma",
     role: "Boutique Owner, Mumbai",
     text: "The Khata management feature is a lifesaver. No more physical registers or lost records. It's clean, simple, and very effective.",
     initials: "AV",
-    color: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+    color: "bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-zinc-300 dark:border-zinc-700",
   },
   {
     name: "Sunita Devi",
     role: "Grain Wholesaler, Punjab",
     text: "Managing hundreds of transactions was impossible before BillForge. Now my business is organized and I have peace of mind.",
     initials: "SD",
-    color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    color: "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-800 dark:border-zinc-200",
   },
   {
     name: "Vikram Singh",
     role: "Electronics Retailer, Bangalore",
     text: "The best part is how easy it is to use. No technical knowledge needed—it just works. Truly made for Indian small businesses.",
     initials: "VS",
-    color: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+    color: "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 border-zinc-200 dark:border-zinc-700",
   },
 ];
 
@@ -106,9 +106,9 @@ const HeroInteractiveDemo = () => {
       <div className="p-4 bg-[var(--surface-elevated)] border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-red-400/80" />
-            <span className="w-3 h-3 rounded-full bg-amber-400/80" />
-            <span className="w-3 h-3 rounded-full bg-emerald-400/80" />
+            <span className="w-3 h-3 rounded-full bg-zinc-400 dark:bg-zinc-600" />
+            <span className="w-3 h-3 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+            <span className="w-3 h-3 rounded-full bg-zinc-200 dark:bg-zinc-800" />
           </div>
           <span className="text-xs font-mono font-semibold text-[var(--foreground)]/70 ml-2">
             BillForge Interactive Engine
@@ -242,7 +242,7 @@ const HeroInteractiveDemo = () => {
                   <button
                     onClick={recordPayment}
                     disabled={khataBalance <= 0}
-                    className="px-3.5 py-2 rounded-xl bg-[var(--color-success)] text-white text-xs font-semibold shadow-md hover:bg-emerald-600 transition-all flex items-center gap-1 active:scale-95"
+                    className="px-3.5 py-2 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-semibold shadow-md hover:opacity-90 transition-all flex items-center gap-1 active:scale-95"
                   >
                     <Check size={14} /> Record ₹2,500 Payment
                   </button>
@@ -252,7 +252,7 @@ const HeroInteractiveDemo = () => {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="p-2.5 mb-3 rounded-xl bg-[var(--color-success)]/15 text-[var(--color-success)] text-xs font-bold flex items-center gap-2"
+                    className="p-2.5 mb-3 rounded-xl bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs font-bold flex items-center gap-2 border border-zinc-300 dark:border-zinc-700"
                   >
                     <CheckCircle2 size={16} /> ₹2,500 credited! Ledger synced to cloud.
                   </motion.div>
@@ -261,7 +261,7 @@ const HeroInteractiveDemo = () => {
                 <div className="space-y-2">
                   <div className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] flex justify-between items-center text-xs">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
+                      <div className="w-8 h-8 rounded-lg bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex items-center justify-center font-bold">
                         VK
                       </div>
                       <div>
@@ -387,7 +387,7 @@ export default function LandingPage() {
               </Link>
               <Link
                 href="/register"
-                className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md hover:brightness-110 text-white font-semibold text-sm px-6 py-2.5 rounded-xl shadow-lg shadow-blue-500/25 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5"
+                className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md hover:brightness-110 font-semibold text-sm px-6 py-2.5 rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5"
               >
                 {t("navRegister")} <ArrowRight size={16} />
               </Link>
@@ -479,7 +479,7 @@ export default function LandingPage() {
               className="lg:col-span-6 text-center lg:text-left"
             >
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface)] border border-[var(--border)] shadow-sm mb-6 mx-auto lg:mx-0">
-                <div className="flex items-center gap-1 text-amber-400">
+                <div className="flex items-center gap-1 text-zinc-900 dark:text-zinc-100">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} size={13} fill="currentColor" />
                   ))}
@@ -500,7 +500,7 @@ export default function LandingPage() {
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link href="/register" className="w-full sm:w-auto">
-                  <button className="w-full sm:w-auto bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md hover:brightness-110 text-white px-8 py-4 rounded-2xl font-bold text-base shadow-xl shadow-blue-500/25 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 group">
+                  <button className="w-full sm:w-auto bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md hover:brightness-110 px-8 py-4 rounded-2xl font-bold text-base shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 group">
                     {t("ctaButton")}
                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </button>
@@ -559,7 +559,7 @@ export default function LandingPage() {
             {/* Bento Card 1: Fast GST Invoicing (Spans 2 cols on lg) */}
             <div className="md:col-span-2 glass-card p-8 flex flex-col justify-between card-hover-lift group">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-6 border border-blue-500/20 shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--surface-elevated)] text-[var(--foreground)] flex items-center justify-center mb-6 border border-[var(--border)] shadow-sm">
                   <Receipt size={24} />
                 </div>
                 <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]">
@@ -590,10 +590,10 @@ export default function LandingPage() {
             {/* Bento Card 2: Digital Khata */}
             <div className="glass-card p-8 flex flex-col justify-between card-hover-lift group">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-6 border border-emerald-500/20 shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--surface-elevated)] text-[var(--foreground)] flex items-center justify-center mb-6 border border-[var(--border)] shadow-sm">
                   <BookOpen size={24} />
                 </div>
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-500">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--foreground)]">
                   Digital Khata Book
                 </span>
                 <h3 className="text-xl font-extrabold text-[var(--foreground)] mt-2 mb-3">
@@ -612,10 +612,10 @@ export default function LandingPage() {
             {/* Bento Card 3: Cloud Security */}
             <div className="glass-card p-8 flex flex-col justify-between card-hover-lift group">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-6 border border-purple-500/20 shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--surface-elevated)] text-[var(--foreground)] flex items-center justify-center mb-6 border border-[var(--border)] shadow-sm">
                   <Lock size={24} />
                 </div>
-                <span className="text-xs font-bold uppercase tracking-wider text-purple-500">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--foreground)]">
                   Bank-Grade Cloud
                 </span>
                 <h3 className="text-xl font-extrabold text-[var(--foreground)] mt-2 mb-3">
@@ -655,7 +655,7 @@ export default function LandingPage() {
                 </div>
                 <div className="p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] flex items-center justify-between">
                   <span className="text-xs font-bold text-[var(--foreground)]">Adaptive Theme</span>
-                  <span className="text-xs font-mono font-semibold text-purple-500">Auto Sync</span>
+                  <span className="text-xs font-mono font-semibold text-[var(--foreground)]">Auto Sync</span>
                 </div>
               </div>
             </div>
@@ -663,10 +663,10 @@ export default function LandingPage() {
             {/* Bento Card 5: Real-Time Analytics (Spans 2 cols on lg) */}
             <div className="md:col-span-3 lg:col-span-2 glass-card p-8 flex flex-col justify-between card-hover-lift group">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-6 border border-amber-500/20 shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center mb-6 border border-zinc-800 dark:border-zinc-200 shadow-sm">
                   <TrendingUp size={24} />
                 </div>
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-500">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--foreground)]/70">
                   Live Insights
                 </span>
                 <h3 className="text-2xl font-extrabold text-[var(--foreground)] mt-2 mb-3">
@@ -711,7 +711,7 @@ export default function LandingPage() {
                   </div>
 
                   <div className="flex-1 text-center sm:text-left">
-                    <div className="flex items-center justify-center sm:justify-start gap-1 text-amber-400 mb-4">
+                    <div className="flex items-center justify-center sm:justify-start gap-1 text-zinc-900 dark:text-zinc-100 mb-4">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} size={18} fill="currentColor" />
                       ))}
@@ -761,7 +761,7 @@ export default function LandingPage() {
             <h2 className="text-3xl sm:text-4xl font-black mb-4 relative z-10">
               Ready to Modernize Your Business?
             </h2>
-            <p className="text-base sm:text-lg text-blue-100 max-w-2xl mx-auto mb-8 relative z-10 text-balance">
+            <p className="text-base sm:text-lg text-zinc-300 dark:text-zinc-600 max-w-2xl mx-auto mb-8 relative z-10 text-balance">
               Join thousands of local Indian businesses using BillForge for fast invoicing, khata bookkeeping, and customer management.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">

@@ -28,9 +28,9 @@ export function ThemeToggle() {
       title={isDark ? "Switch to Light Theme" : "Switch to Dark Theme"}
     >
       {isDark ? (
-        <Moon size={13} className="text-blue-400 shrink-0" />
+        <Moon size={13} className="text-[var(--foreground)] shrink-0" />
       ) : (
-        <Sun size={13} className="text-amber-500 shrink-0" />
+        <Sun size={13} className="text-[var(--foreground)] shrink-0" />
       )}
       <span>{isDark ? "Dark" : "Light"}</span>
     </button>

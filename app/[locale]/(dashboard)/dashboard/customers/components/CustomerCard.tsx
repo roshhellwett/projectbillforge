@@ -48,7 +48,7 @@ export function CustomerCard({ customer, syncingId, onEdit, onDelete, onSyncBala
                 href={`mailto:${customer.email}`}
                 className="text-xs text-[var(--foreground)]/60 hover:text-[var(--color-primary)] flex items-center gap-1.5 mt-0.5 transition-colors truncate"
               >
-                <Mail size={13} className="text-purple-500" /> {customer.email}
+                <Mail size={13} className="text-[var(--foreground)]" /> {customer.email}
               </a>
             )}
           </div>
@@ -67,7 +67,7 @@ export function CustomerCard({ customer, syncingId, onEdit, onDelete, onSyncBala
               className={`p-2 rounded-xl transition-all shadow-sm active:scale-95 ${
                 hasBalance
                   ? "text-[var(--foreground)]/20 cursor-not-allowed"
-                  : "text-[var(--foreground)]/60 hover:text-red-500 hover:bg-red-500/10"
+                  : "text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-zinc-200 dark:hover:bg-zinc-800"
               }`}
               aria-label={t("deleteCustomerBtn")}
               disabled={hasBalance}
@@ -90,9 +90,9 @@ export function CustomerCard({ customer, syncingId, onEdit, onDelete, onSyncBala
             <button
               type="button"
               onClick={handleWhatsApp}
-              className="flex-1 py-2 px-3 rounded-xl bg-[var(--surface-elevated)] hover:bg-[#25D366]/10 border border-[var(--border)] text-xs font-bold text-[var(--foreground)] flex items-center justify-center gap-1.5 transition-colors"
+              className="flex-1 py-2 px-3 rounded-xl bg-[var(--surface-elevated)] hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-[var(--border)] text-xs font-bold text-[var(--foreground)] flex items-center justify-center gap-1.5 transition-colors"
             >
-              <MessageCircle size={13} className="text-[#25D366]" /> WhatsApp
+              <MessageCircle size={13} className="text-[var(--foreground)]" /> WhatsApp
             </button>
           </div>
         )}

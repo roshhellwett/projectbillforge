@@ -17,7 +17,7 @@ export async function OverviewCards({ salesPromise }: { salesPromise: Promise<{ 
       badge: "+Live",
       bgClass: "bg-zinc-900 dark:bg-zinc-950 text-white border border-zinc-800 shadow-xl",
       iconBg: "bg-white/10 text-white",
-      badgeClass: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
+      badgeClass: "bg-white/20 text-white border border-white/30",
     },
     {
       label: t("overviewTotalSales"),
@@ -43,8 +43,8 @@ export async function OverviewCards({ salesPromise }: { salesPromise: Promise<{ 
       icon: Users,
       badge: "Pending Khata",
       bgClass: "bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] shadow-sm",
-      iconBg: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-      badgeClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
+      iconBg: "bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)]",
+      badgeClass: "bg-[var(--surface-elevated)] text-[var(--foreground)]/70 border border-[var(--border)]",
     },
   ];
 
