@@ -2,105 +2,37 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { Sun, Moon } from "lucide-react";
 
 export function ThemeToggle() {
-    const [mounted, setMounted] = useState(false);
-    const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
 
-    
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-    if (!mounted) {
-        return (
-            <div className="w-[84px] h-[40px] rounded-full bg-[var(--card)] glass-card opacity-50 relative pointer-events-none">
-                <div className="absolute top-1 bottom-1 w-[32px] rounded-full bg-gray-300"></div>
-            </div>
-        );
-    }
-
-    const isDark = theme === "dark";
-
+  if (!mounted) {
     return (
-        <button
-            onClick={() => setTheme(isDark ? "light" : "dark")}
-            className={`
-        relative w-[84px] h-[40px] rounded-[24px] overflow-hidden transition-colors duration-500 ease-in-out cursor-pointer flex-shrink-0
-        ${isDark ? 'bg-[#1e293b]' : 'bg-[#76c3fa]'}
-        shadow-[inset_0_4px_8px_rgba(0,0,0,0.3)] border border-transparent
-      `}
-            aria-label="Toggle Dark Mode"
-        >
-            
-            <motion.div
-                className="absolute inset-0 pointer-events-none"
-                initial={false}
-                animate={{ opacity: isDark ? 0 : 1, y: isDark ? -10 : 0 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-            >
-                
-                
-                <div className="absolute -bottom-1 -right-2 w-16 h-8 bg-white/90 rounded-[20px] blur-[1px]"></div>
-                <div className="absolute bottom-1 right-2 w-6 h-6 bg-white/95 rounded-full blur-[1px]"></div>
-                <div className="absolute -bottom-2 left-6 w-10 h-10 bg-white/90 rounded-full blur-[1px]"></div>
-                <div className="absolute bottom-0 left-2 w-6 h-6 bg-white/80 rounded-full blur-[1px]"></div>
-            </motion.div>
-
-            
-            <motion.div
-                className="absolute inset-0 pointer-events-none"
-                initial={false}
-                animate={{ opacity: isDark ? 1 : 0, y: isDark ? 0 : 10 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-            >
-                
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#141b2d] to-[#1e293b] opacity-80"></div>
-                
-                <div className="absolute top-[8px] left-[18px] w-[3px] h-[3px] bg-white rounded-full shadow-[0_0_5px_rgba(255,255,255,0.8)] opacity-90 animate-pulse"></div>
-                <div className="absolute top-[20px] left-[32px] w-[2px] h-[2px] bg-white rounded-full shadow-[0_0_4px_white] opacity-60"></div>
-                <div className="absolute bottom-[8px] left-[20px] w-[2px] h-[2px] bg-white rounded-full opacity-70"></div>
-                <div className="absolute top-[12px] right-[40px] w-[2px] h-[2px] bg-white rounded-full opacity-50"></div>
-                <div className="absolute bottom-[10px] right-[45px] w-[3px] h-[3px] bg-white rounded-full opacity-80 shadow-[0_0_5px_rgba(255,255,255,0.7)]"></div>
-
-                
-                <div className="absolute bottom-[-10px] left-[-10px] w-20 h-20 rounded-full border border-white/5 opacity-[0.15]"></div>
-            </motion.div>
-
-            
-            <motion.div
-                className="absolute top-[3px] bottom-[3px] w-[34px] rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.4)] z-10 flex items-center justify-center overflow-hidden"
-                initial={false}
-                animate={{
-                    left: isDark ? "calc(100% - 37px)" : "3px",
-                    backgroundColor: isDark ? "#cbd5e1" : "#fbbf24", 
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            >
-                
-                <motion.div
-                    animate={{ opacity: isDark ? 0 : 1 }}
-                    className="absolute inset-0 rounded-full shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.1),inset_2px_2px_4px_rgba(255,255,255,0.5)] pointer-events-none"
-                ></motion.div>
-
-                
-                <motion.div
-                    initial={false}
-                    animate={{ opacity: isDark ? 1 : 0, scale: isDark ? 1 : 0.5, rotate: isDark ? 0 : -45 }}
-                    transition={{ duration: 0.4 }}
-                    className="absolute inset-0 pointer-events-none"
-                >
-                    
-                    <div className="absolute inset-0 rounded-full shadow-[inset_-4px_-4px_8px_rgba(0,0,0,0.2),inset_2px_2px_4px_rgba(255,255,255,0.8)]"></div>
-                    
-                    <div className="absolute top-[20%] left-[25%] w-[25%] h-[25%] bg-[#94a3b8] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
-                    
-                    <div className="absolute bottom-[25%] right-[25%] w-[35%] h-[35%] bg-[#94a3b8] rounded-full shadow-[inset_1px_1px_3px_rgba(0,0,0,0.3)]"></div>
-                    <div className="absolute top-[45%] right-[20%] w-[18%] h-[18%] bg-[#94a3b8] rounded-full shadow-[inset_1px_1px_2px_rgba(0,0,0,0.3)]"></div>
-                </motion.div>
-
-            </motion.div>
-        </button>
+      <div className="w-16 h-7 rounded-lg bg-[var(--border)]/40 animate-pulse pointer-events-none" />
     );
+  }
+
+  const isDark = theme === "dark";
+
+  return (
+    <button
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--surface-hover)] border border-[var(--border)] text-xs font-semibold text-[var(--foreground)] hover:border-[var(--foreground)]/30 transition-all shadow-2xs cursor-pointer"
+      aria-label="Toggle Dark Mode"
+      title={isDark ? "Switch to Light Theme" : "Switch to Dark Theme"}
+    >
+      {isDark ? (
+        <Moon size={13} className="text-blue-400 shrink-0" />
+      ) : (
+        <Sun size={13} className="text-amber-500 shrink-0" />
+      )}
+      <span>{isDark ? "Dark" : "Light"}</span>
+    </button>
+  );
 }

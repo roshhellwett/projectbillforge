@@ -54,30 +54,33 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
       <div className="p-6 flex flex-col gap-4 shrink-0 border-b border-[var(--border)]/60">
         <div className="flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+            <div className="w-9 h-9 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center font-bold text-lg shadow-sm group-hover:scale-105 transition-transform">
               B
             </div>
-            <div className="flex flex-col">
-              <h1 className="text-lg font-bold tracking-tight text-[var(--foreground)] leading-tight">
-                BillForge
-              </h1>
-              <span className="text-[9px] font-bold tracking-widest uppercase text-[var(--color-primary)] flex items-center gap-1 mt-0.5">
-                <Sparkles size={10} /> Zenith Open Source
+            <div>
+              <span className="font-bold text-base tracking-tight text-[var(--foreground)] block leading-none">
+                Bill<span className="text-[var(--foreground)]/60 font-medium">Forge</span>
+              </span>
+              <span className="text-[10px] font-bold text-emerald-500 tracking-wider uppercase block mt-0.5">
+                • PRO LEDGER
               </span>
             </div>
           </Link>
         </div>
 
-        {/* Global Search Trigger */}
+        {/* Quick Search Trigger */}
         <button
-          onClick={triggerSearch}
-          className="flex items-center justify-between w-full px-3.5 py-2.5 bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] border border-[var(--border)] rounded-xl text-xs text-[var(--foreground)]/70 transition-all group shadow-sm"
+          onClick={() => {
+            const e = new KeyboardEvent("keydown", { key: "k", metaKey: true });
+            document.dispatchEvent(e);
+          }}
+          className="w-full flex items-center justify-between px-3.5 py-2.5 bg-[var(--surface)] hover:bg-[var(--surface-hover)] border border-[var(--border)] rounded-xl text-xs text-[var(--foreground)]/60 transition-all shadow-2xs group cursor-pointer"
+          title="Search anything... (Cmd+K)"
         >
-          <span className="flex items-center gap-2.5 font-medium">
-            <Search size={15} className="text-[var(--color-primary)] opacity-80 group-hover:opacity-100 transition-opacity" />
-            {t("searchPlaceholder")}
+          <span className="flex items-center gap-2 group-hover:text-[var(--foreground)] transition-colors font-medium">
+            <Search size={15} /> Search...
           </span>
-          <kbd className="inline-flex items-center gap-1 font-mono text-[10px] font-semibold px-2 py-0.5 rounded shadow-sm bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)]/60">
+          <kbd className="inline-flex items-center gap-1 font-mono text-[10px] font-semibold px-2 py-0.5 rounded shadow-sm bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)]/60">
             Shift+K
           </kbd>
         </button>
@@ -100,29 +103,16 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
                 flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 font-medium text-sm group relative overflow-hidden
                 ${
                   isActive
-                    ? "text-[var(--color-primary)] font-semibold"
+                    ? "text-[var(--foreground)] font-bold bg-[var(--surface-elevated)] border border-[var(--border)] shadow-2xs"
                     : "text-[var(--foreground)]/60 hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
                 }
               `}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="sidebarActiveGlow"
-                  className="absolute inset-0 bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 rounded-xl -z-10"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
-                />
-              )}
-              {isActive && (
-                <motion.div
-                  layoutId="sidebarActiveIndicator"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-[var(--color-primary)] rounded-r-full"
-                />
-              )}
-              <div className={`p-1 rounded-lg transition-transform duration-200 ${isActive ? "scale-110" : "group-hover:scale-110"}`}>
+              <div className={`p-1 rounded-lg transition-transform duration-200 ${isActive ? "scale-105" : "group-hover:scale-105"}`}>
                 <item.icon
                   size={19}
                   strokeWidth={isActive ? 2.5 : 1.75}
-                  className={isActive ? "text-[var(--color-primary)]" : "text-[var(--foreground)]/60 group-hover:text-[var(--foreground)]"}
+                  className={isActive ? "text-[var(--foreground)]" : "text-[var(--foreground)]/60 group-hover:text-[var(--foreground)]"}
                 />
               </div>
               <span className="truncate">{item.label}</span>
@@ -134,20 +124,19 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
       {/* Support & Profile Footer */}
       <div className="p-4 shrink-0 mt-auto space-y-3 border-t border-[var(--border)]/60 bg-[var(--surface-elevated)]/30">
         {/* Support Card */}
-        <div className="bg-[var(--surface)] dark:bg-slate-900/60 rounded-2xl p-4 border border-[var(--border)] shadow-sm relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-primary)]/5 rounded-full blur-xl -z-10 group-hover:bg-[var(--color-primary)]/10 transition-colors" />
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center font-bold">
+        <div className="bg-zinc-900 dark:bg-zinc-950 rounded-2xl p-4 border border-zinc-800 text-white shadow-md relative overflow-hidden group">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 rounded-xl bg-white/10 text-white flex items-center justify-center font-bold">
               <HelpCircle size={16} />
             </div>
             <div>
-              <h3 className="font-semibold text-xs text-[var(--foreground)]">Need Help?</h3>
-              <p className="text-[10px] text-[var(--foreground)]/50">Pro Vendor Support</p>
+              <h3 className="font-bold text-xs text-white">Need Help?</h3>
+              <p className="text-[10px] text-zinc-400">Pro Vendor Support</p>
             </div>
           </div>
           <a
             href="mailto:zenithprojects@icloud.com"
-            className="flex items-center justify-center gap-1.5 w-full py-2 bg-[var(--surface-elevated)] hover:bg-[var(--color-primary)] hover:text-white rounded-xl text-xs font-medium text-[var(--foreground)] border border-[var(--border)] transition-all"
+            className="flex items-center justify-center gap-1.5 w-full py-2 bg-white/10 hover:bg-white text-white hover:text-zinc-900 rounded-xl text-xs font-bold transition-all"
           >
             Contact Support <ExternalLink size={12} />
           </a>
@@ -156,15 +145,13 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
         {/* Quick Preferences Bar (Theme Toggle) */}
         <div className="flex items-center justify-between px-3 py-2 bg-[var(--surface)] dark:bg-slate-900/60 rounded-xl border border-[var(--border)] shadow-2xs">
           <span className="text-xs font-semibold text-[var(--foreground)]/80">Theme</span>
-          <div className="transform scale-80 origin-right">
-            <ThemeToggle />
-          </div>
+          <ThemeToggle />
         </div>
 
         {/* User Profile & Sign Out */}
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-2.5 overflow-hidden flex-1 min-w-0 pr-1">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ring-1 ring-[var(--border)]">
+            <div className="w-9 h-9 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] flex items-center justify-center font-bold text-xs shrink-0 shadow-sm font-mono">
               {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}
             </div>
             <div className="flex flex-col overflow-hidden min-w-0">

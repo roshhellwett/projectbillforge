@@ -35,7 +35,7 @@ export async function TopReceivables({ customersPromise }: { customersPromise: P
               className="flex items-center justify-between p-3.5 sm:p-4 bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] transition-all duration-200 border border-[var(--border)] rounded-2xl group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/15 to-purple-500/15 text-blue-500 flex items-center justify-center font-bold text-xs shrink-0 border border-blue-500/20">
+                <div className="w-9 h-9 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] flex items-center justify-center font-bold text-xs shrink-0 font-mono">
                   {customer.name ? customer.name.substring(0, 2).toUpperCase() : "CU"}
                 </div>
                 <div className="min-w-0">

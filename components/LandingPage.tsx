@@ -355,7 +355,7 @@ export default function LandingPage() {
           <div className="flex items-center justify-between h-20">
             {/* Brand Logo */}
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center text-white font-extrabold text-lg shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+              <div className="w-9 h-9 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center font-bold text-lg shadow-sm group-hover:scale-105 transition-transform">
                 B
               </div>
               <span className="font-extrabold text-xl tracking-tight text-[var(--foreground)]">
@@ -387,7 +387,7 @@ export default function LandingPage() {
               </Link>
               <Link
                 href="/register"
-                className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] hover:brightness-110 text-white font-semibold text-sm px-6 py-2.5 rounded-xl shadow-lg shadow-blue-500/25 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5"
+                className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md hover:brightness-110 text-white font-semibold text-sm px-6 py-2.5 rounded-xl shadow-lg shadow-blue-500/25 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5"
               >
                 {t("navRegister")} <ArrowRight size={16} />
               </Link>
@@ -456,7 +456,7 @@ export default function LandingPage() {
                   <Link
                     href="/register"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-center bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/25 transition-all"
+                    className="w-full text-center bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/25 transition-all"
                   >
                     {t("navRegister")}
                   </Link>
@@ -500,7 +500,7 @@ export default function LandingPage() {
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
                 <Link href="/register" className="w-full sm:w-auto">
-                  <button className="w-full sm:w-auto bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] hover:brightness-110 text-white px-8 py-4 rounded-2xl font-bold text-base shadow-xl shadow-blue-500/25 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 group">
+                  <button className="w-full sm:w-auto bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md hover:brightness-110 text-white px-8 py-4 rounded-2xl font-bold text-base shadow-xl shadow-blue-500/25 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 group">
                     {t("ctaButton")}
                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                   </button>
@@ -756,7 +756,7 @@ export default function LandingPage() {
       {/* Footer / CTA Section */}
       <section className="py-20 relative z-10 border-t border-[var(--border)] bg-[var(--surface)]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="p-10 sm:p-14 rounded-3xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white shadow-2xl relative overflow-hidden">
+          <div className="p-10 sm:p-14 rounded-3xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-md text-white shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
             <h2 className="text-3xl sm:text-4xl font-black mb-4 relative z-10">
               Ready to Modernize Your Business?

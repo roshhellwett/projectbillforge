@@ -65,7 +65,7 @@ export function MobileDrawer({
             {/* Header Section */}
             <div className="p-5 border-b border-[var(--border)] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] text-white flex items-center justify-center font-bold shadow-md">
+                <div className="w-9 h-9 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)] flex items-center justify-center font-bold shadow-sm font-mono">
                   {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}
                 </div>
                 <div className="flex flex-col overflow-hidden">

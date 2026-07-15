@@ -15,32 +15,36 @@ export async function OverviewCards({ salesPromise }: { salesPromise: Promise<{ 
       value: formatCurrency(summary?.todaySales),
       icon: TrendingUp,
       badge: "+Live",
-      bgClass: "bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 text-white shadow-lg shadow-indigo-500/20",
-      iconBg: "bg-white/20 text-white",
+      bgClass: "bg-zinc-900 dark:bg-zinc-950 text-white border border-zinc-800 shadow-xl",
+      iconBg: "bg-white/10 text-white",
+      badgeClass: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
     },
     {
       label: t("overviewTotalSales"),
       value: formatCurrency(summary?.totalSales),
       icon: DollarSign,
       badge: "Gross Volume",
-      bgClass: "bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 text-white shadow-lg shadow-blue-500/20",
-      iconBg: "bg-white/20 text-white",
+      bgClass: "bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] shadow-sm",
+      iconBg: "bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)]",
+      badgeClass: "bg-[var(--surface-elevated)] text-[var(--foreground)]/70 border border-[var(--border)]",
     },
     {
       label: t("overviewTotalInvoices"),
       value: (summary?.totalInvoices ?? 0).toLocaleString("en-IN"),
       icon: FileText,
       badge: "GST Bills",
-      bgClass: "glass-card border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]",
-      iconBg: "bg-[var(--color-primary)]/10 text-[var(--color-primary)]",
+      bgClass: "bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] shadow-sm",
+      iconBg: "bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)]",
+      badgeClass: "bg-[var(--surface-elevated)] text-[var(--foreground)]/70 border border-[var(--border)]",
     },
     {
       label: t("overviewReceivables"),
       value: formatCurrency(summary?.totalReceivable),
       icon: Users,
       badge: "Pending Khata",
-      bgClass: "bg-gradient-to-br from-rose-600 via-pink-600 to-rose-700 text-white shadow-lg shadow-rose-500/20",
-      iconBg: "bg-white/20 text-white",
+      bgClass: "bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] shadow-sm",
+      iconBg: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+      badgeClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20",
     },
   ];
 
@@ -59,7 +63,7 @@ export async function OverviewCards({ salesPromise }: { salesPromise: Promise<{ 
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card) => {
-          const isGradient = card.bgClass.includes("from-");
+          const isFeatured = card.bgClass.includes("bg-zinc-900");
           return (
             <InteractiveItem key={card.label}>
               <div className={`p-5 sm:p-6 rounded-3xl transition-all duration-300 card-hover-lift ${card.bgClass} flex flex-col justify-between h-36 sm:h-40 relative overflow-hidden`}>
@@ -68,24 +72,20 @@ export async function OverviewCards({ salesPromise }: { salesPromise: Promise<{ 
                     <div className={`p-2.5 rounded-2xl ${card.iconBg} flex items-center justify-center font-bold`}>
                       <card.icon size={18} />
                     </div>
-                    <span className={`text-xs font-bold tracking-wide uppercase truncate ${isGradient ? "text-white/90" : "text-[var(--foreground)]/70"}`}>
+                    <span className={`text-xs font-bold tracking-wide uppercase truncate ${isFeatured ? "text-white/90" : "text-[var(--foreground)]/70"}`}>
                       {card.label}
                     </span>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isGradient ? "bg-white/20 text-white" : "badge badge-success"}`}>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${card.badgeClass}`}>
                     {card.badge}
                   </span>
                 </div>
 
                 <div className="z-10 mt-4">
-                  <p className={`text-2xl sm:text-3xl font-black tracking-tight font-mono truncate ${isGradient ? "text-white" : "text-[var(--foreground)]"}`}>
+                  <p className={`text-2xl sm:text-3xl font-black tracking-tight font-mono truncate ${isFeatured ? "text-white" : "text-[var(--foreground)]"}`}>
                     {card.value}
                   </p>
                 </div>
-
-                {isGradient && (
-                  <div className="absolute -bottom-8 -right-8 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none" />
-                )}
               </div>
             </InteractiveItem>
           );

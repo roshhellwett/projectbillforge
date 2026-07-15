@@ -60,13 +60,13 @@ export async function SalesTrend({ weeklyPromise }: { weeklyPromise: Promise<{ s
                   <div
                     className={`w-full max-w-[40px] rounded-t-xl transition-all duration-700 ease-out group-hover:brightness-110 ${
                       isToday
-                        ? "bg-gradient-to-t from-[var(--color-primary)] to-[var(--color-primary-light)] shadow-md shadow-blue-500/25"
-                        : "bg-[var(--color-primary)]/20 hover:bg-[var(--color-primary)]/40"
+                        ? "bg-zinc-900 dark:bg-zinc-100 shadow-sm"
+                        : "bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700"
                     }`}
                     style={{ height: `${Math.max(pct, 5)}%`, minHeight: "8px" }}
                   />
                 </div>
-                <span className={`text-[10px] sm:text-xs font-bold mt-2.5 ${isToday ? "text-[var(--color-primary)] scale-105" : "text-[var(--foreground)]/60"}`}>
+                <span className={`text-[10px] sm:text-xs font-bold mt-2.5 ${isToday ? "text-[var(--foreground)] font-black scale-105" : "text-[var(--foreground)]/60"}`}>
                   {day.label}
                 </span>
               </div>

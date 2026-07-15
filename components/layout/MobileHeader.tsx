@@ -31,15 +31,15 @@ export default function MobileHeader({ session }: MobileHeaderProps) {
         <div className="flex items-center justify-between px-4 h-16">
           {/* Brand Logo */}
           <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center text-white font-bold text-base shadow-md shadow-blue-500/20 group-active:scale-95 transition-transform">
+            <div className="w-8 h-8 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center font-bold text-base shadow-sm group-active:scale-95 transition-transform">
               B
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-base tracking-tight text-[var(--foreground)] leading-tight">
-                BillForge
+                Bill<span className="text-[var(--foreground)]/60 font-medium">Forge</span>
               </span>
-              <span className="text-[9px] font-semibold tracking-wider uppercase text-[var(--color-primary)] flex items-center gap-0.5">
-                <Sparkles size={8} /> Pro
+              <span className="text-[9px] font-bold tracking-wider uppercase text-emerald-500 flex items-center gap-0.5">
+                • PRO
               </span>
             </div>
           </Link>
@@ -54,9 +54,7 @@ export default function MobileHeader({ session }: MobileHeaderProps) {
               <Search size={18} />
             </button>
 
-            <div className="transform scale-90 origin-center flex items-center">
-              <ThemeToggle />
-            </div>
+            <ThemeToggle />
 
             <button
               onClick={() => setIsDrawerOpen(true)}

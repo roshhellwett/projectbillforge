@@ -81,8 +81,8 @@ export function FineSettingsSection({ redemptionPeriodDays, finePercentage, fine
         </div>
       </div>
 
-      <div className="mt-6 p-5 bg-gradient-to-r from-[var(--color-primary)]/10 to-amber-500/10 rounded-2xl border border-[var(--color-primary)]/20 flex items-start gap-3">
-        <div className="p-2 rounded-lg bg-[var(--color-primary)]/20 text-[var(--color-primary)] shrink-0 mt-0.5">
+      <div className="mt-6 p-5 bg-[var(--surface-elevated)] rounded-2xl border border-[var(--border)] flex items-start gap-3 shadow-sm">
+        <div className="p-2 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] shrink-0 mt-0.5">
           <Calculator size={16} />
         </div>
         <p className="text-xs font-medium text-[var(--foreground)]/80 leading-relaxed">
