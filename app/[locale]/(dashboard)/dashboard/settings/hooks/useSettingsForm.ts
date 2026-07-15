@@ -52,29 +52,34 @@ export function useSettingsForm() {
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
-    const result = await getBusinessProfile();
-    if (result.success && result.business) {
-      const b = result.business;
-      const data: FormData = {
-        name: b.name || "",
-        gstin: b.gstin || "",
-        address: b.address || "",
-        phone: b.phone || "",
-        state: b.state || "",
-        pincode: b.pincode || "",
-        termsAndConditions: b.termsAndConditions || DEFAULT_TERMS,
-        redemptionPeriodDays: b.redemptionPeriodDays ?? 30,
-        finePercentage: Number(b.finePercentage) || 2,
-        fineFrequencyDays: b.fineFrequencyDays ?? 7,
-        industryType: b.industryType && isIndustryType(b.industryType) ? b.industryType : "custom",
-      };
-      setFormData(data);
-      setOriginalData(data);
-      setIsOAuthUser(!b.passwordHash || b.passwordHash.length === 0);
-    } else if (result.error) {
-      addToast(result.error, "error");
+    try {
+      const result = await getBusinessProfile();
+      if (result.success && result.business) {
+        const b = result.business;
+        const data: FormData = {
+          name: b.name || "",
+          gstin: b.gstin || "",
+          address: b.address || "",
+          phone: b.phone || "",
+          state: b.state || "",
+          pincode: b.pincode || "",
+          termsAndConditions: b.termsAndConditions || DEFAULT_TERMS,
+          redemptionPeriodDays: b.redemptionPeriodDays ?? 30,
+          finePercentage: Number(b.finePercentage) || 2,
+          fineFrequencyDays: b.fineFrequencyDays ?? 7,
+          industryType: b.industryType && isIndustryType(b.industryType) ? b.industryType : "custom",
+        };
+        setFormData(data);
+        setOriginalData(data);
+        setIsOAuthUser(!b.passwordHash || b.passwordHash.length === 0);
+      } else if (result.error) {
+        addToast(result.error, "error");
+      }
+    } catch {
+      addToast("Could not load settings. Please try again.", "error");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [addToast]);
 
   useEffect(() => { loadProfile(); }, [loadProfile]);
@@ -118,15 +123,20 @@ export function useSettingsForm() {
       setSaving(false);
       return;
     }
-    const result = await updateBusinessProfile(changed as Parameters<typeof updateBusinessProfile>[0]);
-    if (result.error) {
-      addToast(result.error, "error");
-    } else {
-      addToast(t("successMessage"), "success");
-      setOriginalData({ ...formData });
-      router.refresh();
+    try {
+      const result = await updateBusinessProfile(changed as Parameters<typeof updateBusinessProfile>[0]);
+      if (result.error) {
+        addToast(result.error, "error");
+      } else {
+        addToast(t("successMessage"), "success");
+        setOriginalData({ ...formData });
+        router.refresh();
+      }
+    } catch {
+      addToast("Could not save settings. Please try again.", "error");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   return {

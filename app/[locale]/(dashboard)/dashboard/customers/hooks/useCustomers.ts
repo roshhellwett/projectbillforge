@@ -54,15 +54,20 @@ export function useCustomers(initialData?: { customers?: Customer[]; totalCustom
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const result = await getCustomers(PAGE_SIZE, 0);
-    if (result.success) {
-      setCustomers(result.customers);
-      setTotalCustomers(result.total ?? 0);
-      setOffset(result.customers.length);
-    } else if (result.error) {
-      addToast(result.error, "error");
+    try {
+      const result = await getCustomers(PAGE_SIZE, 0);
+      if (result.success) {
+        setCustomers(result.customers);
+        setTotalCustomers(result.total ?? 0);
+        setOffset(result.customers.length);
+      } else if (result.error) {
+        addToast(result.error, "error");
+      }
+    } catch {
+      addToast("Could not load customers. Please try again.", "error");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [addToast]);
 
   useEffect(() => { if (!initialData) loadData(); }, []);
@@ -102,15 +107,20 @@ export function useCustomers(initialData?: { customers?: Customer[]; totalCustom
 
   const handleSyncBalance = async (customerId: string) => {
     setSyncingId(customerId);
-    const result = await recalculateCustomerBalance(customerId);
-    if (result.success) {
-      addToast("Balance synced", "success");
-      loadData();
-      router.refresh();
-    } else if (result.error) {
-      addToast(result.error, "error");
+    try {
+      const result = await recalculateCustomerBalance(customerId);
+      if (result.success) {
+        addToast("Balance synced", "success");
+        void loadData();
+        router.refresh();
+      } else if (result.error) {
+        addToast(result.error, "error");
+      }
+    } catch {
+      addToast("Could not sync the balance. Please try again.", "error");
+    } finally {
+      setSyncingId(null);
     }
-    setSyncingId(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -122,34 +132,44 @@ export function useCustomers(initialData?: { customers?: Customer[]; totalCustom
       address: formData.address,
       creditLimit: formData.creditLimit ? Number(formData.creditLimit) : 0,
     };
-    const result = editingCustomer
-      ? await updateCustomer(editingCustomer.id, data)
-      : await createCustomer(data);
-    if (result.error) {
-      addToast(result.error, "error");
-    } else {
-      addToast(editingCustomer ? "Customer updated" : "Customer created", "success");
-      setShowModal(false);
-      setEditingCustomer(null);
-      loadData();
-      router.refresh();
+    try {
+      const result = editingCustomer
+        ? await updateCustomer(editingCustomer.id, data)
+        : await createCustomer(data);
+      if (result.error) {
+        addToast(result.error, "error");
+      } else {
+        addToast(editingCustomer ? "Customer updated" : "Customer created", "success");
+        setShowModal(false);
+        setEditingCustomer(null);
+        void loadData();
+        router.refresh();
+      }
+    } catch {
+      addToast("Could not save the customer. Please try again.", "error");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
     setDeleting(true);
-    const result = await deleteCustomer(deleteId);
-    if (result.success) {
-      addToast("Customer deleted", "success");
-      loadData();
-      router.refresh();
-    } else if (result.error) {
-      addToast(result.error, "error");
+    try {
+      const result = await deleteCustomer(deleteId);
+      if (result.success) {
+        addToast("Customer deleted", "success");
+        void loadData();
+        router.refresh();
+      } else if (result.error) {
+        addToast(result.error, "error");
+      }
+    } catch {
+      addToast("Could not delete the customer. Please try again.", "error");
+    } finally {
+      setDeleting(false);
+      setDeleteId(null);
     }
-    setDeleting(false);
-    setDeleteId(null);
   };
 
   const filteredCustomers = customers.filter(c =>

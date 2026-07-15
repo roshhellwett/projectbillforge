@@ -81,32 +81,37 @@ export function useInvoices(initialData?: {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [productsResult, customersResult, invoicesResult, businessResult] = await Promise.all([
-      getProducts(), getCustomers(), getInvoices(PAGE_SIZE, 0), getBusinessProfile(),
-    ]);
-    if (productsResult.success) setProducts(productsResult.products);
-    else if (productsResult.error) addToast(productsResult.error, "error");
-    if (customersResult.success) setCustomers(customersResult.customers);
-    if (invoicesResult.success) {
-      setInvoices(invoicesResult.invoices.map((inv: InvoiceServerRow) => ({ ...inv, invoiceDate: new Date(inv.invoiceDate) })));
-      setTotalInvoices(invoicesResult.total ?? 0);
-      setOffset(invoicesResult.invoices.length);
-    } else if (invoicesResult.error) {
-      if (invoicesResult.error === "Unauthorized") { router.push("/en/login"); return; }
-      addToast(invoicesResult.error, "error");
+    try {
+      const [productsResult, customersResult, invoicesResult, businessResult] = await Promise.all([
+        getProducts(), getCustomers(), getInvoices(PAGE_SIZE, 0), getBusinessProfile(),
+      ]);
+      if (productsResult.success) setProducts(productsResult.products);
+      else if (productsResult.error) addToast(productsResult.error, "error");
+      if (customersResult.success) setCustomers(customersResult.customers);
+      if (invoicesResult.success) {
+        setInvoices(invoicesResult.invoices.map((inv: InvoiceServerRow) => ({ ...inv, invoiceDate: new Date(inv.invoiceDate) })));
+        setTotalInvoices(invoicesResult.total ?? 0);
+        setOffset(invoicesResult.invoices.length);
+      } else if (invoicesResult.error) {
+        if (invoicesResult.error === "Unauthorized") { router.push("/en/login"); return; }
+        addToast(invoicesResult.error, "error");
+      }
+      if (businessResult.success && businessResult.business) {
+        setBusinessProfile({
+          name: businessResult.business.name || "",
+          gstin: businessResult.business.gstin || null,
+          address: businessResult.business.address || null,
+          phone: businessResult.business.phone || null,
+          state: businessResult.business.state || "",
+          pincode: businessResult.business.pincode || null,
+          termsAndConditions: businessResult.business.termsAndConditions || null,
+        });
+      }
+    } catch {
+      addToast("Could not load invoices. Please try again.", "error");
+    } finally {
+      setLoading(false);
     }
-    if (businessResult.success && businessResult.business) {
-      setBusinessProfile({
-        name: businessResult.business.name || "",
-        gstin: businessResult.business.gstin || null,
-        address: businessResult.business.address || null,
-        phone: businessResult.business.phone || null,
-        state: businessResult.business.state || "",
-        pincode: businessResult.business.pincode || null,
-        termsAndConditions: businessResult.business.termsAndConditions || null,
-      });
-    }
-    setLoading(false);
   }, [addToast, router]);
 
   useEffect(() => { if (!initialData) loadData(); }, []);
@@ -130,44 +135,54 @@ export function useInvoices(initialData?: {
     if (itemsPayload.length === 0) { addToast("Add at least one item", "error"); return; }
     if (!formDataPayload.customerName) { addToast("Customer name is required", "error"); return; }
     setSaving(true);
-    const result = await createInvoice({
-      ...formDataPayload,
-      customerId: formDataPayload.customerId || undefined,
-      customerGstin: formDataPayload.customerGstin || undefined,
-      customerAddress: formDataPayload.customerAddress || undefined,
-      items: itemsPayload,
-      isInterState: isInterStatePayload,
-    });
-    if (result.error) {
-      if ((result as { redirectToSettings?: boolean }).redirectToSettings) {
-        setSettingsPromptMessage(result.error);
-        setShowSettingsPrompt(true);
+    try {
+      const result = await createInvoice({
+        ...formDataPayload,
+        customerId: formDataPayload.customerId || undefined,
+        customerGstin: formDataPayload.customerGstin || undefined,
+        customerAddress: formDataPayload.customerAddress || undefined,
+        items: itemsPayload,
+        isInterState: isInterStatePayload,
+      });
+      if (result.error) {
+        if ((result as { redirectToSettings?: boolean }).redirectToSettings) {
+          setSettingsPromptMessage(result.error);
+          setShowSettingsPrompt(true);
+        } else {
+          addToast(result.error, "error");
+        }
       } else {
-        addToast(result.error, "error");
+        addToast("Invoice created", "success");
+        setShowNewInvoice(false);
+        void loadData();
+        router.refresh();
       }
-    } else {
-      addToast("Invoice created", "success");
-      setShowNewInvoice(false);
-      loadData();
-      router.refresh();
+    } catch {
+      addToast("Could not create the invoice. Please try again.", "error");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleCancelInvoice = async () => {
     if (!cancelId) return;
     setCancelling(true);
-    const result = await cancelInvoice(cancelId);
-    if (result.success) {
-      addToast("Invoice cancelled", "success");
-      loadData();
-      router.refresh();
-    } else if (result.error) {
-      if (result.error === "Unauthorized") { router.push("/en/login"); return; }
-      addToast(result.error, "error");
+    try {
+      const result = await cancelInvoice(cancelId);
+      if (result.success) {
+        addToast("Invoice cancelled", "success");
+        void loadData();
+        router.refresh();
+      } else if (result.error) {
+        if (result.error === "Unauthorized") { router.push("/en/login"); return; }
+        addToast(result.error, "error");
+      }
+    } catch {
+      addToast("Could not cancel the invoice. Please try again.", "error");
+    } finally {
+      setCancelling(false);
+      setCancelId(null);
     }
-    setCancelling(false);
-    setCancelId(null);
   };
 
   const filteredInvoices = invoices.filter(inv =>

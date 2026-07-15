@@ -55,34 +55,44 @@ export function useKhata() {
 
   const loadCustomers = useCallback(async () => {
     setLoading(true);
-    const [custResult, overdueResult] = await Promise.all([getCustomers(), getOverdueCustomerIds()]);
-    if (custResult.success) {
-      setCustomers(custResult.customers);
-    } else if (custResult.error) {
-      addToast(custResult.error, "error");
+    try {
+      const [custResult, overdueResult] = await Promise.all([getCustomers(), getOverdueCustomerIds()]);
+      if (custResult.success) {
+        setCustomers(custResult.customers);
+      } else if (custResult.error) {
+        addToast(custResult.error, "error");
+      }
+      if (overdueResult.success) {
+        setOverdueIds(overdueResult.overdueIds ?? []);
+      }
+    } catch {
+      addToast("Could not load customers. Please try again.", "error");
+    } finally {
+      setLoading(false);
     }
-    if (overdueResult.success) {
-      setOverdueIds(overdueResult.overdueIds ?? []);
-    }
-    setLoading(false);
   }, [addToast]);
 
   useEffect(() => { loadCustomers(); }, [loadCustomers]);
 
   const loadStatement = useCallback(async (customerId: string) => {
     setStatementLoading(true);
-    const result = await getKhataStatement(customerId);
-    if (result.success) {
-      setCustomer(result.customer);
-      setStatement(result.statement.map((t: Transaction & { createdAt: Date | string | null }) => ({
-        ...t, createdAt: t.createdAt ? new Date(t.createdAt) : new Date(),
-      })));
-      setAccruedFines(result.accruedFines || 0);
-      setTotalBalanceDue(result.totalBalanceDue || 0);
-    } else if (result.error) {
-      addToast(result.error, "error");
+    try {
+      const result = await getKhataStatement(customerId);
+      if (result.success) {
+        setCustomer(result.customer);
+        setStatement(result.statement.map((t: Transaction & { createdAt: Date | string | null }) => ({
+          ...t, createdAt: t.createdAt ? new Date(t.createdAt) : new Date(),
+        })));
+        setAccruedFines(result.accruedFines || 0);
+        setTotalBalanceDue(result.totalBalanceDue || 0);
+      } else if (result.error) {
+        addToast(result.error, "error");
+      }
+    } catch {
+      addToast("Could not load the statement. Please try again.", "error");
+    } finally {
+      setStatementLoading(false);
     }
-    setStatementLoading(false);
   }, [addToast]);
 
   const loadResetHistory = useCallback(async (customerId: string) => {

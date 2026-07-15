@@ -52,20 +52,25 @@ export function useProducts(initialData?: { products?: Product[]; totalProducts?
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const [productsResult, businessResult] = await Promise.all([
-      getProducts(PAGE_SIZE, 0), getBusinessProfile(),
-    ]);
-    if (productsResult.success) {
-      setProducts(productsResult.products);
-      setTotalProducts(productsResult.total ?? 0);
-      setOffset(productsResult.products.length);
-    } else if (productsResult.error) {
-      addToast(productsResult.error, "error");
+    try {
+      const [productsResult, businessResult] = await Promise.all([
+        getProducts(PAGE_SIZE, 0), getBusinessProfile(),
+      ]);
+      if (productsResult.success) {
+        setProducts(productsResult.products);
+        setTotalProducts(productsResult.total ?? 0);
+        setOffset(productsResult.products.length);
+      } else if (productsResult.error) {
+        addToast(productsResult.error, "error");
+      }
+      if (businessResult.success && businessResult.business) {
+        setIndustryType((businessResult.business.industryType as IndustryType) || "custom");
+      }
+    } catch {
+      addToast("Could not load products. Please try again.", "error");
+    } finally {
+      setLoading(false);
     }
-    if (businessResult.success && businessResult.business) {
-      setIndustryType((businessResult.business.industryType as IndustryType) || "custom");
-    }
-    setLoading(false);
   }, [addToast]);
 
   useEffect(() => { if (!initialData) loadData(); }, []);
@@ -139,34 +144,44 @@ export function useProducts(initialData?: { products?: Product[]; totalProducts?
       stockQuantity: stockQty, lowStockThreshold: threshold,
       metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
     };
-    const result = editingProduct
-      ? await updateProduct(editingProduct.id, data)
-      : await createProduct(data);
-    if (result.error) {
-      addToast(result.error, "error");
-    } else {
-      addToast(editingProduct ? "Product updated" : "Product created", "success");
-      setShowModal(false);
-      setEditingProduct(null);
-      loadData();
-      router.refresh();
+    try {
+      const result = editingProduct
+        ? await updateProduct(editingProduct.id, data)
+        : await createProduct(data);
+      if (result.error) {
+        addToast(result.error, "error");
+      } else {
+        addToast(editingProduct ? "Product updated" : "Product created", "success");
+        setShowModal(false);
+        setEditingProduct(null);
+        void loadData();
+        router.refresh();
+      }
+    } catch {
+      addToast("Could not save the product. Please try again.", "error");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
     setDeleting(true);
-    const result = await deleteProduct(deleteId);
-    if (result.success) {
-      addToast("Product deleted", "success");
-      loadData();
-      router.refresh();
-    } else if (result.error) {
-      addToast(result.error, "error");
+    try {
+      const result = await deleteProduct(deleteId);
+      if (result.success) {
+        addToast("Product deleted", "success");
+        void loadData();
+        router.refresh();
+      } else if (result.error) {
+        addToast(result.error, "error");
+      }
+    } catch {
+      addToast("Could not delete the product. Please try again.", "error");
+    } finally {
+      setDeleting(false);
+      setDeleteId(null);
     }
-    setDeleting(false);
-    setDeleteId(null);
   };
 
   const filteredProducts = products.filter(p =>
