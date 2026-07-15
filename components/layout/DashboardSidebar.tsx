@@ -154,26 +154,28 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
         </div>
 
         {/* User Profile & Controls */}
-        <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-2 overflow-hidden max-w-[130px]">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center gap-2.5 overflow-hidden flex-1 min-w-0 pr-2">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
               {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}
             </div>
-            <div className="flex flex-col overflow-hidden">
-              <span className="font-semibold text-xs text-[var(--foreground)] truncate">
+            <div className="flex flex-col overflow-hidden min-w-0">
+              <span className="font-bold text-xs text-[var(--foreground)] truncate">
                 {session?.user?.name || "Merchant"}
               </span>
-              <span className="text-[10px] text-[var(--foreground)]/50 truncate">
+              <span className="text-[10px] text-[var(--foreground)]/50 truncate font-medium">
                 Verified Pro
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
-            <div className="transform scale-75 origin-center">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="transform scale-[0.68] origin-right" title="Toggle Dark/Light Theme">
               <ThemeToggle />
             </div>
-            <SignOutButton iconOnly />
+            <div className="pl-1 border-l border-[var(--border)]/60">
+              <SignOutButton iconOnly />
+            </div>
           </div>
         </div>
       </div>

@@ -151,17 +151,17 @@ export async function getProducts(limit = 50, offset = 0) {
   try {
     const session = await requireBusinessSession();
 
-    const productList = await db.query.products.findMany({
-      where: eq(products.businessId, session.id),
-      orderBy: [desc(products.createdAt)],
-      limit,
-      offset,
-    });
-
-    const [countResult] = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(products)
-      .where(eq(products.businessId, session.id));
+    const [productList, [countResult]] = await Promise.all([
+      db.query.products.findMany({
+        where: eq(products.businessId, session.id),
+        orderBy: [desc(products.createdAt)],
+        limit,
+        offset,
+      }),
+      db.select({ count: sql<number>`COUNT(*)` })
+        .from(products)
+        .where(eq(products.businessId, session.id)),
+    ]);
 
     return { success: true, products: productList, total: Number(countResult.count) };
   } catch (error: unknown) {

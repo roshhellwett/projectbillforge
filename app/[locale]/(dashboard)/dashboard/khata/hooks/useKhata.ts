@@ -98,13 +98,17 @@ export function useKhata() {
     setTotalBalanceDue(0);
     setResetHistory([]);
     if (customerId) {
+      const immediateCust = customers.find(c => c.id === customerId);
+      if (immediateCust) {
+        setCustomer(immediateCust);
+      }
       loadStatement(customerId);
       loadResetHistory(customerId);
     } else {
       setCustomer(null);
       setStatement([]);
     }
-  }, [loadStatement, loadResetHistory]);
+  }, [customers, loadStatement, loadResetHistory]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

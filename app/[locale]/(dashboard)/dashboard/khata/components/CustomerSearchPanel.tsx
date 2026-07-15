@@ -15,11 +15,12 @@ interface Props {
   selectedCustomer: string;
   customerSearch: string;
   overdueIds: string[];
+  statementLoading?: boolean;
   onSearchChange: (v: string) => void;
   onSelect: (id: string) => void;
 }
 
-export const CustomerSearchPanel = React.memo(function CustomerSearchPanel({ customers, selectedCustomer, customerSearch, overdueIds, onSearchChange, onSelect }: Props) {
+export const CustomerSearchPanel = React.memo(function CustomerSearchPanel({ customers, selectedCustomer, customerSearch, overdueIds, statementLoading, onSearchChange, onSelect }: Props) {
   const t = useTranslations("Khata");
   const overdueSet = new Set(overdueIds);
   const filtered = customers
@@ -89,19 +90,24 @@ export const CustomerSearchPanel = React.memo(function CustomerSearchPanel({ cus
                     </span>
                   )}
                 </div>
-                <div className="text-right shrink-0">
-                  <div
-                    className={`text-sm font-black font-mono ${
-                      safeNum(c.currentBalance) > 0
-                        ? "text-[var(--color-warning)]"
-                        : safeNum(c.currentBalance) < 0
-                        ? "text-[var(--color-success)]"
-                        : "text-[var(--foreground)]/70"
-                    }`}
-                  >
-                    {safeNum(c.currentBalance) < 0 ? "-" : ""}₹{fmt(c.currentBalance)}
+                <div className="text-right shrink-0 flex flex-col items-end">
+                  <div className="flex items-center gap-1.5">
+                    {isSelected && statementLoading && (
+                      <div className="w-3.5 h-3.5 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+                    )}
+                    <div
+                      className={`text-sm font-black font-mono ${
+                        safeNum(c.currentBalance) > 0
+                          ? "text-[var(--color-warning)]"
+                          : safeNum(c.currentBalance) < 0
+                          ? "text-[var(--color-success)]"
+                          : "text-[var(--foreground)]/70"
+                      }`}
+                    >
+                      {safeNum(c.currentBalance) < 0 ? "-" : ""}₹{fmt(c.currentBalance)}
+                    </div>
                   </div>
-                  <div className="text-[10px] uppercase tracking-wider text-[var(--foreground)]/40 font-semibold">
+                  <div className="text-[10px] uppercase tracking-wider text-[var(--foreground)]/40 font-semibold mt-0.5">
                     {t("balance")}
                   </div>
                 </div>

@@ -106,15 +106,14 @@ export async function deleteCustomer(id: string) {
       return { error: "Action blocked: Cannot delete customer with a non-zero Khata balance. Please settle dues first." };
     }
 
-    const [invoiceHistory] = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(invoices)
-      .where(and(eq(invoices.customerId, id), eq(invoices.businessId, session.id)));
-
-    const [khataHistory] = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(khataTransactions)
-      .where(and(eq(khataTransactions.customerId, id), eq(khataTransactions.businessId, session.id)));
+    const [[invoiceHistory], [khataHistory]] = await Promise.all([
+      db.select({ count: sql<number>`COUNT(*)` })
+        .from(invoices)
+        .where(and(eq(invoices.customerId, id), eq(invoices.businessId, session.id))),
+      db.select({ count: sql<number>`COUNT(*)` })
+        .from(khataTransactions)
+        .where(and(eq(khataTransactions.customerId, id), eq(khataTransactions.businessId, session.id))),
+    ]);
 
     if (Number(invoiceHistory?.count ?? 0) > 0 || Number(khataHistory?.count ?? 0) > 0) {
       return { error: "Cannot delete customer with invoice or Khata history. Keep the customer for audit records." };
@@ -136,17 +135,17 @@ export async function getCustomers(limit = 50, offset = 0) {
   try {
     const session = await requireBusinessSession();
 
-    const customerList = await db.query.customers.findMany({
-      where: eq(customers.businessId, session.id),
-      orderBy: [desc(customers.createdAt)],
-      limit,
-      offset,
-    });
-
-    const [countResult] = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(customers)
-      .where(eq(customers.businessId, session.id));
+    const [customerList, [countResult]] = await Promise.all([
+      db.query.customers.findMany({
+        where: eq(customers.businessId, session.id),
+        orderBy: [desc(customers.createdAt)],
+        limit,
+        offset,
+      }),
+      db.select({ count: sql<number>`COUNT(*)` })
+        .from(customers)
+        .where(eq(customers.businessId, session.id)),
+    ]);
 
     return { success: true, customers: customerList, total: Number(countResult.count) };
   } catch (error: unknown) {

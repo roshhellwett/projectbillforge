@@ -14,22 +14,26 @@ import { checkActionRateLimit } from "@/lib/rate-limit";
 const INDIA_TIME_ZONE = "Asia/Kolkata";
 
 async function getCachedSummary(bId: string, tStr: string) {
-  const [invoiceResult] = await db.execute(sql`
-    SELECT
-      COALESCE(SUM(CASE WHEN invoice_date = ${tStr} THEN total ELSE 0 END), 0) AS today_sales,
-      COALESCE(SUM(total), 0) AS total_sales,
-      COUNT(*) AS total_invoices
-    FROM invoices
-    WHERE business_id = ${bId} AND status = 'active'
-  `) as unknown as [{ today_sales: number; total_sales: number; total_invoices: number }];
+  const [invoiceResultRows, customerResultRows] = await Promise.all([
+    db.execute(sql`
+      SELECT
+        COALESCE(SUM(CASE WHEN invoice_date = ${tStr} THEN total ELSE 0 END), 0) AS today_sales,
+        COALESCE(SUM(total), 0) AS total_sales,
+        COUNT(*) AS total_invoices
+      FROM invoices
+      WHERE business_id = ${bId} AND status = 'active'
+    `),
+    db.execute(sql`
+      SELECT
+        COUNT(*) AS total_customers,
+        COALESCE(SUM(CASE WHEN current_balance > 0 THEN current_balance ELSE 0 END), 0) AS total_receivable
+      FROM customers
+      WHERE business_id = ${bId}
+    `),
+  ]);
 
-  const [customerResult] = await db.execute(sql`
-    SELECT
-      COUNT(*) AS total_customers,
-      COALESCE(SUM(CASE WHEN current_balance > 0 THEN current_balance ELSE 0 END), 0) AS total_receivable
-    FROM customers
-    WHERE business_id = ${bId}
-  `) as unknown as [{ total_customers: number; total_receivable: number }];
+  const invoiceResult = (invoiceResultRows as unknown as [{ today_sales: number; total_sales: number; total_invoices: number }])[0];
+  const customerResult = (customerResultRows as unknown as [{ total_customers: number; total_receivable: number }])[0];
 
   return {
     todaySales: Number(invoiceResult.today_sales),
@@ -342,17 +346,17 @@ export async function getInvoices(limit = 50, offset = 0) {
   try {
     const session = await requireBusinessSession();
 
-    const invoiceList = await db.query.invoices.findMany({
-      where: eq(invoices.businessId, session.id),
-      orderBy: [desc(invoices.createdAt)],
-      limit,
-      offset,
-    });
-
-    const [countResult] = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(invoices)
-      .where(eq(invoices.businessId, session.id));
+    const [invoiceList, [countResult]] = await Promise.all([
+      db.query.invoices.findMany({
+        where: eq(invoices.businessId, session.id),
+        orderBy: [desc(invoices.createdAt)],
+        limit,
+        offset,
+      }),
+      db.select({ count: sql<number>`COUNT(*)` })
+        .from(invoices)
+        .where(eq(invoices.businessId, session.id)),
+    ]);
 
     return { success: true, invoices: invoiceList, total: Number(countResult.count) };
   } catch (error: unknown) {

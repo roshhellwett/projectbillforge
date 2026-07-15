@@ -151,32 +151,31 @@ export async function getKhataStatement(customerId: string) {
   try {
     const session = await requireBusinessSession();
 
-    const customer = await db.query.customers.findFirst({
-      where: and(eq(customers.id, customerId), eq(customers.businessId, session.id)),
-    });
+    const [customer, business, allTransactions, invoicesList] = await Promise.all([
+      db.query.customers.findFirst({
+        where: and(eq(customers.id, customerId), eq(customers.businessId, session.id)),
+      }),
+      db.query.businesses.findFirst({
+        where: eq(businesses.id, session.id),
+      }),
+      db.query.khataTransactions.findMany({
+        where: and(eq(khataTransactions.customerId, customerId), eq(khataTransactions.businessId, session.id)),
+        orderBy: [asc(khataTransactions.createdAt)],
+      }),
+      db.query.invoices.findMany({
+        where: and(
+          eq(invoices.customerId, customerId),
+          eq(invoices.businessId, session.id),
+          sql`${invoices.paymentStatus} IN ('paid_by_khata', 'partial')`,
+          eq(invoices.status, 'active'),
+          sql`${invoices.finesCollectedAt} IS NULL`
+        ),
+      }),
+    ]);
 
     if (!customer) {
       return { error: "Customer not found" };
     }
-
-    const business = await db.query.businesses.findFirst({
-      where: eq(businesses.id, session.id),
-    });
-
-    const allTransactions = await db.query.khataTransactions.findMany({
-      where: and(eq(khataTransactions.customerId, customerId), eq(khataTransactions.businessId, session.id)),
-      orderBy: [asc(khataTransactions.createdAt)],
-    });
-
-    const invoicesList = await db.query.invoices.findMany({
-      where: and(
-        eq(invoices.customerId, customerId),
-        eq(invoices.businessId, session.id),
-        sql`${invoices.paymentStatus} IN ('paid_by_khata', 'partial')`,
-        eq(invoices.status, 'active'),
-        sql`${invoices.finesCollectedAt} IS NULL`
-      ),
-    });
 
     
     let totalAccruedFines = 0;
@@ -248,14 +247,15 @@ export async function chargeLateFees(customerId: string) {
   try {
     const session = await requireBusinessSession();
 
-    const customer = await db.query.customers.findFirst({
-      where: and(eq(customers.id, customerId), eq(customers.businessId, session.id)),
-    });
+    const [customer, business] = await Promise.all([
+      db.query.customers.findFirst({
+        where: and(eq(customers.id, customerId), eq(customers.businessId, session.id)),
+      }),
+      db.query.businesses.findFirst({
+        where: eq(businesses.id, session.id),
+      }),
+    ]);
     if (!customer) return { error: "Customer not found" };
-
-    const business = await db.query.businesses.findFirst({
-      where: eq(businesses.id, session.id),
-    });
     if (!business) return { error: "Business not found" };
 
     const result = await db.transaction(async (tx) => {

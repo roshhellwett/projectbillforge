@@ -40,6 +40,7 @@ export default function KhataPage() {
           selectedCustomer={selectedCustomer}
           customerSearch={customerSearch}
           overdueIds={overdueIds}
+          statementLoading={statementLoading}
           onSearchChange={setCustomerSearch}
           onSelect={handleCustomerSelect}
         />
