@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
-import { Clock, ShoppingBag, ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { Clock, ShoppingBag, ArrowDownRight, ArrowUpRight, Receipt, ExternalLink } from "lucide-react";
 import { InteractiveItem } from "@/components/ui/MotionWrapper";
 import { formatCurrency } from "@/lib/formatters";
+import { Link } from "@/i18n/routing";
 
 interface RecentInvoice { id: string; customerName: string; invoiceNumber: string; total: number | null; paymentStatus: string | null }
 
@@ -11,36 +12,71 @@ export async function RecentInvoices({ recentPromise }: { recentPromise: Promise
   const recentInvoices = (recentResult.success && recentResult.invoices) ? recentResult.invoices : [];
 
   return (
-    <div className="white-container p-5 sm:p-6 md:p-7 lg:p-8 h-full flex flex-col">
-      <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
-        <div className="p-2 bg-blue-600/10 rounded-xl">
-          <Clock style={{ color: "#2563eb" }} size={16} />
+    <div className="glass-card p-6 sm:p-8 h-full flex flex-col justify-between card-hover-lift">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-xl">
+            <Clock size={18} />
+          </div>
+          <h2 className="text-base sm:text-lg font-extrabold tracking-tight text-[var(--foreground)]">
+            {t("recentInvoicesTitle")}
+          </h2>
         </div>
-        <h2 className="text-sm sm:text-base font-bold tracking-tight text-[var(--foreground)]">{t("recentInvoicesTitle")}</h2>
+        <Link
+          href="/dashboard/invoices"
+          className="text-xs font-bold text-[var(--color-primary)] hover:underline flex items-center gap-1 transition-colors"
+        >
+          View All <ExternalLink size={13} />
+        </Link>
       </div>
+
       {(!recentInvoices || recentInvoices.length === 0) ? (
-        <div className="text-center py-8 sm:py-10 md:py-12 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-100 dark:border-slate-700/30">
-          <ShoppingBag className="mx-auto mb-2 sm:mb-3 text-[var(--foreground)]/20" size={32} />
-          <p className="text-[var(--foreground)]/40 font-medium text-sm">{t("recentInvoicesEmpty")}</p>
-          <p className="text-xs text-[var(--foreground)]/30 mt-1">{t("recentInvoicesEmptyHint")}</p>
+        <div className="text-center py-12 bg-[var(--surface-elevated)] rounded-2xl border border-[var(--border)] flex-1 flex flex-col items-center justify-center">
+          <div className="p-4 rounded-full bg-[var(--foreground)]/5 text-[var(--foreground)]/30 mb-3">
+            <Receipt size={32} />
+          </div>
+          <p className="text-[var(--foreground)]/60 font-semibold text-sm">{t("recentInvoicesEmpty")}</p>
+          <p className="text-xs text-[var(--foreground)]/40 mt-1">{t("recentInvoicesEmptyHint")}</p>
         </div>
       ) : (
-        <div className="space-y-2 sm:space-y-2.5">
+        <div className="space-y-2.5 flex-1">
           {recentInvoices?.map((inv) => (
             <InteractiveItem key={inv.id}>
-              <div className="flex items-center justify-between px-3 py-3 sm:px-4 sm:py-4 bg-white dark:bg-[var(--surface)] hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-200 border-b border-slate-100/60 dark:border-slate-800/60 hover:shadow-sm cursor-pointer group">
-                <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                  <div className={`p-2 lg:p-2.5 rounded-xl shrink-0 transition-transform group-hover:scale-105 ${inv.paymentStatus === "paid" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400" : inv.paymentStatus === "partial" ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" : "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"}`}>
+              <div className="flex items-center justify-between px-4 py-3.5 bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] transition-all duration-200 border border-[var(--border)] rounded-2xl cursor-pointer group">
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  <div
+                    className={`p-2.5 rounded-xl shrink-0 transition-transform group-hover:scale-110 ${
+                      inv.paymentStatus === "paid"
+                        ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                        : inv.paymentStatus === "partial"
+                        ? "bg-blue-500/10 text-blue-500 border border-blue-500/20"
+                        : "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                    }`}
+                  >
                     {inv.paymentStatus === "paid" ? <ArrowDownRight size={18} /> : <ArrowUpRight size={18} />}
                   </div>
                   <div className="min-w-0 pr-2">
-                    <p className="font-semibold text-[var(--foreground)] text-sm group-hover:text-[var(--color-primary)] transition-colors truncate">{inv.customerName}</p>
-                    <p className="text-[10px] sm:text-xs text-[var(--foreground)]/40 mt-0.5">{inv.invoiceNumber}</p>
+                    <p className="font-bold text-[var(--foreground)] text-sm group-hover:text-[var(--color-primary)] transition-colors truncate">
+                      {inv.customerName}
+                    </p>
+                    <p className="text-xs font-mono text-[var(--foreground)]/50 mt-0.5">{inv.invoiceNumber}</p>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="font-bold text-sm text-[var(--foreground)]">{formatCurrency(inv.total)}</p>
-                  <span className={`inline-flex mt-1 items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${inv.paymentStatus === "paid" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400" : inv.paymentStatus === "partial" ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" : "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"}`}>{inv.paymentStatus === "paid_by_khata" ? "Khata" : inv.paymentStatus}</span>
+                  <p className="font-black font-mono text-sm sm:text-base text-[var(--foreground)]">
+                    {formatCurrency(inv.total)}
+                  </p>
+                  <span
+                    className={`inline-flex mt-1 items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                      inv.paymentStatus === "paid"
+                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                        : inv.paymentStatus === "partial"
+                        ? "bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                        : "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                    }`}
+                  >
+                    {inv.paymentStatus === "paid_by_khata" ? "Khata Sync" : inv.paymentStatus}
+                  </span>
                 </div>
               </div>
             </InteractiveItem>

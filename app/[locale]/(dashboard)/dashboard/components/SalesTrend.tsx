@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 
 export async function SalesTrend({ weeklyPromise }: { weeklyPromise: Promise<{ success?: boolean; days?: { date: string; label: string; total: number }[] }> }) {
@@ -11,45 +11,64 @@ export async function SalesTrend({ weeklyPromise }: { weeklyPromise: Promise<{ s
   const weeklyData = data;
 
   return (
-    <div className="white-container p-5 sm:p-6 md:p-7 lg:p-8 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="p-2 sm:p-2.5 bg-blue-600/10 rounded-xl">
-            <BarChart3 style={{ color: "#2563eb" }} size={20} />
+    <div className="glass-card p-6 sm:p-8 h-full flex flex-col justify-between card-hover-lift">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-2xl flex items-center justify-center font-bold">
+            <BarChart3 size={22} />
           </div>
           <div>
-            <h2 className="text-sm sm:text-base font-bold tracking-tight text-[var(--foreground)]">{t("salesTrendTitle")}</h2>
-            <p className="text-[10px] sm:text-xs text-[var(--foreground)]/40">{t("salesTrendSubtitle")}</p>
+            <h2 className="text-base sm:text-lg font-extrabold tracking-tight text-[var(--foreground)]">
+              {t("salesTrendTitle")}
+            </h2>
+            <p className="text-xs text-[var(--foreground)]/60">
+              {t("salesTrendSubtitle")}
+            </p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-[9px] sm:text-[10px] font-medium text-[var(--foreground)]/40 uppercase tracking-wider">{t("salesTrendWeeklyTotal")}</p>
-          <p className="text-sm sm:text-lg font-bold text-[var(--foreground)]">{formatCurrency(weeklyTotal)}</p>
+        <div className="sm:text-right bg-[var(--surface-elevated)] sm:bg-transparent p-3 sm:p-0 rounded-xl border border-[var(--border)] sm:border-none flex justify-between sm:block items-center">
+          <p className="text-[10px] font-bold text-[var(--foreground)]/50 uppercase tracking-wider">
+            {t("salesTrendWeeklyTotal")}
+          </p>
+          <p className="text-lg sm:text-xl font-black font-mono text-[var(--color-primary)]">
+            {formatCurrency(weeklyTotal)}
+          </p>
         </div>
       </div>
 
-      <div className="relative flex-1" style={{ minHeight: "160px" }}>
-        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="border-b border-[var(--border)]/30" />
+      <div className="relative flex-1 pt-6 pb-2 min-h-[190px] flex flex-col justify-end">
+        {/* Horizontal Grid Lines */}
+        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none pb-8">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="border-b border-[var(--border)]/50 w-full" />
           ))}
         </div>
-        <div className="absolute inset-0 flex items-end gap-1 sm:gap-2 md:gap-3 px-0.5 sm:px-1">
+
+        {/* Bars Grid */}
+        <div className="relative z-10 flex items-end justify-between gap-2 sm:gap-4 h-full px-1">
           {weeklyData?.map((day, i) => {
             const pct = weeklyMax > 0 ? (day.total / weeklyMax) * 100 : 0;
             const isToday = i === weeklyData.length - 1;
             return (
-              <div key={day.date} className="flex-1 flex flex-col items-center justify-end h-full">
+              <div key={day.date} className="flex-1 flex flex-col items-center justify-end h-full group">
                 {day.total > 0 && (
-                                    <span className="text-[10px] sm:text-[9px] font-bold text-[var(--foreground)]/50 mb-1 sm:mb-1.5 whitespace-nowrap">
+                  <span className="text-[10px] sm:text-xs font-bold font-mono text-[var(--foreground)]/70 mb-2 opacity-80 group-hover:opacity-100 transition-opacity">
                     ₹{day.total >= 1000 ? `${(day.total / 1000).toFixed(1)}k` : day.total.toFixed(0)}
                   </span>
                 )}
-                <div
-                  className={`w-full max-w-[28px] sm:max-w-[36px] md:max-w-[48px] rounded-t-lg transition-all duration-700 ease-out ${isToday ? "bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]" : "bg-blue-600/30"}`}
-                  style={{ height: `${Math.max(pct, 3)}%`, minHeight: "6px" }}
-                />
-                <span className={`text-[9px] sm:text-[11px] font-semibold mt-1 sm:mt-2 ${isToday ? "text-blue-600" : "text-[var(--foreground)]/40"}`}>{day.label}</span>
+                <div className="w-full flex justify-center h-full items-end">
+                  <div
+                    className={`w-full max-w-[40px] rounded-t-xl transition-all duration-700 ease-out group-hover:brightness-110 ${
+                      isToday
+                        ? "bg-gradient-to-t from-[var(--color-primary)] to-[var(--color-primary-light)] shadow-md shadow-blue-500/25"
+                        : "bg-[var(--color-primary)]/20 hover:bg-[var(--color-primary)]/40"
+                    }`}
+                    style={{ height: `${Math.max(pct, 5)}%`, minHeight: "8px" }}
+                  />
+                </div>
+                <span className={`text-[10px] sm:text-xs font-bold mt-2.5 ${isToday ? "text-[var(--color-primary)] scale-105" : "text-[var(--foreground)]/60"}`}>
+                  {day.label}
+                </span>
               </div>
             );
           })}

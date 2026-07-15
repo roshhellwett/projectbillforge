@@ -36,27 +36,27 @@ export async function registerBusiness(data: BusinessRegisterInput, locale: stri
 
   
   
-  if (!process.env.TURNSTILE_SECRET_KEY) {
-    return { error: "Security is not configured. Please contact support." };
+  if (process.env.NODE_ENV === "production" && !process.env.TURNSTILE_SECRET_KEY) {
+    return { error: "Security challenge key is not configured. Please contact support." };
   }
-  if (!turnstileToken) {
-    return { error: "Please complete the security check to continue." };
-  }
-  try {
-    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `secret=${encodeURIComponent(process.env.TURNSTILE_SECRET_KEY)}&response=${encodeURIComponent(turnstileToken)}`,
-    });
-    const outcome = await res.json();
-    if (!outcome.success) {
-      return { error: "Security check failed. Please refresh and try again." };
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    if (!turnstileToken) {
+      return { error: "Please complete the Cloudflare Turnstile security check to continue." };
     }
-  } catch (e) {
-    console.error("Turnstile verification error:", e);
-    return { error: "Unable to verify security challenge at this time." };
+    try {
+      const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `secret=${encodeURIComponent(process.env.TURNSTILE_SECRET_KEY)}&response=${encodeURIComponent(turnstileToken)}`,
+      });
+      const outcome = await res.json();
+      if (!outcome.success) {
+        return { error: "Security check failed. Please refresh and try again." };
+      }
+    } catch (e) {
+      console.error("Turnstile verification error:", e);
+      return { error: "Unable to verify security challenge at this time." };
+    }
   }
 
   const existingBusiness = await db.query.businesses.findFirst({

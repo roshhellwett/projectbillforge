@@ -1,808 +1,803 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { Link } from '@/i18n/routing';
-import { useTranslations } from 'next-intl';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { motion, Variants, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { Link } from "@/i18n/routing";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-    CheckCircle2,
-    ChevronRight,
-    Layout,
-    Users,
-    Star,
-    ArrowRight,
-    Menu,
-    X,
-    Shield,
-    Zap,
-    Clock,
-    MessageSquare
-} from 'lucide-react';
+  CheckCircle2,
+  ChevronRight,
+  Layout,
+  Users,
+  Star,
+  ArrowRight,
+  Menu,
+  X,
+  ShieldCheck,
+  Zap,
+  Clock,
+  MessageSquare,
+  Sparkles,
+  Receipt,
+  BookOpen,
+  TrendingUp,
+  Plus,
+  Check,
+  ArrowUpRight,
+  Globe,
+  Share2,
+  Lock,
+} from "lucide-react";
 
-
-const fadeInUp: Variants = {
-    hidden: { opacity: 0, y: 40, scale: 0.95 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }
-};
-
-const staggerContainer: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.15,
-            delayChildren: 0.1
-        }
-    }
-};
-
-const floatAnimation = {
-    y: ["-12px", "12px"],
-    transition: {
-        y: {
-            duration: 2.5,
-            repeat: Infinity,
-            repeatType: "reverse" as const,
-            ease: "easeInOut" as const
-        }
-    }
-};
-
-const floatAnimationDelayed = {
-    y: ["12px", "-12px"],
-    transition: {
-        y: {
-            duration: 3,
-            repeat: Infinity,
-            repeatType: "reverse" as const,
-            ease: "easeInOut" as const
-        }
-    }
-};
-
-
+/* Testimonial Data */
 const testimonials = [
-    {
-        name: "Rajesh Kumar",
-        role: "Kirana Store Owner, Delhi",
-        text: "BillForge has made handling daily credit (Udhaar) so much easier. I can now track every rupee with just a few taps on my phone.",
-        initials: "RK",
-        color: "bg-amber-100 text-amber-600"
-    },
-    {
-        name: "Priya Sharma",
-        role: "Hardware Merchant, Jaipur",
-        text: "Invoicing used to be a headache every month. Now, I generate professional GST-ready invoices in seconds. My customers love the speed!",
-        initials: "PS",
-        color: "bg-indigo-100 text-indigo-600"
-    },
-    {
-        name: "Arun Varma",
-        role: "Boutique Owner, Mumbai",
-        text: "The Khata management feature is a lifesaver. No more physical registers or lost records. It's clean, simple, and very effective.",
-        initials: "AV",
-        color: "bg-rose-100 text-rose-600"
-    },
-    {
-        name: "Sunita Devi",
-        role: "Grain Wholesaler, Punjab",
-        text: "Managing hundreds of transactions was impossible before BillForge. Now my business is organized and I have peace of mind.",
-        initials: "SD",
-        color: "bg-emerald-100 text-emerald-600"
-    },
-    {
-        name: "Vikram Singh",
-        role: "Electronics Retailer, Bangalore",
-        text: "The best part is how easy it is to use. No technical knowledge needed—it just works. Truly made for Indian small businesses.",
-        initials: "VS",
-        color: "bg-purple-100 text-purple-600"
-    }
+  {
+    name: "Rajesh Kumar",
+    role: "Kirana Store Owner, Delhi",
+    text: "BillForge has made handling daily credit (Udhaar) so much easier. I can now track every rupee with just a few taps on my phone.",
+    initials: "RK",
+    color: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  },
+  {
+    name: "Priya Sharma",
+    role: "Hardware Merchant, Jaipur",
+    text: "Invoicing used to be a headache every month. Now, I generate professional GST-ready invoices in seconds. My customers love the speed!",
+    initials: "PS",
+    color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+  },
+  {
+    name: "Arun Varma",
+    role: "Boutique Owner, Mumbai",
+    text: "The Khata management feature is a lifesaver. No more physical registers or lost records. It's clean, simple, and very effective.",
+    initials: "AV",
+    color: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
+  },
+  {
+    name: "Sunita Devi",
+    role: "Grain Wholesaler, Punjab",
+    text: "Managing hundreds of transactions was impossible before BillForge. Now my business is organized and I have peace of mind.",
+    initials: "SD",
+    color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  },
+  {
+    name: "Vikram Singh",
+    role: "Electronics Retailer, Bangalore",
+    text: "The best part is how easy it is to use. No technical knowledge needed—it just works. Truly made for Indian small businesses.",
+    initials: "VS",
+    color: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+  },
 ];
 
-const TestimonialSlider = () => {
-    const [index, setIndex] = useState(0);
+/* Interactive Mini-Demo Component */
+const HeroInteractiveDemo = () => {
+  const [activeTab, setActiveTab] = useState<"invoice" | "khata" | "insights">("invoice");
+  
+  // Invoice state
+  const [items, setItems] = useState([
+    { name: "Ultra-Fast SSD 1TB", qty: 2, price: 5400 },
+    { name: "Wireless Mechanical Keyboard", qty: 1, price: 3200 },
+  ]);
+  const [itemAddedNotice, setItemAddedNotice] = useState(false);
 
-    React.useEffect(() => {
-        const timer = setInterval(() => {
-            setIndex((prev) => (prev + 1) % testimonials.length);
-        }, 5000);
-        return () => clearInterval(timer);
-    }, []);
+  // Khata state
+  const [khataBalance, setKhataBalance] = useState(14500);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
-    return (
-        <div className="relative max-w-4xl mx-auto min-h-[400px] flex items-center">
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -50 }}
-                    transition={{ duration: 0.5, ease: "easeInOut" }}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center w-full"
-                >
-                    
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-indigo-50/50 rounded-[3rem] transform rotate-3 scale-105 -z-10"></div>
-                        <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl shadow-indigo-100/50 border border-slate-100 relative text-center">
-                            <div className={`w-24 h-24 ${testimonials[index].color} rounded-full mx-auto mb-6 flex items-center justify-center font-bold text-3xl border-4 border-white shadow-xl`}>
-                                {testimonials[index].initials}
-                            </div>
-                            <h4 className="font-bold text-slate-800 text-xl mb-1">{testimonials[index].name}</h4>
-                            <p className="text-slate-500 text-sm mb-6">{testimonials[index].role}</p>
+  const addItem = () => {
+    setItems((prev) => [...prev, { name: "USB-C Pro Adapter 65W", qty: 1, price: 1800 }]);
+    setItemAddedNotice(true);
+    setTimeout(() => setItemAddedNotice(false), 2000);
+  };
 
-                            <div className="flex justify-center gap-1.5 text-amber-400 mb-8">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star key={i} size={18} fill="currentColor" />
-                                ))}
-                            </div>
+  const recordPayment = () => {
+    setKhataBalance((prev) => Math.max(0, prev - 2500));
+    setPaymentSuccess(true);
+    setTimeout(() => setPaymentSuccess(false), 2500);
+  };
 
-                            
-                            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden text-left">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <div className="w-2 h-2 rounded-full bg-white"></div>
-                                    <div className="w-8 h-1.5 bg-white/30 rounded-full"></div>
-                                </div>
-                                <div className="w-3/4 h-2 bg-white/20 rounded-full mb-2"></div>
-                                <div className="w-1/2 h-2 bg-white/20 rounded-full"></div>
-                            </div>
-                        </div>
-                    </div>
+  const subtotal = items.reduce((acc, curr) => acc + curr.qty * curr.price, 0);
+  const gst = Math.round(subtotal * 0.18);
+  const total = subtotal + gst;
 
-                    <div className="text-center md:text-left">
-                        <div className="text-indigo-500 bg-indigo-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-8 shadow-sm mx-auto md:mx-0">
-                            <MessageSquare size={32} fill="currentColor" className="opacity-80" />
-                        </div>
-                        <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 mb-8 leading-tight italic">
-                            "{testimonials[index].text}"
-                        </h3>
-                        <div className="flex items-center justify-center md:justify-start gap-4 border-t border-slate-100 pt-8">
-                            <span className="text-slate-500 font-medium">Verified Vendor</span>
-                            <div className="flex items-center gap-1 font-bold text-slate-800">
-                                <Star fill="#00b67a" color="#00b67a" size={20} /> Trustpilot 4.8/5
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
-            </AnimatePresence>
-
-            
-            <div className="absolute -bottom-16 md:-bottom-12 left-1/2 -translate-x-1/2 flex gap-3">
-                {testimonials.map((_, i) => (
-                    <button
-                        key={i}
-                        onClick={() => setIndex(i)}
-                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${index === i ? 'bg-indigo-600 w-8' : 'bg-slate-200 hover:bg-indigo-200'}`}
-                        aria-label={`Go to testimonial ${i + 1}`}
-                    />
-                ))}
-            </div>
+  return (
+    <div className="w-full max-w-xl mx-auto rounded-3xl bg-[var(--surface)] border border-[var(--border)] shadow-2xl overflow-hidden relative">
+      {/* Demo Header Bar */}
+      <div className="p-4 bg-[var(--surface-elevated)] border-b border-[var(--border)] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-red-400/80" />
+            <span className="w-3 h-3 rounded-full bg-amber-400/80" />
+            <span className="w-3 h-3 rounded-full bg-emerald-400/80" />
+          </div>
+          <span className="text-xs font-mono font-semibold text-[var(--foreground)]/70 ml-2">
+            BillForge Interactive Engine
+          </span>
         </div>
-    );
+        <span className="badge badge-success text-[10px] animate-pulse">Live Preview</span>
+      </div>
+
+      {/* Tab Controls */}
+      <div className="grid grid-cols-3 border-b border-[var(--border)] bg-[var(--surface-elevated)]/50 p-1.5 gap-1">
+        <button
+          onClick={() => setActiveTab("invoice")}
+          className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+            activeTab === "invoice"
+              ? "bg-[var(--surface)] text-[var(--color-primary)] shadow-sm"
+              : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
+          }`}
+        >
+          <Receipt size={14} /> GST Invoice
+        </button>
+        <button
+          onClick={() => setActiveTab("khata")}
+          className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+            activeTab === "khata"
+              ? "bg-[var(--surface)] text-[var(--color-primary)] shadow-sm"
+              : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
+          }`}
+        >
+          <BookOpen size={14} /> Digital Khata
+        </button>
+        <button
+          onClick={() => setActiveTab("insights")}
+          className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+            activeTab === "insights"
+              ? "bg-[var(--surface)] text-[var(--color-primary)] shadow-sm"
+              : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
+          }`}
+        >
+          <TrendingUp size={14} /> Analytics
+        </button>
+      </div>
+
+      {/* Tab Body */}
+      <div className="p-5 sm:p-6 min-h-[310px] flex flex-col justify-between">
+        <AnimatePresence mode="wait">
+          {activeTab === "invoice" && (
+            <motion.div
+              key="invoice"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 flex-1 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h4 className="font-bold text-sm text-[var(--foreground)]">New GST Bill #INV-1092</h4>
+                    <p className="text-[11px] text-[var(--foreground)]/60">Client: Sharma Electronics</p>
+                  </div>
+                  <button
+                    onClick={addItem}
+                    disabled={items.length >= 4}
+                    className="px-3 py-1.5 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white text-xs font-semibold transition-all flex items-center gap-1 active:scale-95"
+                  >
+                    <Plus size={13} /> Add Item
+                  </button>
+                </div>
+
+                {itemAddedNotice && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-2 mb-2 rounded-lg bg-[var(--color-success)]/10 text-[var(--color-success)] text-[11px] font-semibold flex items-center gap-1.5"
+                  >
+                    <Check size={13} /> USB-C Pro Adapter added right into invoice!
+                  </motion.div>
+                )}
+
+                <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+                  {items.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] flex justify-between items-center text-xs"
+                    >
+                      <span className="font-medium text-[var(--foreground)] truncate max-w-[180px]">
+                        {item.name} <span className="text-[10px] text-[var(--foreground)]/50">(x{item.qty})</span>
+                      </span>
+                      <span className="font-mono font-semibold text-[var(--foreground)]">
+                        ₹{(item.qty * item.price).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[var(--border)] flex items-center justify-between">
+                <div className="text-xs space-y-0.5">
+                  <p className="text-[var(--foreground)]/60">Subtotal: ₹{subtotal.toLocaleString("en-IN")}</p>
+                  <p className="text-[var(--foreground)]/60">GST (18%): ₹{gst.toLocaleString("en-IN")}</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] uppercase font-bold text-[var(--foreground)]/50 block">Net Total</span>
+                  <span className="text-lg font-extrabold font-mono text-[var(--color-primary)]">
+                    ₹{total.toLocaleString("en-IN")}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === "khata" && (
+            <motion.div
+              key="khata"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 flex-1 flex flex-col justify-between"
+            >
+              <div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-[var(--color-primary)]/15 to-[var(--color-secondary)]/10 border border-[var(--color-primary)]/20 mb-4 flex justify-between items-center">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-primary)]">
+                      Total Outstanding Udhaar
+                    </span>
+                    <p className="text-2xl font-extrabold font-mono text-[var(--foreground)] mt-0.5">
+                      ₹{khataBalance.toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                  <button
+                    onClick={recordPayment}
+                    disabled={khataBalance <= 0}
+                    className="px-3.5 py-2 rounded-xl bg-[var(--color-success)] text-white text-xs font-semibold shadow-md hover:bg-emerald-600 transition-all flex items-center gap-1 active:scale-95"
+                  >
+                    <Check size={14} /> Record ₹2,500 Payment
+                  </button>
+                </div>
+
+                {paymentSuccess && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-2.5 mb-3 rounded-xl bg-[var(--color-success)]/15 text-[var(--color-success)] text-xs font-bold flex items-center gap-2"
+                  >
+                    <CheckCircle2 size={16} /> ₹2,500 credited! Ledger synced to cloud.
+                  </motion.div>
+                )}
+
+                <div className="space-y-2">
+                  <div className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] flex justify-between items-center text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
+                        VK
+                      </div>
+                      <div>
+                        <p className="font-semibold text-[var(--foreground)]">Verma Kirana Stores</p>
+                        <p className="text-[10px] text-[var(--foreground)]/50">Last active: Today, 2:15 PM</p>
+                      </div>
+                    </div>
+                    <span className="font-mono font-bold text-[var(--color-danger)]">
+                      +₹{khataBalance.toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-[var(--surface-elevated)] text-[11px] text-[var(--foreground)]/70 flex items-center justify-between">
+                <span>Auto WhatsApp reminders active</span>
+                <span className="text-[var(--color-primary)] font-semibold flex items-center gap-1 cursor-pointer">
+                  Send Reminder Now <ArrowUpRight size={13} />
+                </span>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === "insights" && (
+            <motion.div
+              key="insights"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 flex-1 flex flex-col justify-between"
+            >
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--border)]">
+                  <span className="text-[10px] font-bold text-[var(--foreground)]/50 uppercase">This Month Sales</span>
+                  <p className="text-lg font-extrabold font-mono text-[var(--foreground)] mt-1">₹3,42,800</p>
+                  <span className="text-[10px] text-[var(--color-success)] font-semibold flex items-center gap-0.5 mt-1">
+                    <TrendingUp size={12} /> +24.8% vs last month
+                  </span>
+                </div>
+                <div className="p-3.5 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--border)]">
+                  <span className="text-[10px] font-bold text-[var(--foreground)]/50 uppercase">Active Products</span>
+                  <p className="text-lg font-extrabold font-mono text-[var(--foreground)] mt-1">148 SKUs</p>
+                  <span className="text-[10px] text-[var(--color-warning)] font-semibold flex items-center gap-0.5 mt-1">
+                    <Clock size={12} /> 3 Low Stock alerts
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-[var(--border)] space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-semibold text-[var(--foreground)]">GST Return Readiness</span>
+                  <span className="badge badge-success">100% Compliant</span>
+                </div>
+                <div className="w-full bg-[var(--surface-elevated)] h-2 rounded-full overflow-hidden">
+                  <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-success)] h-full w-full rounded-full" />
+                </div>
+                <p className="text-[10px] text-[var(--foreground)]/60">
+                  All 48 invoices verified with accurate HSN and tax codes. Ready for GSTR-1 export.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
 };
 
 export default function LandingPage() {
-    const t = useTranslations('Landing');
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const t = useTranslations("Landing");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [testimIdx, setTestimIdx] = useState(0);
 
-    return (
-        <div className="min-h-screen bg-[#fafbff] text-slate-800 font-sans overflow-x-hidden selection:bg-indigo-500 selection:text-white relative">
-            
-            <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[100] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTestimIdx((prev) => (prev + 1) % testimonials.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
 
-            
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-lg border-b border-indigo-50/50 transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-20">
-                        
-                        <div className="flex-shrink-0 flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-200">
-                                B
-                            </div>
-                            <span className="font-bold text-xl tracking-tight text-slate-900">BillForge</span>
-                        </div>
+  return (
+    <div className="min-h-dvh bg-[var(--background)] text-[var(--foreground)] font-sans overflow-x-hidden selection:bg-[var(--color-primary)]/20 selection:text-[var(--color-primary)] relative">
+      {/* Background Aurora Glow */}
+      <div className="fixed inset-0 pointer-events-none aurora-mesh opacity-80 -z-10" />
+      <div className="fixed inset-0 pointer-events-none bg-grid-pattern opacity-60 -z-10" />
 
-                        
-                        <div className="hidden md:flex items-center space-x-8">
-                            <Link href="#features" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navFeatures')}</Link>
-                            <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navKhata')}</Link>
-                            <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">{t('navInvoices')}</Link>
-                        </div>
+      {/* Navigation Bar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[var(--surface)]/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-[var(--border)] transition-all duration-300 pt-[env(safe-area-inset-top)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            {/* Brand Logo */}
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] flex items-center justify-center text-white font-extrabold text-lg shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                B
+              </div>
+              <span className="font-extrabold text-xl tracking-tight text-[var(--foreground)]">
+                BillForge
+              </span>
+            </Link>
 
-                        
-                        <div className="hidden md:flex items-center space-x-4">
-                            <LanguageSwitcher />
-                            <Link
-                                href="/login"
-                                className="text-slate-600 hover:text-indigo-600 font-medium text-sm px-4 py-2 transition-colors"
-                            >
-                                Login
-                            </Link>
-                            <Link
-                                href="/register"
-                                className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-medium text-sm px-6 py-2.5 rounded-full shadow-md shadow-indigo-200 hover:shadow-lg hover:shadow-indigo-300 transition-all transform hover:-translate-y-0.5"
-                            >
-                                {t('navRegister')}
-                            </Link>
-                        </div>
+            {/* Desktop Nav Links */}
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="#features" className="text-sm font-semibold text-[var(--foreground)]/70 hover:text-[var(--color-primary)] transition-colors">
+                {t("navFeatures")}
+              </a>
+              <a href="#demo" className="text-sm font-semibold text-[var(--foreground)]/70 hover:text-[var(--color-primary)] transition-colors">
+                Interactive Engine
+              </a>
+              <a href="#testimonials" className="text-sm font-semibold text-[var(--foreground)]/70 hover:text-[var(--color-primary)] transition-colors">
+                Verified Reviews
+              </a>
+            </div>
 
-                        
-                        <div className="md:hidden flex items-center">
-                            <button
-                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="text-slate-500 hover:text-indigo-600"
-                            >
-                                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            {/* Desktop Actions */}
+            <div className="hidden md:flex items-center space-x-4">
+              <LanguageSwitcher />
+              <Link
+                href="/login"
+                className="text-[var(--foreground)]/80 hover:text-[var(--color-primary)] font-semibold text-sm px-4 py-2 transition-colors"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] hover:brightness-110 text-white font-semibold text-sm px-6 py-2.5 rounded-xl shadow-lg shadow-blue-500/25 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-1.5"
+              >
+                {t("navRegister")} <ArrowRight size={16} />
+              </Link>
+            </div>
 
-                
-                <AnimatePresence>
-                    {isMobileMenuOpen && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.2 }}
-                            className="md:hidden bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-xl absolute w-full left-0 top-20 overflow-hidden"
-                        >
-                            <div className="px-4 pt-2 pb-6 space-y-4">
-                                <div className="flex flex-col gap-2">
-                                    <Link
-                                        href="#features"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="px-3 py-3 text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                                    >
-                                        {t('navFeatures')}
-                                    </Link>
-                                    <Link
-                                        href="/dashboard/khata"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="px-3 py-3 text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                                    >
-                                        {t('navKhata')}
-                                    </Link>
-                                    <Link
-                                        href="/dashboard/invoices"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="px-3 py-3 text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                                    >
-                                        {t('navInvoices')}
-                                    </Link>
-                                </div>
-                                <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-4 px-3">
-                                    <LanguageSwitcher />
-                                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-medium py-3 rounded-xl border border-indigo-200 transition-all">{t('navLogin')}</Link>
-                                    <Link href="/register" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-medium py-3 rounded-xl shadow-md shadow-indigo-200 transition-all transform hover:-translate-y-0.5">{t('navRegister')}</Link>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </nav>
-
-            
-            <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-                
-                <div className="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-b from-purple-50 to-white -z-10 rounded-bl-[100px] opacity-70"></div>
-                <div className="absolute top-20 -left-64 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob"></div>
-                <div className="absolute top-40 -right-64 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-blob animation-delay-2000"></div>
-
-                <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-8 relative pt-10">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
-
-                        
-                        <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            variants={staggerContainer}
-                            className="max-w-2xl mx-auto lg:mx-0"
-                        >
-                            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-indigo-100 shadow-sm mb-6 mx-auto lg:mx-0">
-                                <div className="flex items-center gap-1 text-amber-400">
-                                    <Star size={14} fill="currentColor" />
-                                    <Star size={14} fill="currentColor" />
-                                    <Star size={14} fill="currentColor" />
-                                    <Star size={14} fill="currentColor" />
-                                    <Star size={14} fill="currentColor" />
-                                </div>
-                                <span className="text-xs font-semibold text-slate-700 border-l border-slate-200 pl-2 ml-1">Trustpilot 4.8+</span>
-                            </motion.div>
-
-                            <motion.h1
-                                variants={fadeInUp}
-                                className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1] mb-6 text-center lg:text-left"
-                            >
-                                {t('heroTitle1')} <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">{t('heroTitle2')}</span>
-                            </motion.h1>
-
-                            <motion.p
-                                variants={fadeInUp}
-                                className="text-base sm:text-lg text-slate-600 mb-8 max-w-lg leading-relaxed text-center lg:text-left mx-auto lg:mx-0"
-                            >
-                                {t('heroSubtitle')}
-                            </motion.p>
-
-                            <motion.div variants={fadeInUp} className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
-                                <Link href="/register">
-                                    <button className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-8 py-4 rounded-full font-semibold shadow-xl shadow-indigo-200 hover:shadow-indigo-300 transition-all transform hover:-translate-y-1 flex items-center gap-2 group whitespace-nowrap">
-                                        {t('ctaButton')}
-                                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                                    </button>
-                                </Link>
-                                <div className="flex items-center gap-3 ml-4">
-                                    <div className="text-sm font-medium text-slate-600 leading-tight">
-                                        Open Source Software <br /><span className="text-slate-900 font-bold">Free to use & deploy 🚀</span>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </motion.div>
-
-                        
-                        <motion.div
-                            initial={{ opacity: 0, x: 50 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.8, delay: 0.2 }}
-                            className="relative lg:h-[600px] flex items-center justify-center"
-                        >
-                            
-                            <motion.div
-                                animate={floatAnimation}
-                                className="relative z-20 w-[280px] h-[580px] bg-white rounded-[40px] shadow-[0_20px_60px_-10px_rgba(0,0,0,0.1),0_10px_20px_-5px_rgba(0,0,0,0.05)] p-2 border-4 border-slate-100/50 backdrop-blur-sm"
-                            >
-                                <div className="absolute top-0 inset-x-0 h-6 flex justify-center">
-                                    <div className="w-20 h-4 bg-slate-100 rounded-b-xl"></div>
-                                </div>
-                                <div className="w-full h-full bg-gradient-to-b from-indigo-50 to-white rounded-[32px] overflow-hidden flex flex-col relative select-none">
-                                    
-                                    <div className="p-5 pb-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-b-3xl shadow-md">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md font-bold text-xs text-indigo-800">
-                                                KA
-                                            </div>
-                                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md">
-                                                <Menu size={16} />
-                                            </div>
-                                        </div>
-                                        <p className="text-indigo-100 text-sm">Hello,</p>
-                                        <h3 className="text-xl font-bold mb-4">Roshhellwett ✨</h3>
-
-                                        <div className="bg-white/20 backdrop-blur-md rounded-2xl p-4 flex items-center gap-3 mb-[-30px] border border-white/10 shadow-lg relative z-10">
-                                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0">
-                                                <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-md"></div>
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className="font-semibold text-sm">Monthly Revenue</p>
-                                                <p className="text-xs text-indigo-100">₹1,24,500</p>
-                                            </div>
-                                            <ChevronRight size={16} />
-                                        </div>
-                                    </div>
-
-                                    
-                                    <div className="flex-1 px-4 pt-10 pb-4 overflow-hidden relative">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <h4 className="font-bold text-slate-800">Recent Activity</h4>
-                                            <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">+ Invoice</span>
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            {[
-                                                { title: "INV-2026-01", tag: "₹4,500", color: "text-emerald-500", bg: "bg-emerald-50", icon: "📄" },
-                                                { title: "Payment Received", tag: "₹1,200", color: "text-indigo-500", bg: "bg-indigo-50", icon: "💰" },
-                                                { title: "Khata Updated", tag: "-₹500", color: "text-red-500", bg: "bg-red-50", icon: "📒" }
-                                            ].map((item, i) => (
-                                                <div key={i} className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3 cursor-pointer hover:border-indigo-200 transition-colors">
-                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${item.bg}`}>
-                                                        {item.icon}
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <p className="font-semibold text-sm text-slate-800">{item.title}</p>
-                                                        <p className="text-xs text-slate-400">10:00 AM - 12:00 PM</p>
-                                                    </div>
-                                                    <span className={`text-xs font-bold ${item.color}`}>{item.tag}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    
-                                    <div className="absolute bottom-6 inset-x-0 flex justify-center">
-                                        <div className="w-14 h-14 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-indigo-300">
-                                            <div className="w-6 h-0.5 bg-white relative">
-                                                <div className="w-0.5 h-6 bg-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-
-                            
-                            <motion.div
-                                animate={floatAnimationDelayed}
-                                className="absolute top-12 -right-16 lg:-right-12 z-30 bg-white/90 p-4 rounded-2xl shadow-[0_20px_50px_rgba(79,70,229,0.15)] border border-indigo-50/50 w-64 hidden sm:block backdrop-blur-md"
-                            >
-                                <div className="flex items-center gap-2 mb-3">
-                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                        <Zap size={14} />
-                                    </div>
-                                    <h5 className="font-bold text-sm text-slate-800">Weekly Target</h5>
-                                </div>
-                                <p className="text-xs text-slate-500 mb-3 leading-tight">Collected ₹48.5k of ₹60k target for this week.</p>
-                                <div className="w-full bg-slate-100/50 rounded-full h-2 mb-2 p-0.5">
-                                    <div className="bg-gradient-to-r from-indigo-500 to-violet-500 h-1 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.5)]" style={{ width: '85%' }}></div>
-                                </div>
-                                <div className="flex justify-between text-[10px] font-bold tracking-tight text-indigo-600">
-                                    <span>85% Completed</span>
-                                    <span>+12% today</span>
-                                </div>
-                            </motion.div>
-
-                            
-                            <motion.div
-                                animate={floatAnimation}
-                                className="absolute bottom-24 -left-12 lg:-left-24 z-30 bg-white/90 p-5 rounded-[2rem] shadow-[0_25px_60px_rgba(0,0,0,0.08)] border border-white w-64 hidden sm:block backdrop-blur-xl"
-                            >
-                                <div className="flex justify-between items-center mb-5">
-                                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2.5">
-                                        <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white ring-4 ring-indigo-50">
-                                            <Layout size={12} />
-                                        </div>
-                                        Recent Invoices
-                                    </h3>
-                                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg">NEW</span>
-                                </div>
-
-                                <div className="space-y-2.5">
-                                    {[
-                                        { title: "INV-089", auth: "paid" },
-                                        { title: "INV-090", auth: "pending" }
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex items-center gap-3">
-                                            <div className="mt-0.5">
-                                                {item.auth === 'paid' ? (
-                                                    <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
-                                                        <CheckCircle2 size={10} />
-                                                    </div>
-                                                ) : (
-                                                    <div className="w-4 h-4 rounded-full border border-amber-300 bg-amber-50"></div>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <p className={`text-xs font-semibold ${item.auth === 'paid' ? 'text-slate-400 line-through' : 'text-slate-700'}`}>
-                                                    {item.title}
-                                                </p>
-                                                <p className="text-[9px] text-slate-400 flex items-center gap-1 mt-0.5">
-                                                    <Clock size={8} /> {item.auth === 'paid' ? 'Paid Today' : 'Due Today'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        </motion.div>
-                    </div>
-                </div>
-            </section>
-
-            
-            <section className="py-20 bg-white relative border-t border-slate-100">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                        
-                        <motion.div
-                            initial={{ opacity: 0, y: 50 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
-                            className="relative"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-100 to-purple-50 rounded-[3rem] transform -rotate-3 scale-[1.05] -z-10"></div>
-
-                            <div className="bg-white rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-100/50 border border-slate-100 relative">
-                                
-                                <div className="absolute -left-6 -top-6 w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-200 transform rotate-[-10deg]">
-                                    <Layout size={28} />
-                                </div>
-
-                                <div className="flex justify-between items-center mb-8 pl-0 sm:pl-8">
-                                    <h3 className="text-xl sm:text-2xl font-bold text-slate-800">Latest Invoices</h3>
-                                    <Link href="/dashboard/invoices">
-                                        <button className="text-xs sm:text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5">
-                                            + Add Invoice
-                                        </button>
-                                    </Link>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {[
-                                        { title: "Invoice to TechCorp", time: "Created Today", status: "sent" },
-                                        { title: "Recurring Khata Entry", time: "Yesterday", status: "pending" },
-                                        { title: "Payment from Global Inc", time: "2 Days Ago", status: "paid" }
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all cursor-pointer group">
-                                            <div className="mt-1 transform transition-transform group-hover:scale-110">
-                                                {item.status === 'paid' ? (
-                                                    <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
-                                                        <CheckCircle2 size={16} />
-                                                    </div>
-                                                ) : (
-                                                    <div className="w-6 h-6 rounded-full border-2 border-slate-200 group-hover:border-indigo-400 transition-colors"></div>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <p className={`font-semibold transition-colors ${item.status === 'paid' ? 'text-slate-500 line-through' : 'text-slate-800 group-hover:text-indigo-600'}`}>
-                                                    {item.title}
-                                                </p>
-                                                <p className="text-sm text-slate-500 mt-1 flex items-center gap-2">
-                                                    <Clock size={14} /> {item.time}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center">
-                                    <div className="flex items-end gap-1">
-                                        <div className="w-2 h-6 bg-indigo-600 rounded-t-sm"></div>
-                                        <div className="w-2 h-8 bg-purple-500 rounded-t-sm"></div>
-                                        <div className="w-2 h-4 bg-indigo-200 rounded-t-sm"></div>
-                                        <div className="w-2 h-10 bg-indigo-600 rounded-t-sm"></div>
-                                        <div className="w-2 h-5 bg-purple-300 rounded-t-sm"></div>
-                                        <div className="w-2 h-7 bg-indigo-400 rounded-t-sm"></div>
-                                    </div>
-
-                                    <div className="flex -space-x-3">
-                                        <div className="w-10 h-10 rounded-full border-2 border-white bg-pink-100 text-pink-700 flex items-center justify-center text-xs font-bold pointer-events-none shadow-sm">AB</div>
-                                        <div className="w-10 h-10 rounded-full border-2 border-white bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold pointer-events-none shadow-sm">CD</div>
-                                        <div className="w-10 h-10 rounded-full border-2 border-white bg-orange-100 text-orange-700 flex items-center justify-center text-xs font-bold pointer-events-none shadow-sm">EF</div>
-                                        <div className="w-10 h-10 rounded-full border-2 border-white bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-700">
-                                            29+
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        
-                        <motion.div
-                            initial={{ opacity: 0, y: 50 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6, delay: 0.2 }}
-                        >
-                            <div className="grid grid-cols-2 gap-8 mb-12">
-                                <div>
-                                    <h4 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-2 tracking-tight">Open</h4>
-                                    <p className="text-slate-500 font-medium">Source Codebase</p>
-                                </div>
-                                <div>
-                                    <h4 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-2 tracking-tight">Free</h4>
-                                    <p className="text-slate-500 font-medium">For Everyone</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-8">
-                                <div className="flex gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center flex-shrink-0 text-indigo-600">
-                                        <Zap size={24} />
-                                    </div>
-                                    <div>
-                                        <h5 className="text-xl font-bold text-slate-900 mb-2">Fast Invoicing</h5>
-                                        <p className="text-slate-600 leading-relaxed">Create beautiful, professional invoices in seconds and send them directly to your clients.</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center flex-shrink-0 text-purple-600">
-                                        <Shield size={24} />
-                                    </div>
-                                    <div>
-                                        <h5 className="text-xl font-bold text-slate-900 mb-2">Digital Khata (Ledger)</h5>
-                                        <p className="text-slate-600 leading-relaxed">Keep track of all your customer balances, view transaction history, and easily manage credit.</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center flex-shrink-0 text-amber-600">
-                                        <Users size={24} />
-                                    </div>
-                                    <div>
-                                        <h5 className="text-xl font-bold text-slate-900 mb-2">Customer Management</h5>
-                                        <p className="text-slate-600 leading-relaxed">Maintain a complete directory of your clients, track their payment patterns, and improve relations.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                </div>
-            </section>
-
-            
-            <section className="py-24 relative overflow-hidden bg-slate-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-[2.5rem] md:rounded-[3rem] px-6 py-12 md:p-16 text-white relative overflow-hidden shadow-2xl shadow-indigo-200">
-                        
-                        <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none"
-                            style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
-                            <div className="max-w-xl text-center md:text-left mx-auto md:mx-0">
-                                <h2 className="text-3xl md:text-5xl font-extrabold mb-6 leading-tight">
-                                    Ready? Let's Start with BillForge and Grow Your Business
-                                </h2>
-                                <p className="text-indigo-100 text-base md:text-lg mb-8 leading-relaxed">
-                                    Elevate your business operations with powerful invoicing, precise khata bookkeeping, and seamless customer management. Designed for modern Indian businesses.
-                                </p>
-                                <Link href="/register">
-                                    <button className="bg-white text-indigo-600 px-8 py-4 rounded-full font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center gap-2 whitespace-nowrap mx-auto md:mx-0">
-                                        Get Into The Business
-                                        <ArrowRight size={18} />
-                                    </button>
-                                </Link>
-                            </div>
-
-                            <div className="hidden md:flex justify-end relative">
-                                {/* Embedded Phone Mockup in CTA */}
-                                <motion.div
-                                    initial={{ y: 50, opacity: 0 }}
-                                    whileInView={{ y: 0, opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.6 }}
-                                    className="w-72 bg-slate-900 p-2.5 rounded-[3rem] shadow-[0_40px_100px_rgba(0,0,0,0.4)] transform rotate-[-6deg] border border-white/10"
-                                >
-                                    <div className="w-full h-[450px] rounded-[2.5rem] overflow-hidden relative bg-[#0f172a] flex flex-col">
-                                        <div className="p-6 pb-4">
-                                            <div className="flex justify-between items-center mb-6">
-                                                <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
-                                                    <Users size={16} />
-                                                </div>
-                                                <div className="px-3 py-1 bg-white/5 rounded-full border border-white/10 text-[10px] text-white/60">
-                                                    Live Preview
-                                                </div>
-                                            </div>
-                                            <h4 className="text-white font-bold text-lg mb-1">Total Khata</h4>
-                                            <p className="text-indigo-400 font-mono text-2xl font-bold italic mb-6">₹4,82,900.00</p>
-
-                                            <div className="space-y-3">
-                                                {[
-                                                    { name: "Rahul S.", amount: "₹1,200", status: "Paid", color: "bg-emerald-500/20 text-emerald-400" },
-                                                    { name: "Manoj Kumar", amount: "₹850", status: "Due", color: "bg-amber-500/20 text-amber-400" },
-                                                    { name: "Suresh P.", amount: "₹2,500", status: "Paid", color: "bg-emerald-500/20 text-emerald-400" },
-                                                    { name: "Anita Devi", amount: "₹400", status: "Overdue", color: "bg-rose-500/20 text-rose-400" }
-                                                ].map((c, idx) => (
-                                                    <div key={idx} className="bg-white/5 rounded-xl p-3 flex justify-between items-center border border-white/5">
-                                                        <div>
-                                                            <p className="text-white text-xs font-medium">{c.name}</p>
-                                                            <p className="text-white/40 text-[10px]">Customer ID: 102{idx}</p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <p className="text-white text-xs font-bold">{c.amount}</p>
-                                                            <span className={`text-[9px] px-1.5 py-0.5 rounded-md ${c.color}`}>{c.status}</span>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <div className="mt-auto bg-gradient-to-t from-indigo-600 to-transparent p-6 pt-12">
-                                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-white">
-                                                <p className="font-bold text-xs mb-1">New Update Available</p>
-                                                <p className="text-[10px] opacity-70">Smarter reports & AI Insights</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* ── Testimonials ── */}
-            <section className="py-24 bg-white border-t border-slate-100 overflow-hidden">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-16">
-                        <motion.h2
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4"
-                        >
-                            Trusted by <span className="text-indigo-600">Local Vendors</span> Across India
-                        </motion.h2>
-                        <p className="text-slate-500 font-medium max-w-2xl mx-auto">
-                            Join thousands of business owners who are modernizing their daily operations with BillForge.
-                        </p>
-                    </div>
-
-                    <div className="relative">
-                        <TestimonialSlider />
-                    </div>
-                </div>
-            </section>
-
-            {/* ── Footer ── */}
-            <footer className="bg-slate-900 pt-16 pb-10 text-slate-400 border-t-4 border-indigo-600">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-
-                        <div className="col-span-1 md:col-span-2 lg:col-span-1">
-                            <div className="flex items-center gap-2 mb-6">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl">
-                                    B
-                                </div>
-                                <span className="font-bold text-xl tracking-tight text-white">BillForge</span>
-                            </div>
-                            <p className="text-slate-400 mb-4 text-sm leading-relaxed">
-                                A clean, straightforward application for managing your invoices, cataloging products, and keeping track of your customers' khata.
-                            </p>
-                            <div className="text-xs text-slate-500 py-3 border-t border-slate-800">
-                                <span className="text-indigo-400">Zenith Open Source Project</span> by @roshhellwett
-                            </div>
-                        </div>
-
-                        
-                        <div>
-                            <h4 className="text-white font-bold mb-6 flex items-center gap-2">
-                                <Layout size={16} /> Product Features
-                            </h4>
-                            <ul className="space-y-3 text-sm text-slate-400">
-                                <li><Link href="/dashboard/invoices" className="hover:text-indigo-400 transition-colors flex items-center gap-2">- Invoices Management</Link></li>
-                                <li><Link href="/dashboard/khata" className="hover:text-indigo-400 transition-colors flex items-center gap-2">- Khata (Ledger)</Link></li>
-                                <li><Link href="/dashboard/products" className="hover:text-indigo-400 transition-colors flex items-center gap-2">- Products Catalog</Link></li>
-                                <li><Link href="/dashboard/customers" className="hover:text-indigo-400 transition-colors flex items-center gap-2">- Customers List</Link></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="text-white font-bold mb-6 flex items-center gap-2">
-                                <Zap size={16} /> Navigation Menu (Sitemap)
-                            </h4>
-                            <ul className="space-y-3 text-sm text-slate-400">
-                                <li><Link href="/" className="hover:text-indigo-400 transition-colors flex items-center gap-2">- Home (Landing Page)</Link></li>
-                                <li><Link href="/dashboard" className="hover:text-indigo-400 transition-colors flex items-center gap-2">- Dashboard Main</Link></li>
-                                <li><Link href="/login" className="hover:text-indigo-400 transition-colors flex items-center gap-2">- Login Page</Link></li>
-                                <li><Link href="/register" className="hover:text-indigo-400 transition-colors flex items-center gap-2">- Sign Up / Register</Link></li>
-                                <li><Link href="/dashboard/settings" className="hover:text-indigo-400 transition-colors flex items-center gap-2">- Account Settings</Link></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="text-white font-bold mb-6">Stay Updated</h4>
-                            <p className="text-sm mb-4">Subscribe to our newsletter for the latest updates.</p>
-                            <div className="flex gap-2">
-                                <input
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 w-full text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 text-sm transition-colors"
-                                />
-                                <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-lg font-medium transition-colors">
-                                    Subscribe
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-                        <div className="text-center md:text-left">
-                            <p>© {new Date().getFullYear()} BillForge Inc. All rights reserved.</p>
-                            <p className="text-slate-500 mt-2 italic">
-                                If you are unhappy with our services so please leave a message on this mail <a href="mailto:zenithopensource@icloud.com" className="text-indigo-400 hover:underline">zenithopensource@icloud.com</a> regarding issues you faced
-                            </p>
-                        </div>
-                        <div className="flex gap-4 sm:gap-6 mt-4 md:mt-0">
-                            <Link href="https://github.com/roshhellwett" target="_blank" className="hover:text-white transition-colors cursor-pointer border-b border-transparent hover:border-white">GitHub</Link>
-                            <span className="hover:text-white transition-colors cursor-pointer border-b border-transparent hover:border-white">Open Source License</span>
-                        </div>
-                    </div>
-                </div>
-            </footer>
+            {/* Mobile Menu Trigger */}
+            <div className="md:hidden flex items-center gap-3">
+              <LanguageSwitcher compact />
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)] active:scale-95 transition-all"
+                aria-label="Toggle Navigation"
+              >
+                {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+              </button>
+            </div>
+          </div>
         </div>
-    );
+
+        {/* Mobile Dropdown Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="md:hidden bg-[var(--surface)] border-b border-[var(--border)] overflow-hidden shadow-2xl"
+            >
+              <div className="px-5 py-6 space-y-4">
+                <div className="flex flex-col space-y-1">
+                  <a
+                    href="#features"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="px-3.5 py-3 text-base font-semibold text-[var(--foreground)] hover:text-[var(--color-primary)] hover:bg-[var(--surface-hover)] rounded-xl transition-all flex items-center justify-between"
+                  >
+                    <span>{t("navFeatures")}</span>
+                    <ChevronRight size={18} className="text-[var(--foreground)]/40" />
+                  </a>
+                  <a
+                    href="#demo"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="px-3.5 py-3 text-base font-semibold text-[var(--foreground)] hover:text-[var(--color-primary)] hover:bg-[var(--surface-hover)] rounded-xl transition-all flex items-center justify-between"
+                  >
+                    <span>Interactive Engine</span>
+                    <ChevronRight size={18} className="text-[var(--foreground)]/40" />
+                  </a>
+                  <a
+                    href="#testimonials"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="px-3.5 py-3 text-base font-semibold text-[var(--foreground)] hover:text-[var(--color-primary)] hover:bg-[var(--surface-hover)] rounded-xl transition-all flex items-center justify-between"
+                  >
+                    <span>Verified Reviews</span>
+                    <ChevronRight size={18} className="text-[var(--foreground)]/40" />
+                  </a>
+                </div>
+
+                <div className="pt-4 border-t border-[var(--border)] flex flex-col gap-3">
+                  <Link
+                    href="/login"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-center text-[var(--foreground)] hover:bg-[var(--surface-hover)] font-semibold py-3 rounded-xl border border-[var(--border)] transition-all"
+                  >
+                    Login to Workspace
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-center bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white font-semibold py-3 rounded-xl shadow-lg shadow-blue-500/25 transition-all"
+                  >
+                    {t("navRegister")}
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 lg:pt-44 lg:pb-32 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            {/* Hero Text */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="lg:col-span-6 text-center lg:text-left"
+            >
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[var(--surface)] border border-[var(--border)] shadow-sm mb-6 mx-auto lg:mx-0">
+                <div className="flex items-center gap-1 text-amber-400">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={13} fill="currentColor" />
+                  ))}
+                </div>
+                <span className="text-xs font-bold text-[var(--foreground)] border-l border-[var(--border)] pl-2.5 ml-1">
+                  Trustpilot 4.8/5 Verified
+                </span>
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[var(--foreground)] leading-[1.1] mb-6">
+                {t("heroTitle1")} <br />
+                <span className="gradient-text">{t("heroTitle2")}</span>
+              </h1>
+
+              <p className="text-base sm:text-lg text-[var(--foreground)]/70 mb-8 max-w-xl leading-relaxed mx-auto lg:mx-0 text-balance">
+                {t("heroSubtitle")}
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                <Link href="/register" className="w-full sm:w-auto">
+                  <button className="w-full sm:w-auto bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] hover:brightness-110 text-white px-8 py-4 rounded-2xl font-bold text-base shadow-xl shadow-blue-500/25 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2 group">
+                    {t("ctaButton")}
+                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </Link>
+                <a
+                  href="#demo"
+                  className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-[var(--surface)] hover:bg-[var(--surface-hover)] border border-[var(--border)] font-semibold text-sm text-[var(--foreground)] transition-all flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Sparkles size={16} className="text-[var(--color-primary)]" />
+                  Explore Live Demo
+                </a>
+              </div>
+
+              <div className="mt-8 flex items-center justify-center lg:justify-start gap-6 pt-6 border-t border-[var(--border)]/60 text-xs text-[var(--foreground)]/60">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 size={15} className="text-[var(--color-success)]" /> 100% GST Ready
+                </span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 size={15} className="text-[var(--color-success)]" /> Instant Khata Sync
+                </span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <CheckCircle2 size={15} className="text-[var(--color-success)]" /> Open Source Free
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Hero Interactive Demo */}
+            <motion.div
+              id="demo"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              className="lg:col-span-6 flex items-center justify-center"
+            >
+              <HeroInteractiveDemo />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Bento Grid Features Section */}
+      <section id="features" className="py-24 relative z-10 border-t border-[var(--border)]/60 bg-[var(--surface-elevated)]/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="badge badge-success mb-3">Architected for Speed & Reliability</span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[var(--foreground)] tracking-tight mb-4">
+              Everything Your Business Needs in One Sleek Interface
+            </h2>
+            <p className="text-base text-[var(--foreground)]/70 text-balance">
+              BillForge replaces bloated desktop accounting packages with a modern cloud-native operating system tailored for vendors, distributors, and store owners.
+            </p>
+          </div>
+
+          {/* Bento Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {/* Bento Card 1: Fast GST Invoicing (Spans 2 cols on lg) */}
+            <div className="md:col-span-2 glass-card p-8 flex flex-col justify-between card-hover-lift group">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-6 border border-blue-500/20 shadow-sm">
+                  <Receipt size={24} />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]">
+                  Fast & GST Compliant
+                </span>
+                <h3 className="text-2xl font-extrabold text-[var(--foreground)] mt-2 mb-3">
+                  Professional Invoices in Under 10 Seconds
+                </h3>
+                <p className="text-sm text-[var(--foreground)]/70 leading-relaxed mb-6">
+                  Automate tax calculation (CGST/SGST/IGST), HSN codes, and generate crisp, downloadable PDF bills ready for WhatsApp sharing or thermal printing.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--border)] flex items-center justify-between text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--color-success)]/10 text-[var(--color-success)] flex items-center justify-center font-bold">
+                    ✓
+                  </div>
+                  <div>
+                    <p className="font-bold text-[var(--foreground)]">Auto-calculated GST Total</p>
+                    <p className="text-[10px] text-[var(--foreground)]/50">Zero manual computation errors</p>
+                  </div>
+                </div>
+                <span className="font-mono font-bold text-[var(--color-primary)]">100% Verified</span>
+              </div>
+            </div>
+
+            {/* Bento Card 2: Digital Khata */}
+            <div className="glass-card p-8 flex flex-col justify-between card-hover-lift group">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-6 border border-emerald-500/20 shadow-sm">
+                  <BookOpen size={24} />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-500">
+                  Digital Khata Book
+                </span>
+                <h3 className="text-xl font-extrabold text-[var(--foreground)] mt-2 mb-3">
+                  Never Lose Track of Udhaar
+                </h3>
+                <p className="text-sm text-[var(--foreground)]/70 leading-relaxed">
+                  Track daily credit given to regular customers, record partial payments instantly, and maintain clean balance sheets without paper registers.
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-[var(--border)] flex items-center justify-between text-xs font-semibold text-[var(--foreground)]/80">
+                <span>WhatsApp Reminders</span>
+                <span className="badge badge-success">Built-in</span>
+              </div>
+            </div>
+
+            {/* Bento Card 3: Cloud Security */}
+            <div className="glass-card p-8 flex flex-col justify-between card-hover-lift group">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-6 border border-purple-500/20 shadow-sm">
+                  <Lock size={24} />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-purple-500">
+                  Bank-Grade Cloud
+                </span>
+                <h3 className="text-xl font-extrabold text-[var(--foreground)] mt-2 mb-3">
+                  PostgreSQL + Redis Integrity
+                </h3>
+                <p className="text-sm text-[var(--foreground)]/70 leading-relaxed">
+                  Powered by Supabase PostgreSQL and Upstash rate limiting. Your transaction logs are encrypted, backed up, and available 24/7 across all devices.
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-[var(--border)] flex items-center justify-between text-xs font-semibold text-[var(--foreground)]/80">
+                <span>Uptime SLA</span>
+                <span className="badge badge-success">99.99%</span>
+              </div>
+            </div>
+
+            {/* Bento Card 4: Multi-Language & Dark Mode (Spans 2 cols on lg) */}
+            <div className="md:col-span-2 lg:col-span-2 glass-card p-8 flex flex-col justify-between card-hover-lift group">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-pink-500/10 text-pink-600 dark:text-pink-400 flex items-center justify-center mb-6 border border-pink-500/20 shadow-sm">
+                  <Globe size={24} />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-pink-500">
+                  Fully Localized
+                </span>
+                <h3 className="text-2xl font-extrabold text-[var(--foreground)] mt-2 mb-3">
+                  English, Hindi & Native Dark/Light Themes
+                </h3>
+                <p className="text-sm text-[var(--foreground)]/70 leading-relaxed mb-6">
+                  Switch between regional languages effortlessly using our Next-Intl engine, and toggle clean ceramic light or midnight obsidian dark modes on the fly.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] flex items-center justify-between">
+                  <span className="text-xs font-bold text-[var(--foreground)]">Language Support</span>
+                  <span className="text-xs font-mono font-semibold text-[var(--color-primary)]">ENG / HIN</span>
+                </div>
+                <div className="p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] flex items-center justify-between">
+                  <span className="text-xs font-bold text-[var(--foreground)]">Adaptive Theme</span>
+                  <span className="text-xs font-mono font-semibold text-purple-500">Auto Sync</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bento Card 5: Real-Time Analytics (Spans 2 cols on lg) */}
+            <div className="md:col-span-3 lg:col-span-2 glass-card p-8 flex flex-col justify-between card-hover-lift group">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-6 border border-amber-500/20 shadow-sm">
+                  <TrendingUp size={24} />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-500">
+                  Live Insights
+                </span>
+                <h3 className="text-2xl font-extrabold text-[var(--foreground)] mt-2 mb-3">
+                  Visual Business Health Dashboard
+                </h3>
+                <p className="text-sm text-[var(--foreground)]/70 leading-relaxed">
+                  Track weekly sales trends, monitor top receivables, receive instant low-stock product alerts, and download business health snapshots instantly.
+                </p>
+              </div>
+              <div className="mt-6 pt-4 border-t border-[var(--border)] flex items-center justify-between text-xs font-semibold text-[var(--foreground)]/80">
+                <span>Real-Time Drizzle ORM Sync</span>
+                <span className="badge badge-success">Zero Lag</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Verified Testimonial Carousel */}
+      <section id="testimonials" className="py-24 relative z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="badge badge-success mb-3">Loved Across India</span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[var(--foreground)] tracking-tight">
+              Trusted by Merchants & Vendors
+            </h2>
+          </div>
+
+          <div className="relative max-w-4xl mx-auto min-h-[320px] flex items-center justify-center">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={testimIdx}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full glass-card p-8 sm:p-12 border border-[var(--border)] shadow-2xl relative"
+              >
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
+                  <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-3xl ${testimonials[testimIdx].color} flex items-center justify-center font-black text-2xl sm:text-3xl shrink-0 shadow-lg border-2 border-white/20`}>
+                    {testimonials[testimIdx].initials}
+                  </div>
+
+                  <div className="flex-1 text-center sm:text-left">
+                    <div className="flex items-center justify-center sm:justify-start gap-1 text-amber-400 mb-4">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} size={18} fill="currentColor" />
+                      ))}
+                      <span className="text-xs font-bold text-[var(--foreground)]/70 ml-2">5.0 / 5.0</span>
+                    </div>
+
+                    <p className="text-lg sm:text-xl font-bold text-[var(--foreground)] mb-6 leading-relaxed italic">
+                      "{testimonials[testimIdx].text}"
+                    </p>
+
+                    <div className="pt-4 border-t border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <h4 className="font-bold text-base text-[var(--foreground)]">{testimonials[testimIdx].name}</h4>
+                        <p className="text-xs text-[var(--foreground)]/60">{testimonials[testimIdx].role}</p>
+                      </div>
+                      <span className="badge badge-success self-center sm:self-auto">Verified Vendor</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Slider Indicators */}
+          <div className="flex items-center justify-center gap-2.5 mt-8">
+            {testimonials.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setTestimIdx(i)}
+                className={`h-2.5 rounded-full transition-all duration-300 ${
+                  testimIdx === i
+                    ? "bg-[var(--color-primary)] w-8 shadow-sm"
+                    : "bg-[var(--border)] hover:bg-[var(--foreground)]/30 w-2.5"
+                }`}
+                aria-label={`Go to review ${i + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer / CTA Section */}
+      <section className="py-20 relative z-10 border-t border-[var(--border)] bg-[var(--surface)]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="p-10 sm:p-14 rounded-3xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+            <h2 className="text-3xl sm:text-4xl font-black mb-4 relative z-10">
+              Ready to Modernize Your Business?
+            </h2>
+            <p className="text-base sm:text-lg text-blue-100 max-w-2xl mx-auto mb-8 relative z-10 text-balance">
+              Join thousands of local Indian businesses using BillForge for fast invoicing, khata bookkeeping, and customer management.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
+              <Link href="/register" className="w-full sm:w-auto">
+                <button className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white text-[var(--color-primary)] font-extrabold text-base shadow-xl hover:bg-slate-50 transition-all active:scale-95 flex items-center justify-center gap-2">
+                  Get Started For Free <ArrowRight size={18} />
+                </button>
+              </Link>
+              <Link href="/login" className="w-full sm:w-auto">
+                <button className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-black/20 hover:bg-black/30 border border-white/20 text-white font-bold text-base transition-all active:scale-95">
+                  Sign In to Dashboard
+                </button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-12 pt-8 border-t border-[var(--border)]/60 flex flex-col sm:flex-row items-center justify-between text-xs text-[var(--foreground)]/60 gap-4">
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold tracking-tight text-[var(--foreground)]">BillForge</span>
+              <span>· A Zenith Open Source Project</span>
+            </div>
+            <p>
+              © 2026{" "}
+              <a
+                href="https://zenithopensourceprojects.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--color-primary)] hover:underline font-semibold"
+              >
+                Zenith Open Source Projects
+              </a>{" "}
+              by @roshhellwett. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }

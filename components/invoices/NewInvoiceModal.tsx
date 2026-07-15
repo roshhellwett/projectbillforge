@@ -357,11 +357,12 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                             <div className="relative flex items-center">
                                 <input
                                     type="number"
+                                    inputMode="decimal"
                                     step="any"
                                     min="0.01"
                                     value={itemQuantity}
                                     onChange={(e) => setItemQuantity(e.target.value)}
-                                    className="w-20 sm:w-24 glass-input min-h-[44px]"
+                                    className="w-20 sm:w-24 glass-input min-h-[44px] font-mono font-bold text-center"
                                     placeholder="0"
                                 />
                                 {selectedProduct && products.find(p => p.id === selectedProduct)?.unit && (

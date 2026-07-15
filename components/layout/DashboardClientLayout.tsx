@@ -1,13 +1,25 @@
 "use client";
 
+import React from "react";
 import { usePathname } from "@/i18n/routing";
 import BottomNavigation from "@/components/layout/BottomNavigation";
+import MobileHeader from "@/components/layout/MobileHeader";
 import { KeyboardShortcutsHelp } from "@/components/ui/KeyboardShortcuts";
 import { CommandMenu } from "@/components/ui/CommandMenu";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
-export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
+interface DashboardClientLayoutProps {
+  children: React.ReactNode;
+  session: {
+    user?: {
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+    };
+  } | null;
+}
+
+export default function DashboardClientLayout({ children, session }: DashboardClientLayoutProps) {
   const pathname = usePathname();
 
   const getCurrentPage = () => {
@@ -21,12 +33,8 @@ export default function DashboardClientLayout({ children }: { children: React.Re
 
   return (
     <>
+      <MobileHeader session={session} />
       <ErrorBoundary>{children}</ErrorBoundary>
-      <div className="md:hidden fixed bottom-20 right-3 z-50">
-        <div className="bg-[var(--surface)]/80 backdrop-blur-md border border-[var(--border)] p-1 rounded-xl shadow-sm">
-          <LanguageSwitcher />
-        </div>
-      </div>
       <BottomNavigation currentPage={getCurrentPage()} />
       <KeyboardShortcutsHelp />
       <CommandMenu />
