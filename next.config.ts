@@ -4,6 +4,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  output: process.env.DOCKER_BUILD ? "standalone" : undefined,
   outputFileTracingRoot: process.cwd(),
   turbopack: {
     root: process.cwd(),

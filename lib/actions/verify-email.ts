@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { businesses, verificationTokens } from "@/lib/schema";
 import { eq, and, gt } from "drizzle-orm";
+import { serializeError } from "@/lib/errors";
 
 export async function verifyEmail(token: string) {
   try {
@@ -26,6 +27,6 @@ export async function verifyEmail(token: string) {
 
     return { success: true };
   } catch (error: unknown) {
-    return { error: error instanceof Error ? error.message : "Verification failed" };
+    return { error: serializeError(error).error };
   }
 }

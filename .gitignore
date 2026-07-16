@@ -42,3 +42,5 @@ next-env.d.ts
 *.db-journal
 
 .early.coverage
+.plan.txt
+plan.txt

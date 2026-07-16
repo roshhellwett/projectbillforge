@@ -3,7 +3,6 @@ import { Decimal } from "decimal.js";
 export type PendingInvoiceAllocationInput = {
   id: string;
   total: number | null;
-  amount_paid?: number | null;
   amountPaid?: number | null;
 };
 
@@ -24,7 +23,7 @@ export function allocatePaymentAcrossInvoices(
     if (remainingPayment.lessThanOrEqualTo(0)) break;
 
     const total = new Decimal(invoice.total || 0);
-    const alreadyPaid = new Decimal(invoice.amountPaid ?? invoice.amount_paid ?? 0);
+    const alreadyPaid = new Decimal(invoice.amountPaid ?? 0);
     const due = total.minus(alreadyPaid);
 
     if (due.lessThanOrEqualTo(0)) continue;
@@ -54,7 +53,6 @@ export type LateFeeInvoiceInput = {
   paymentStatus: string | null;
   total: number | null;
   amountPaid?: number | null;
-  amount_paid?: number | null;
 };
 
 export type LateFeeBusinessSettings = {
@@ -66,7 +64,8 @@ export type LateFeeBusinessSettings = {
 export function calculateLateFee(
   invoice: LateFeeInvoiceInput,
   business: LateFeeBusinessSettings,
-  asOfDate: Date = new Date()
+  asOfDate: Date = new Date(),
+  lastFeeDate?: Date | null
 ): number {
   if (!business.redemptionPeriodDays || !business.finePercentage || !business.fineFrequencyDays) {
     return 0;
@@ -81,12 +80,16 @@ export function calculateLateFee(
 
   if (asOfDate <= dueDate) return 0;
 
-  const daysOverdue = Math.floor((asOfDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+  
+  const periodStart = lastFeeDate && lastFeeDate > dueDate ? lastFeeDate : dueDate;
+  if (asOfDate <= periodStart) return 0;
+
+  const daysOverdue = Math.floor((asOfDate.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
   const periods = Math.floor(daysOverdue / business.fineFrequencyDays);
   if (periods <= 0) return 0;
 
   const total = new Decimal(invoice.total || 0);
-  const paid = new Decimal(invoice.amountPaid ?? invoice.amount_paid ?? 0);
+  const paid = new Decimal(invoice.amountPaid ?? 0);
   const outstanding = Decimal.max(0, total.minus(paid));
 
   return outstanding

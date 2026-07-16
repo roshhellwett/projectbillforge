@@ -7,10 +7,7 @@ import { requireBusinessSession } from "@/lib/session";
 import { eq, sql, and, desc, ilike } from "drizzle-orm";
 import { revalidateLocalizedPaths } from "@/lib/revalidate";
 import { checkActionRateLimit } from "@/lib/rate-limit";
-
-function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+import { serializeError } from "@/lib/errors";
 
 export async function createProduct(data: ProductInput) {
   try {
@@ -49,7 +46,7 @@ export async function createProduct(data: ProductInput) {
     revalidateLocalizedPaths(['/dashboard/products', '/dashboard']);
     return { success: true, product };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to create product") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -119,7 +116,7 @@ export async function updateProduct(id: string, data: Partial<ProductInput>) {
     revalidateLocalizedPaths(['/dashboard/products', '/dashboard']);
     return { success: true, product };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to update product") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -141,7 +138,7 @@ export async function deleteProduct(id: string) {
     revalidateLocalizedPaths(['/dashboard/products', '/dashboard']);
     return { success: true };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to delete product") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -165,7 +162,7 @@ export async function getProducts(limit = 50, offset = 0) {
 
     return { success: true, products: productList, total: Number(countResult.count) };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to fetch products") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -184,7 +181,7 @@ export async function searchProducts(search: string, limit = 15) {
     });
     return { success: true, products: results };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to search products") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -203,6 +200,6 @@ export async function getLowStockProducts() {
 
     return { success: true, products: lowStock };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to fetch low stock products") };
+    return { error: serializeError(error).error };
   }
 }

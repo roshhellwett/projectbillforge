@@ -7,10 +7,7 @@ import { requireBusinessSession } from "@/lib/session";
 import { eq, and, desc, sql, gt } from "drizzle-orm";
 import { revalidateLocalizedPaths } from "@/lib/revalidate";
 import { checkActionRateLimit } from "@/lib/rate-limit";
-
-function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+import { serializeError } from "@/lib/errors";
 
 export async function createCustomer(data: CustomerInput) {
   try {
@@ -39,7 +36,7 @@ export async function createCustomer(data: CustomerInput) {
     revalidateLocalizedPaths(['/dashboard/customers', '/dashboard/khata']);
     return { success: true, customer };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to create customer") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -84,7 +81,7 @@ export async function updateCustomer(id: string, data: Partial<CustomerInput>) {
     revalidateLocalizedPaths(['/dashboard/customers', '/dashboard/khata']);
     return { success: true, customer };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to update customer") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -125,7 +122,7 @@ export async function deleteCustomer(id: string) {
     revalidateLocalizedPaths(['/dashboard/customers', '/dashboard/khata']);
     return { success: true };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to delete customer") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -149,7 +146,7 @@ export async function getCustomers(limit = 50, offset = 0) {
 
     return { success: true, customers: customerList, total: Number(countResult.count) };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to fetch customers") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -164,6 +161,6 @@ export async function getTopReceivables(limit = 5) {
       .limit(limit);
     return { success: true, customers: rows };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to fetch top receivables") };
+    return { error: serializeError(error).error };
   }
 }

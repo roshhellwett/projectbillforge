@@ -97,7 +97,7 @@ export const invoices = pgTable('invoices', {
   paymentMode: text('payment_mode', { enum: ['cash', 'upi', 'khata'] }).default('cash'),
   paymentStatus: text('payment_status', { enum: ['paid', 'unpaid', 'partial', 'paid_by_khata'] }).default('paid'),
   finesCollectedAt: timestamp('fines_collected_at'),
-  status: text('status', { enum: ['active', 'cancelled'] }).default('active'),
+  status: text('status', { enum: ['active', 'cancelled', 'archived'] }).default('active'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
@@ -168,6 +168,27 @@ export const verificationTokens = pgTable('verification_tokens', {
   token: text('token').notNull(),
   expires: timestamp('expires').notNull(),
 });
+
+export const idempotencyKeys = pgTable('idempotency_keys', {
+  key: text('key').primaryKey(),
+  response: jsonb('response').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const auditLog = pgTable('audit_log', {
+  id: text('id').primaryKey(),
+  businessId: text('business_id').notNull().references(() => businesses.id, { onDelete: 'cascade' }),
+  actionType: text('action_type').notNull(),
+  entityType: text('entity_type').notNull(),
+  entityId: text('entity_id').notNull(),
+  previousState: jsonb('previous_state'),
+  newState: jsonb('new_state'),
+  delta: jsonb('delta'),
+  createdBy: text('created_by'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  businessCreatedAtIdx: index('idx_audit_business_created').on(table.businessId, table.createdAt),
+}));
 
 export type InvoiceItem = {
   productId: string;

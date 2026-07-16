@@ -7,6 +7,7 @@ import { eq, and, gt } from "drizzle-orm";
 import { checkActionRateLimit } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import { sendEmail, passwordResetHtml } from "@/lib/email";
+import { serializeError } from "@/lib/errors";
 
 export async function requestPasswordReset(email: string, locale: string = "en") {
   try {
@@ -46,7 +47,7 @@ export async function requestPasswordReset(email: string, locale: string = "en")
     return { success: true };
   } catch (error: unknown) {
     console.error("requestPasswordReset error:", error);
-    return { error: "Something went wrong. Please try again." };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -80,6 +81,6 @@ export async function resetPassword(token: string, newPassword: string) {
     return { success: true };
   } catch (error: unknown) {
     console.error("resetPassword error:", error);
-    return { error: "Something went wrong. Please try again." };
+    return { error: serializeError(error).error };
   }
 }

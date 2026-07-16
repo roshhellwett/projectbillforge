@@ -9,7 +9,11 @@ import { requireBusinessSession } from "@/lib/session";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
 import { allocatePaymentAcrossInvoices } from "@/lib/accounting";
+import { DEFAULT_CREDIT_LIMIT } from "@/lib/constants";
 import { checkActionRateLimit } from "@/lib/rate-limit";
+import { assertCustomerBalanceConsistent, assertNoOverpaidInvoices } from "@/lib/balance-invariants";
+import { validateUuid } from "@/lib/uuid";
+import { serializeError } from "@/lib/errors";
 
 const INDIA_TIME_ZONE = "Asia/Kolkata";
 
@@ -98,10 +102,6 @@ async function getCachedWeeklySales(bId: string) {
 
 function getIndiaDateString(date: Date = new Date()): string {
   return date.toLocaleDateString("en-CA", { timeZone: INDIA_TIME_ZONE });
-}
-
-function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
 }
 
 function generateInvoiceNumber(): string {
@@ -296,7 +296,7 @@ export async function createInvoice(data: InvoiceInput) {
 
         let creditLimit = customer.credit_limit;
         if (creditLimit === null || creditLimit === 0) {
-          creditLimit = 500;
+          creditLimit = DEFAULT_CREDIT_LIMIT;
           await tx.update(customers)
             .set({ creditLimit, updatedAt: new Date() })
             .where(eq(customers.id, data.customerId));
@@ -336,7 +336,7 @@ export async function createInvoice(data: InvoiceInput) {
     revalidateDashboardCache(session.id);
     return { success: true, invoice };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to create invoice") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -360,13 +360,14 @@ export async function getInvoices(limit = 50, offset = 0) {
 
     return { success: true, invoices: invoiceList, total: Number(countResult.count) };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to fetch invoices") };
+    return { error: serializeError(error).error };
   }
 }
 
 export async function cancelInvoice(id: string) {
   try {
     const session = await requireBusinessSession();
+    validateUuid(id, "invoiceId");
 
     const rateCheck = await checkActionRateLimit(session.id, 'cancelInvoice', 10, '60 s');
     if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
@@ -421,16 +422,17 @@ export async function cancelInvoice(id: string) {
         const isKhata = invoice.paymentMode === 'khata';
         const hadPayment = (invoice.amountPaid ?? 0) > 0;
 
+        let baseBalanceChange: Decimal | undefined;
         if (customer && (isKhata || hadPayment)) {
           const currentBalance = new Decimal(customer.current_balance || 0);
           const invTotalStr = new Decimal(invoice.total || 0);
-          const newBalance = isKhata
+          baseBalanceChange = isKhata
             ? currentBalance.minus(invTotalStr)        
             : currentBalance.plus(invTotalStr);         
 
           await tx.update(customers)
             .set({
-              currentBalance: newBalance.toNumber(),
+              currentBalance: baseBalanceChange.toNumber(),
               updatedAt: new Date(),
             })
             .where(eq(customers.id, invoice.customerId));
@@ -462,8 +464,10 @@ export async function cancelInvoice(id: string) {
                 FOR UPDATE`
           ) as unknown as { id: string; total: number | null; amount_paid: number | null }[];
 
-          const allocation = allocatePaymentAcrossInvoices(pendingInvoicesRows, orphanedPayment);
+          const pendingInputs = pendingInvoicesRows.map(r => ({ id: r.id, total: r.total, amountPaid: r.amount_paid }));
+          const allocation = allocatePaymentAcrossInvoices(pendingInputs, orphanedPayment);
           const invoicesToUpdate = allocation.updates;
+          const allocatedAmount = orphanedPayment.minus(allocation.remaining);
           orphanedPayment = new Decimal(allocation.remaining);
 
           
@@ -489,7 +493,34 @@ export async function cancelInvoice(id: string) {
                 updated_at = NOW()
               WHERE id IN (${sqlIds})
             `);
+
+            
+            if (allocatedAmount.greaterThan(0)) {
+              await tx.insert(khataTransactions).values({
+                id: crypto.randomUUID(),
+                businessId: session.id,
+                customerId: invoice.customerId,
+                type: 'debit',
+                amount: allocatedAmount.toNumber(),
+                note: `Invoice ${invoice.invoiceNumber} Cancelled - Reallocation`,
+                referenceInvoiceId: invoice.id,
+              });
+              if (baseBalanceChange) {
+                const adjustedBalance = baseBalanceChange.minus(allocatedAmount);
+                await tx.update(customers)
+                  .set({
+                    currentBalance: adjustedBalance.toNumber(),
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(customers.id, invoice.customerId));
+              }
+            }
           }
+        }
+
+        if (invoice.customerId) {
+          await assertCustomerBalanceConsistent(tx, invoice.customerId);
+          await assertNoOverpaidInvoices(tx, invoice.customerId);
         }
       }
     });
@@ -499,7 +530,7 @@ export async function cancelInvoice(id: string) {
 
     return { success: true };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to cancel invoice") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -517,7 +548,7 @@ export async function getSalesSummary() {
       summary
     };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to fetch sales summary") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -530,7 +561,7 @@ export async function getRecentInvoices(limitNum = 5) {
 
     return { success: true, invoices: invoiceList };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to fetch recent invoices") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -543,6 +574,6 @@ export async function getWeeklySalesData() {
 
     return { success: true, days };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to fetch weekly sales data") };
+    return { error: serializeError(error).error };
   }
 }

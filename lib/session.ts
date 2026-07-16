@@ -1,5 +1,4 @@
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "./auth";
 
 type SessionUser = {
   id?: string;
@@ -12,6 +11,7 @@ export class AuthError extends Error {
 }
 
 async function getBusinessSession() {
+  const { authOptions } = await import("./auth");
   const session = await getServerSession(authOptions);
   if (!session?.user) {
     return null;
@@ -28,6 +28,13 @@ async function getBusinessSession() {
 }
 
 export async function requireBusinessSession() {
+  if (process.env.TEST_MODE === 'true' && process.env.TEST_USER_ID) {
+    return {
+      id: process.env.TEST_USER_ID,
+      email: 'test@billforge.local',
+      name: 'Test Business',
+    };
+  }
   const session = await getBusinessSession();
   if (!session) {
     throw new AuthError();

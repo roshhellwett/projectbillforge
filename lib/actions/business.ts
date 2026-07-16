@@ -6,10 +6,7 @@ import { businessProfileSchema } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
 import { eq, sql } from "drizzle-orm";
 import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
-
-function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
+import { serializeError } from "@/lib/errors";
 
 export async function getBusinessProfile() {
   try {
@@ -25,7 +22,7 @@ export async function getBusinessProfile() {
 
     return { success: true, business };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to fetch business profile") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -83,7 +80,7 @@ export async function updateBusinessProfile(data: {
     revalidateLocalizedPaths(['/dashboard/settings', '/dashboard', '/dashboard/invoices']);
     return { success: true };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to update business profile") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -102,7 +99,7 @@ export async function getResetAllKhataSummary() {
     `) as unknown as { customer_count: number; invoice_count: number; total_balance: number }[];
     return { success: true, ...result };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to get summary") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -159,6 +156,6 @@ export async function resetAllKhataData(consentAccepted: boolean) {
     revalidateDashboardCache(session.id);
     return { success: true, ...result };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to reset all khata data") };
+    return { error: serializeError(error).error };
   }
 }

@@ -19,6 +19,9 @@ export const INDUSTRY_OPTIONS = [
   { value: "custom", label: "Custom/Other" },
 ] as const;
 
+export const DEFAULT_CREDIT_LIMIT = 500;
+export const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
 export const DEFAULT_TERMS = `1. Goods once sold cannot be returned or exchanged unless damaged or defective at the time of delivery.
 2. Payment is due within the agreed credit period.
 3. Interest @24% p.a. will be charged on overdue payments.

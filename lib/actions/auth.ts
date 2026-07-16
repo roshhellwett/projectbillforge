@@ -8,6 +8,7 @@ import { eq } from "drizzle-orm";
 import { checkActionRateLimit } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import { requireBusinessSession } from "@/lib/session";
+import { serializeError } from "@/lib/errors";
 import { sendEmail, verificationHtml } from "@/lib/email";
 
 export async function registerBusiness(data: BusinessRegisterInput, locale: string = "en") {
@@ -92,7 +93,7 @@ export async function registerBusiness(data: BusinessRegisterInput, locale: stri
 
   return { success: true, businessId: business.id };
   } catch (error: unknown) {
-    return { error: error instanceof Error ? error.message : "Registration failed" };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -138,6 +139,6 @@ export async function changePassword(data: { currentPassword: string; newPasswor
 
     return { success: true };
   } catch (error: unknown) {
-    return { error: error instanceof Error ? error.message : "Failed to change password" };
+    return { error: serializeError(error).error };
   }
 }

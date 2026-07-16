@@ -1,0 +1,17 @@
+node_modules
+.git
+.gitignore
+.next
+.env
+.env.local
+.env.*.local
+.env.test
+docker-compose.yml
+*.md
+plan.txt
+tests
+.agents
+.github
+scripts
+drizzle
+*.tsbuildinfo

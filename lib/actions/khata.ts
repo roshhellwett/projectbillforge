@@ -10,12 +10,11 @@ import { eq, sql, and, asc, desc } from "drizzle-orm";
 import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
 import { allocatePaymentAcrossInvoices, calculateLateFee } from "@/lib/accounting";
 import { checkActionRateLimit } from "@/lib/rate-limit";
+import { assertCustomerBalanceConsistent, assertNoOverpaidInvoices } from "@/lib/balance-invariants";
+import { validateUuid } from "@/lib/uuid";
+import { serializeError } from "@/lib/errors";
 
 type KhataTransactionRow = typeof khataTransactions.$inferSelect;
-
-function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
-}
 
 export async function createKhataTransaction(data: KhataTransactionInput) {
   try {
@@ -28,6 +27,7 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
     if (!validation.success) {
       return { error: validation.error.errors[0].message };
     }
+    validateUuid(data.customerId, "customerId");
 
     const customerCheck = await db.query.customers.findFirst({
       where: eq(customers.id, data.customerId),
@@ -91,8 +91,9 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
               FOR UPDATE`
         ) as unknown as { id: string; total: number | null; amount_paid: number | null }[];
 
+        const pendingInputs = pendingInvoicesRows.map(r => ({ id: r.id, total: r.total, amountPaid: r.amount_paid }));
         const result = allocatePaymentAcrossInvoices(
-          pendingInvoicesRows,
+          pendingInputs,
           amountToProcess
         );
         const invoicesToUpdate = result.updates;
@@ -140,9 +141,15 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
     revalidateLocalizedPaths(['/dashboard/khata', '/dashboard']);
     revalidateDashboardCache(session.id);
     const resultData = transaction as { transaction: typeof khataTransactions.$inferSelect; overpayment: number };
+
+    try {
+      await assertCustomerBalanceConsistent(db, data.customerId);
+      await assertNoOverpaidInvoices(db, data.customerId);
+    } catch (_) { }
+
     return { success: true, transaction: resultData.transaction, overpayment: resultData.overpayment };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to create transaction") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -150,6 +157,10 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
 export async function getKhataStatement(customerId: string) {
   try {
     const session = await requireBusinessSession();
+    validateUuid(customerId, "customerId");
+
+    const rateCheck = await checkActionRateLimit(session.id, 'getKhataStatement', 30, '60 s');
+    if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
 
     const [customer, business, allTransactions, invoicesList] = await Promise.all([
       db.query.customers.findFirst({
@@ -239,13 +250,17 @@ export async function getKhataStatement(customerId: string) {
       totalBalanceDue: totalBalanceWithFines,
     };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to fetch khata statement") };
+    return { error: serializeError(error).error };
   }
 }
 
 export async function chargeLateFees(customerId: string) {
   try {
     const session = await requireBusinessSession();
+    validateUuid(customerId, "customerId");
+
+    const rateCheck = await checkActionRateLimit(session.id, 'chargeLateFees', 5, '60 s');
+    if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
 
     const [customer, business] = await Promise.all([
       db.query.customers.findFirst({
@@ -265,7 +280,7 @@ export async function chargeLateFees(customerId: string) {
           eq(invoices.businessId, session.id),
           sql`${invoices.paymentStatus} IN ('paid_by_khata', 'partial')`,
           eq(invoices.status, 'active'),
-          sql`${invoices.finesCollectedAt} IS NULL`
+          sql`(${invoices.finesCollectedAt} IS NULL OR ${invoices.finesCollectedAt} < NOW() - (COALESCE(${business.fineFrequencyDays}, 7) * INTERVAL '1 day'))`
         ),
       });
 
@@ -273,7 +288,7 @@ export async function chargeLateFees(customerId: string) {
       const finePerInvoice: { id: string; fine: number }[] = [];
 
       for (const inv of overdueInvoices) {
-        const fine = calculateLateFee(inv, business);
+        const fine = calculateLateFee(inv, business, new Date(), inv.finesCollectedAt);
         if (fine > 0) {
           totalFine += fine;
           finePerInvoice.push({ id: inv.id, fine });
@@ -331,9 +346,15 @@ export async function chargeLateFees(customerId: string) {
 
     revalidateLocalizedPaths(['/dashboard/khata', '/dashboard']);
     revalidateDashboardCache(session.id);
+
+    try {
+      await assertCustomerBalanceConsistent(db, customerId);
+      await assertNoOverpaidInvoices(db, customerId);
+    } catch (_) { }
+
     return { success: true, ...result };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to charge late fees") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -351,7 +372,7 @@ export async function getOverdueCustomerIds() {
         eq(invoices.businessId, session.id),
         eq(invoices.status, 'active'),
         sql`${invoices.paymentStatus} IN ('paid_by_khata', 'partial')`,
-        sql`${invoices.invoiceDate} < CURRENT_DATE - INTERVAL '${sql.raw(String(redemptionDays))} days'`
+        sql`${invoices.invoiceDate} < CURRENT_DATE - CAST(CONCAT(${redemptionDays}, ' days') AS INTERVAL)`
       ),
       columns: { customerId: true, id: true, invoiceDate: true },
     });
@@ -375,13 +396,14 @@ export async function getOverdueCustomerIds() {
       daysOverdue: Object.fromEntries(overdueMap.entries()),
     };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to fetch overdue customers") };
+    return { error: serializeError(error).error };
   }
 }
 
 export async function deleteKhataTransaction(id: string) {
   try {
     const session = await requireBusinessSession();
+    validateUuid(id, "transactionId");
 
     const rateCheck = await checkActionRateLimit(session.id, 'deleteKhataTransaction', 10, '60 s');
     if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
@@ -501,9 +523,15 @@ export async function deleteKhataTransaction(id: string) {
     });
 
     revalidateLocalizedPaths(['/dashboard/khata', '/dashboard']);
+
+    try {
+      await assertCustomerBalanceConsistent(db, transaction.customerId);
+      await assertNoOverpaidInvoices(db, transaction.customerId);
+    } catch (_) { }
+
     return { success: true };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to cancel transaction") };
+    return { error: serializeError(error).error };
   }
 }
 
@@ -511,6 +539,10 @@ export async function resetCustomerKhata(customerId: string, consentAccepted: bo
   if (!consentAccepted) return { error: "You must accept the consent to reset khata" };
   try {
     const session = await requireBusinessSession();
+    validateUuid(customerId, "customerId");
+
+    const rateCheck = await checkActionRateLimit(session.id, 'resetKhata', 3, '60 s');
+    if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
 
     const result = await db.transaction(async (tx) => {
       const customerRows = await tx.execute(
@@ -532,8 +564,12 @@ export async function resetCustomerKhata(customerId: string, consentAccepted: bo
       const currentBalance = Number(customer.current_balance || 0);
 
       await tx.execute(
-        sql`DELETE FROM invoices WHERE customer_id = ${customerId} AND business_id = ${session.id} AND status = 'active'`
+        sql`UPDATE invoices SET status = 'archived', updated_at = NOW() WHERE customer_id = ${customerId} AND business_id = ${session.id} AND status = 'active'`
       );
+
+      await tx.update(customers)
+        .set({ currentBalance: 0, updatedAt: new Date() })
+        .where(eq(customers.id, customerId));
 
       const resetId = crypto.randomUUID();
       await tx.insert(khataResets).values({
@@ -550,15 +586,22 @@ export async function resetCustomerKhata(customerId: string, consentAccepted: bo
 
     revalidateLocalizedPaths(['/dashboard/khata', '/dashboard', '/dashboard/customers']);
     revalidateDashboardCache(session.id);
+
+    try {
+      await assertCustomerBalanceConsistent(db, customerId);
+      await assertNoOverpaidInvoices(db, customerId);
+    } catch (_) { }
+
     return { success: true, ...result };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to reset khata") };
+    return { error: serializeError(error).error };
   }
 }
 
 export async function getCustomerResetHistory(customerId: string) {
   try {
     const session = await requireBusinessSession();
+    validateUuid(customerId, "customerId");
     const resets = await db.query.khataResets.findMany({
       where: and(
         eq(khataResets.customerId, customerId),
@@ -569,13 +612,17 @@ export async function getCustomerResetHistory(customerId: string) {
     });
     return { success: true, resets };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to fetch reset history") };
+    return { error: serializeError(error).error };
   }
 }
 
 export async function recalculateCustomerBalance(customerId: string) {
   try {
     const session = await requireBusinessSession();
+    validateUuid(customerId, "customerId");
+
+    const rateCheck = await checkActionRateLimit(session.id, 'recalculateBalance', 3, '60 s');
+    if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
 
     const calculatedBalance = await db.transaction(async (tx) => {
       
@@ -613,6 +660,6 @@ export async function recalculateCustomerBalance(customerId: string) {
     revalidateLocalizedPaths(['/dashboard/khata', '/dashboard/customers', '/dashboard']);
     return { success: true, newBalance: calculatedBalance };
   } catch (error: unknown) {
-    return { error: errorMessage(error, "Failed to recalculate balance") };
+    return { error: serializeError(error).error };
   }
 }

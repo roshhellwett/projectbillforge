@@ -9,18 +9,30 @@ function normalizePath(path: string): string {
 }
 
 export function revalidateLocalizedPath(path: string, type: "page" | "layout" = "page") {
-  const normalized = normalizePath(path);
-  for (const locale of routing.locales) {
-    revalidatePath(`/${locale}${normalized}`, type);
+  try {
+    const normalized = normalizePath(path);
+    for (const locale of routing.locales) {
+      revalidatePath(`/${locale}${normalized}`, type);
+    }
+  } catch {
+    /* noop outside Next.js runtime */
   }
 }
 
 export function revalidateLocalizedPaths(paths: string[], type: "page" | "layout" = "page") {
-  for (const path of paths) {
-    revalidateLocalizedPath(path, type);
+  try {
+    for (const path of paths) {
+      revalidateLocalizedPath(path, type);
+    }
+  } catch {
+    /* noop outside Next.js runtime */
   }
 }
 
 export function revalidateDashboardCache(businessId: string) {
-  revalidateTag(`dashboard_${businessId}`);
+  try {
+    revalidateTag(`dashboard_${businessId}`);
+  } catch {
+    /* noop outside Next.js runtime */
+  }
 }
