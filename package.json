@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.36.2",
+    "@upstash/redis": "^1.38.0",
     "bcryptjs": "^2.4.3",
     "decimal.js": "^10.6.0",
     "drizzle-orm": "^0.39.3",
