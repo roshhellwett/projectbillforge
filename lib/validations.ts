@@ -51,35 +51,53 @@ export const productSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
+// Money caps: 1 crore per line-item, 10 crore per invoice — well above any
+// realistic Indian SMB single transaction and prevents runaway numeric input.
+const MAX_LINE_AMOUNT = 1_00_00_000;
+const MAX_INVOICE_TOTAL = 10_00_00_000;
+const MAX_INVOICE_ITEMS = 200;
+const MAX_QUANTITY = 1_00_000;
+
 export const invoiceItemSchema = z.object({
   productId: z.string().min(1),
-  productName: z.string().min(1).trim(),
-  quantity: z.number().positive("Quantity must be greater than 0"),
-  rate: z.number().min(0.01, "Item rate must be greater than 0"),
-  gstRate: z.number().min(0),
-  amount: z.number().min(0).default(0),
-  cgst: z.number().min(0).default(0),
-  sgst: z.number().min(0).default(0),
-  igst: z.number().min(0).default(0),
+  productName: z.string().min(1).max(200).trim(),
+  quantity: z.number().positive("Quantity must be greater than 0").max(MAX_QUANTITY, `Quantity too large (max ${MAX_QUANTITY})`),
+  rate: z.number().min(0.01, "Item rate must be greater than 0").max(MAX_LINE_AMOUNT, "Rate exceeds allowed maximum"),
+  gstRate: z.number().min(0).max(28, "GST rate cannot exceed 28%"),
+  amount: z.number().min(0).max(MAX_LINE_AMOUNT).default(0),
+  cgst: z.number().min(0).max(MAX_LINE_AMOUNT).default(0),
+  sgst: z.number().min(0).max(MAX_LINE_AMOUNT).default(0),
+  igst: z.number().min(0).max(MAX_LINE_AMOUNT).default(0),
 });
 
 export const invoiceSchema = z.object({
   customerId: z.string().optional(),
-  customerName: z.string().min(1, "Customer name is required").trim(),
+  customerName: z.string().min(1, "Customer name is required").max(200).trim(),
   customerGstin: z.string().regex(gstinRegex, "Invalid GSTIN format").optional().or(z.literal('')),
-  customerAddress: z.string().optional().transform(s => s?.trim() || undefined),
+  customerAddress: z.string().max(500).optional().transform(s => s?.trim() || undefined),
   invoiceDate: z.string().min(1, "Invoice date is required"),
-  items: z.array(invoiceItemSchema).min(1, "At least one item is required"),
+  items: z.array(invoiceItemSchema)
+    .min(1, "At least one item is required")
+    .max(MAX_INVOICE_ITEMS, `Maximum ${MAX_INVOICE_ITEMS} line items per invoice`),
   isInterState: z.boolean().default(false),
-    paymentMode: z.enum(["cash", "upi", "khata"]).default("cash"),
-  });
+  paymentMode: z.enum(["cash", "upi", "khata"]).default("cash"),
+  idempotencyKey: z.string().min(8).max(128).optional(),
+}).refine(
+  (data) => {
+    const subtotal = data.items.reduce((s, i) => s + (i.rate * i.quantity), 0);
+    return subtotal <= MAX_INVOICE_TOTAL;
+  },
+  { message: `Invoice total exceeds maximum allowed (${MAX_INVOICE_TOTAL.toLocaleString('en-IN')})`, path: ["items"] }
+);
 
 export const khataTransactionSchema = z.object({
   customerId: z.string().min(1, "Customer is required"),
   type: z.enum(["credit", "debit"]),
-  amount: z.number().positive("Amount must be positive"),
-  paymentMethod: z.string().optional(),
-  note: z.string().optional().transform(s => s?.trim() || undefined),
+  amount: z.number()
+    .positive("Amount must be positive")
+    .max(1_00_00_000, "Amount exceeds allowed maximum (₹1 crore)"),
+  paymentMethod: z.string().max(50).optional(),
+  note: z.string().max(500).optional().transform(s => s?.trim() || undefined),
 });
 
 export const businessProfileSchema = z.object({

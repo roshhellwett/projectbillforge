@@ -57,6 +57,7 @@ export const customers = pgTable('customers', {
 }, (table) => ({
   businessIdIdx: index('idx_customers_business').on(table.businessId),
   businessBalanceIdx: index('idx_customers_business_balance').on(table.businessId, table.currentBalance),
+  businessNameIdx: index('idx_customers_business_name').on(table.businessId, table.name),
 }));
 
 export const products = pgTable('products', {
@@ -76,6 +77,8 @@ export const products = pgTable('products', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   businessIdIdx: index('idx_products_business').on(table.businessId),
+  businessNameIdx: index('idx_products_business_name').on(table.businessId, table.name),
+  businessActiveIdx: index('idx_products_business_active').on(table.businessId, table.isActive),
 }));
 
 export const invoices = pgTable('invoices', {
@@ -107,6 +110,10 @@ export const invoices = pgTable('invoices', {
   invoiceDateIdx: index('idx_invoices_date').on(table.invoiceDate),
   paymentStatusIdx: index('idx_invoices_payment_status').on(table.paymentStatus),
   businessStatusIdx: index('idx_invoices_business_status').on(table.businessId, table.status),
+  // High-value composite: lists are always "this business, newest first".
+  businessCreatedIdx: index('idx_invoices_business_created').on(table.businessId, table.createdAt),
+  // Customer-scoped khata reconciliation queries scan by (customer, date).
+  customerDateIdx: index('idx_invoices_customer_date').on(table.customerId, table.invoiceDate),
 }));
 
 export const khataTransactions = pgTable('khata_transactions', {
@@ -125,6 +132,8 @@ export const khataTransactions = pgTable('khata_transactions', {
   customerIdIdx: index('idx_khata_customer').on(table.customerId),
   statusIdx: index('idx_khata_status').on(table.status),
   businessCustomerIdx: index('idx_khata_business_customer').on(table.businessId, table.customerId),
+  // Ledger reads always fetch a customer's transactions ordered by time.
+  customerCreatedIdx: index('idx_khata_customer_created').on(table.customerId, table.createdAt),
 }));
 
 export const khataResets = pgTable('khata_resets', {

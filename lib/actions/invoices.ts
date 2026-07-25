@@ -14,6 +14,7 @@ import { checkActionRateLimit } from "@/lib/rate-limit";
 import { assertCustomerBalanceConsistent, assertNoOverpaidInvoices } from "@/lib/balance-invariants";
 import { validateUuid } from "@/lib/uuid";
 import { serializeError } from "@/lib/errors";
+import { withIdempotency } from "@/lib/idempotency";
 
 const INDIA_TIME_ZONE = "Asia/Kolkata";
 
@@ -153,6 +154,25 @@ export async function createInvoice(data: InvoiceInput) {
     if (!validation.success) {
       return { error: validation.error.errors[0].message };
     }
+
+    // Idempotency: if the client sends a stable key (e.g. one per user-facing
+    // "Save" click), replay the cached response instead of creating a
+    // duplicate invoice on retry / double-submit.
+    const idempotencyKey = data.idempotencyKey
+      ? `invoice:${session.id}:${data.idempotencyKey}`
+      : undefined;
+
+    return await withIdempotency(idempotencyKey, () => createInvoiceInner(session, data));
+  } catch (error: unknown) {
+    return { error: serializeError(error).error };
+  }
+}
+
+async function createInvoiceInner(
+  session: { id: string },
+  data: InvoiceInput,
+): Promise<{ success?: true; invoice?: typeof invoices.$inferSelect; error?: string; redirectToSettings?: boolean }> {
+  try {
 
     
     if (data.paymentMode === 'khata' && !data.customerId) {

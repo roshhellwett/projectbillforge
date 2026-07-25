@@ -26,6 +26,21 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit
 
+      - name: Guard against external asset pointers
+        # Enforces the "local-only assets" project rule — no Lovable CDN
+        # pointers or .asset.json files may land in the repo, so GitHub sync
+        # stays self-contained and the project is portable to any host.
+        run: |
+          set -e
+          if git ls-files | grep -E '\.asset\.json$' ; then
+            echo "::error::Found .asset.json pointer files. All assets must live locally under public/ or app/."
+            exit 1
+          fi
+          if git grep -nE '/__l5e/assets-v1/' -- ':!.github/**' ':!.lovable/**' ; then
+            echo "::error::Found /__l5e/assets-v1/ CDN URL references. Replace with local paths under /public."
+            exit 1
+          fi
+
       - name: Run ESLint
         run: npm run lint
 

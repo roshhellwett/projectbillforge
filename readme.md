@@ -1,74 +1,40 @@
-<p align="center">
+# Project: projectbillforge
+Project Billforge is a web-based invoice management and billing application designed to streamline financial operations for businesses. It provides a comprehensive platform for creating, managing, and tracking invoices, payments, and client interactions.
 
-![Repo Size](https://img.shields.io/github/repo-size/roshhellwett/projectbillforge?style=for-the-badge)
-![Stars](https://img.shields.io/github/stars/roshhellwett/projectbillforge?style=for-the-badge)
-![Forks](https://img.shields.io/github/forks/roshhellwett/projectbillforge?style=for-the-badge)
-![Issues](https://img.shields.io/github/issues/roshhellwett/projectbillforge?style=for-the-badge)
-</p>
+## Features
+* User authentication and authorization
+* Invoice creation and management
+* Payment tracking and reminders
+* Client management and profiling
+* Multi-language support (English, Hindi)
+* Real-time updates and notifications
+* Dashboard for overview of business performance
+* Mobile responsiveness for access on-the-go
 
-# PROJECT BILLFORGE
+## Installation
+To install the project, follow these steps:
+1. Clone the repository to your local machine.
+2. Navigate to the project directory in your terminal or command prompt.
+3. Run the command `npm install` to install the required dependencies.
+4. Create a copy of the `.env.example` file and rename it to `.env`.
+5. Configure the environment variables in the `.env` file as needed.
 
-A powerful and streamlined business management utility — designed to simplify invoicing, khata bookkeeping, and customer management for modern Indian businesses. BillForge brings professional automation, making business workflows faster and easier for local vendors and merchants.
+## Usage
+To start the application, run the command `npm run dev`. This will start the development server, and you can access the application at `http://localhost:3000` in your web browser.
 
-![SAMPLE](https://github.com/roshhellwett/projectbillforge/blob/4d3988cb1910dcfe4e923f11c42693e7282c882c/Sample/sample.png)
+## Tech Stack
+| Technology | Description |
+| --- | --- |
+| Docker | Containerization platform |
+| TypeScript | Programming language |
+| JavaScript | Programming language |
+| HTML/CSS | Front-end development |
+| Next.js | React-based framework |
+| Drizzle | Database orchestration |
+| PostgreSQL | Database management |
 
-## Key Features
+## Contributing
+Unfortunately, there is no CONTRIBUTING.md file in this repository. However, if you'd like to contribute to the project, please fork the repository, make your changes, and submit a pull request. Ensure that your changes align with the project's goals and adhere to the existing code standards.
 
-### Core Functionality
-- **Fast Invoicing**: Generate GST-ready invoices with a clean, simple interface.
-- **Digital Khata (Ledger)**: Track daily credit (Udhaar), view transaction history, and manage balances.
-- **Product Catalog**: Maintain a directory of products with pricing and categories.
-- **Customer Management**: Keep track of client payment patterns and contact details.
-
-### Security & Reliability
-- **Secure Authentication**: Built with NextAuth.js for user session management.
-- **Data Integrity**: Drizzle ORM with PostgreSQL (Supabase) for reliable data operations.
-- **Rate Limiting**: Upstash Redis rate limiting for application stability.
-- **Tech Stack**: Next.js 15, React 19, Tailwind CSS.
-
-## 🛠️ Prerequisites
-To run BillForge locally, you will need:
-- **Node.js**: Version >= 20.9.0
-- **Database**: PostgreSQL (Supabase recommended)
-- **Redis**: Upstash Redis for rate limiting and session management
-- **Environment Variables**: See `.env.example` for required configuration.
-
-## 🚀 Installation & Usage
-BillForge is designed for quick setup. Follow these steps to get started:
-
-```bash
-# Clone the repository
-git clone https://github.com/roshhellwett/projectbillforge.git
-cd projectbillforge
-
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env.local
-
-# Run database migrations
-npm run db:push
-
-# Start the development server
-npm run dev
-```
-
-## 📂 Project Structure
-```
-projectbillforge/
-├── app/                  # Next.js App Router (Dashboard, Auth, API)
-├── components/           # Reusable UI components (LandingPage, Navigation)
-├── drizzle/              # Database schema and migrations
-├── lib/                  # Utility functions, database client, and shared logic
-├── public/               # Static assets and images
-├── drizzle.config.ts     # Drizzle ORM configuration
-├── middleware.ts         # Authentication and routing middleware
-├── next.config.ts        # Next.js framework configuration
-├── package.json          # Project dependencies and scripts
-└── README.md             # Project documentation
-```
-
----
-© 2026 [Zenith Open Source Projects](https://zenithopensourceprojects.vercel.app/). All Rights Reserved.
-Zenith is an Open Source Project Idea by @roshhellwett
+## License
+This project is licensed under the terms of the license file included in the repository. Please review the LICENSE file for details on usage, distribution, and modification.

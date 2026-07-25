@@ -27,10 +27,10 @@ export default function KhataPage() {
 
   return (
     <StaggerContainer className="space-y-6">
-      <FadeIn className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">{t("title")}</h1>
-          <p className="text-[var(--foreground)]/60 mt-1">{t("subtitle")}</p>
+      <FadeIn className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 sm:flex sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)]">{t("title")}</h1>
+          <p className="text-sm text-[var(--foreground)]/60 mt-1 text-balance">{t("subtitle")}</p>
         </div>
       </FadeIn>
 
@@ -48,13 +48,17 @@ export default function KhataPage() {
 
       {customer && (
         <>
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <button onClick={() => handleCustomerSelect("")} className="text-sm text-[var(--foreground)]/60 hover:text-[var(--color-primary)] flex items-center gap-1 transition-colors">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:justify-between">
+            <button onClick={() => handleCustomerSelect("")} className="min-w-0 truncate text-sm font-medium text-[var(--foreground)]/60 hover:text-[var(--color-primary)] inline-flex items-center gap-1 transition-colors">
               {t("backToList")}
             </button>
-            <button onClick={() => { setModalFormData({ type: "credit", amount: "", note: "" }); setShowModal(true); }} className="glass-btn-primary flex items-center gap-2">
-              <Plus size={20} />
-              {t("addTransaction")}
+            <button
+              onClick={() => { setModalFormData({ type: "credit", amount: "", note: "" }); setShowModal(true); }}
+              className="glass-btn-primary min-h-11 flex items-center gap-2 shrink-0"
+            >
+              <Plus size={18} />
+              <span className="hidden sm:inline">{t("addTransaction")}</span>
+              <span className="sm:hidden">Add</span>
             </button>
           </div>
 
