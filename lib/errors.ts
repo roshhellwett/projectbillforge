@@ -57,7 +57,8 @@ export function serializeError(error: unknown, env?: string): { error: string } 
       ...(error.details ? { details: error.details } : {}),
     } as { error: string };
   }
-  if (env === "production") {
+  const isProduction = (env ?? process.env.NODE_ENV) === "production";
+  if (isProduction) {
     return { error: "An unexpected error occurred", code: "INTERNAL_ERROR" } as { error: string };
   }
   return {

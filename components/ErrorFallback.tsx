@@ -14,15 +14,21 @@ export default function ErrorFallback({
 
   const details = useMemo(() => {
     const lines: string[] = [];
-    lines.push(`Message: ${error?.message || "Unknown error"}`);
-    if (error?.name) lines.push(`Name: ${error.name}`);
-    if (error?.digest) lines.push(`Digest: ${error.digest}`);
+    const isProduction = process.env.NODE_ENV === "production";
+    const reference = error?.digest || `BF-${Date.now().toString(36).toUpperCase()}`;
+    lines.push(`Reference: ${reference}`);
+    if (isProduction) {
+      lines.push("The application encountered an unexpected error.");
+    } else {
+      lines.push(`Message: ${error?.message || "Unknown error"}`);
+      if (error?.name) lines.push(`Name: ${error.name}`);
+    }
     if (typeof window !== "undefined") {
       lines.push(`URL: ${window.location.href}`);
       lines.push(`User-Agent: ${window.navigator.userAgent}`);
     }
     lines.push(`Time: ${new Date().toISOString()}`);
-    if (error?.stack) {
+    if (!isProduction && error?.stack) {
       lines.push("");
       lines.push("Stack:");
       lines.push(error.stack);
@@ -60,7 +66,7 @@ export default function ErrorFallback({
         <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur p-4 md:p-5 mb-6">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-medium uppercase tracking-wider text-[var(--foreground,#fff)]/50">
-              Error details
+               Support reference
             </span>
             <button
               type="button"

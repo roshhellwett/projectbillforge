@@ -7,6 +7,7 @@ import { requireBusinessSession } from "@/lib/session";
 import { eq, sql } from "drizzle-orm";
 import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
 import { serializeError } from "@/lib/errors";
+import { assertCustomerBalanceConsistent, assertNoOverpaidInvoices } from "@/lib/balance-invariants";
 
 export async function getBusinessProfile() {
   try {
@@ -121,12 +122,29 @@ export async function resetAllKhataData(consentAccepted: boolean) {
         ) as unknown as { cnt: number }[];
 
         const invoiceCount = Number(countResult?.cnt ?? 0);
-        if (invoiceCount === 0) continue;
-
         const currentBalance = Number(customer.current_balance || 0);
+        if (invoiceCount === 0 && Math.abs(currentBalance) < 0.01) continue;
 
         await tx.execute(
-          sql`DELETE FROM invoices WHERE customer_id = ${customer.id} AND business_id = ${session.id} AND status = 'active'`
+          sql`UPDATE invoices
+              SET status = 'archived', updated_at = NOW()
+              WHERE customer_id = ${customer.id}
+                AND business_id = ${session.id}
+                AND status = 'active'`
+        );
+
+        await tx.execute(
+          sql`UPDATE khata_transactions
+              SET status = 'cancelled'
+              WHERE customer_id = ${customer.id}
+                AND business_id = ${session.id}
+                AND status = 'active'`
+        );
+
+        await tx.execute(
+          sql`UPDATE customers
+              SET current_balance = 0, updated_at = NOW()
+              WHERE id = ${customer.id} AND business_id = ${session.id}`
         );
 
         await tx.insert(khataResets).values({
@@ -141,6 +159,9 @@ export async function resetAllKhataData(consentAccepted: boolean) {
         totalCustomers++;
         totalInvoices += invoiceCount;
         totalBalance += currentBalance;
+
+        await assertCustomerBalanceConsistent(tx, customer.id);
+        await assertNoOverpaidInvoices(tx, customer.id);
       }
 
       return { totalCustomers, totalInvoices, totalBalance };

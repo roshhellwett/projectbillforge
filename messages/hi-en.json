@@ -62,7 +62,8 @@
         "lowStockTitle": "Low Stock Alert",
         "lowStockWellStocked": "Saare products sufficient stock mein hain",
         "lowStockThreshold": "Seema: {threshold}",
-        "lowStockCount": "{count} bacha"
+        "lowStockCount": "{count} bacha",
+        "assistant": "Copilot"
     },
     "Khata": {
         "title": "Khata (खाता)",
@@ -267,5 +268,40 @@
         "viewInvoice": "Invoice dekhein",
         "cancelInvoice": "Invoice cancel karein",
         "amountPaid": "amount paid"
+    },
+    "Assistant": {
+        "eyebrow": "BillForge Copilot",
+        "titleLineOne": "Signal samjho.",
+        "titleLineTwo": "Agla step lo.",
+        "subtitle": "Sales, receivables, invoices aur stock ke baare mein simple language mein poochho. Copilot aapke business context ko padhkar focused answer deta hai, bina records ko touch kiye.",
+        "dataBoundaryTitle": "Private by design",
+        "dataBoundaryText": "Aapke authenticated workspace ka sirf bounded summary selected OpenRouter model ko bheja jata hai. Assistant read-only hai.",
+        "freshnessTitle": "Fresh context",
+        "freshnessText": "Answer poochte waqt available latest dashboard data par based hota hai.",
+        "chatTitle": "Aapka business copilot",
+        "chatSubtitle": "Agla important kaam samajhne ka focused view.",
+        "online": "Ready",
+        "newChat": "New chat",
+        "welcomeMessage": "Hi! Main aapko business ek nazar mein samajhne mein help kar sakta hoon. Poochho ki recent mein kya bika, kisse payment leni hai, ya kaunse products par dhyaan chahiye.",
+        "thinking": "Aapka business context read kar raha hoon…",
+        "genericError": "Copilot abhi answer nahi de paaya. Please dobara try karein.",
+        "dismiss": "Hataayein",
+        "inputPlaceholder": "Apne business ke baare mein poochhein…",
+        "inputLabel": "Business copilot se poochhein",
+        "enterToSend": "Enter se send",
+        "send": "Question send karein",
+        "readOnlyLabel": "Read-only assistant",
+        "privacyLabel": "Scoped context · koi change nahi",
+        "copied": "Copied",
+        "promptEyebrow": "Yahan se shuru karein",
+        "promptTitle": "Useful questions",
+        "suggestionSales": "Pichhle 30 din mein meri sales kaisi rahi?",
+        "suggestionReceivables": "Sabse pehle kin customers ko follow-up karna chahiye?",
+        "suggestionStock": "Is hafte kya restock karna chahiye?",
+        "suggestionInvoices": "Mujhe invoice aur collection ka quick snapshot do.",
+        "capabilitiesTitle": "Yeh kya dekh sakta hai",
+        "capabilitySales": "Sales momentum aur recent invoice activity",
+        "capabilityCustomers": "Receivables aur follow-up wale customers",
+        "capabilityStock": "Low-stock products aur inventory signals"
     }
 }

@@ -93,7 +93,7 @@ export function useInvoices(initialData?: {
         setTotalInvoices(invoicesResult.total ?? 0);
         setOffset(invoicesResult.invoices.length);
       } else if (invoicesResult.error) {
-        if (invoicesResult.error === "Unauthorized") { router.push("/en/login"); return; }
+        if (invoicesResult.error === "Unauthorized") { router.push("/login"); return; }
         addToast(invoicesResult.error, "error");
       }
       if (businessResult.success && businessResult.business) {
@@ -174,7 +174,7 @@ export function useInvoices(initialData?: {
         void loadData();
         router.refresh();
       } else if (result.error) {
-        if (result.error === "Unauthorized") { router.push("/en/login"); return; }
+        if (result.error === "Unauthorized") { router.push("/login"); return; }
         addToast(result.error, "error");
       }
     } catch {

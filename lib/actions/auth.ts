@@ -9,6 +9,7 @@ import { checkActionRateLimit } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import { requireBusinessSession } from "@/lib/session";
 import { serializeError } from "@/lib/errors";
+import { hashToken } from "@/lib/token";
 import { sendEmail, verificationHtml } from "@/lib/email";
 
 export async function registerBusiness(data: BusinessRegisterInput, locale: string = "en") {
@@ -85,8 +86,9 @@ export async function registerBusiness(data: BusinessRegisterInput, locale: stri
   const token = crypto.randomUUID();
   await db.insert(verificationTokens).values({
     identifier: safeData.email,
-    token,
+    token: hashToken(token),
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    purpose: "email_verification",
   });
   const { subject, html } = verificationHtml(token, locale);
   await sendEmail({ to: safeData.email, subject, html });

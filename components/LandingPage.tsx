@@ -485,7 +485,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <span className="text-xs font-bold text-[var(--foreground)] border-l border-[var(--border)] pl-2.5 ml-1">
-                  Trustpilot 4.8/5 Verified
+                   Made for Indian business workflows
                 </span>
               </div>
 
@@ -677,8 +677,8 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-[var(--border)] flex items-center justify-between text-xs font-semibold text-[var(--foreground)]/80">
-                <span>Real-Time Drizzle ORM Sync</span>
-                <span className="badge badge-success">Zero Lag</span>
+                 <span>Database-backed business data</span>
+                 <span className="badge badge-success">Fast reads</span>
               </div>
             </div>
           </div>
@@ -762,7 +762,7 @@ export default function LandingPage() {
               Ready to Modernize Your Business?
             </h2>
             <p className="text-base sm:text-lg text-zinc-300 dark:text-zinc-600 max-w-2xl mx-auto mb-8 relative z-10 text-balance">
-              Join thousands of local Indian businesses using BillForge for fast invoicing, khata bookkeeping, and customer management.
+               Build a calmer daily workflow for invoicing, khata bookkeeping, and customer management with BillForge.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
               <Link href="/register" className="w-full sm:w-auto">

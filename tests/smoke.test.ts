@@ -134,7 +134,7 @@ test("Smoke: All localization files (en, hi, hi-en) exist and parse cleanly with
       json = JSON.parse(raw);
     }, `Syntax error parsing ${file}`);
 
-    const requiredSections = ["Landing", "Auth", "Dashboard", "Invoices", "Khata", "Products", "Customers", "Settings"];
+    const requiredSections = ["Landing", "Auth", "Dashboard", "Invoices", "Khata", "Products", "Customers", "Settings", "Assistant"];
     for (const section of requiredSections) {
       assert.ok(section in json!, `Missing root translation section '${section}' in ${file}`);
     }

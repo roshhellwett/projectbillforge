@@ -62,7 +62,8 @@
         "lowStockTitle": "कम स्टॉक अलर्ट",
         "lowStockWellStocked": "सभी उत्पाद पर्याप्त स्टॉक में हैं",
         "lowStockThreshold": "सीमा: {threshold}",
-        "lowStockCount": "{count} बचा"
+        "lowStockCount": "{count} बचा",
+        "assistant": "सहायक"
     },
     "Khata": {
         "title": "खाता लेजर",
@@ -267,5 +268,40 @@
         "viewInvoice": "बिल देखें",
         "cancelInvoice": "बिल रद्द करें",
         "amountPaid": "भुगतान राशि"
+    },
+    "Assistant": {
+        "eyebrow": "BillForge सहायक",
+        "titleLineOne": "संकेत समझें।",
+        "titleLineTwo": "अगला कदम चुनें।",
+        "subtitle": "बिक्री, बकाया, बिल और स्टॉक के बारे में आसान भाषा में पूछें। सहायक आपके व्यापार के संदर्भ को पढ़कर उपयोगी जवाब देता है, बिना रिकॉर्ड बदले।",
+        "dataBoundaryTitle": "गोपनीयता पहले",
+        "dataBoundaryText": "आपके प्रमाणित खाते का सीमित सारांश चुने गए OpenRouter मॉडल को भेजा जाता है। सहायक केवल पढ़ सकता है।",
+        "freshnessTitle": "ताज़ा जानकारी",
+        "freshnessText": "जवाब पूछने के समय उपलब्ध नवीनतम डैशबोर्ड डेटा पर आधारित होता है।",
+        "chatTitle": "आपका व्यापार सहायक",
+        "chatSubtitle": "अगला ज़रूरी काम समझने के लिए एक साफ़ दृश्य।",
+        "online": "तैयार",
+        "newChat": "नई बातचीत",
+        "welcomeMessage": "नमस्ते! मैं आपको अपना व्यापार एक नज़र में समझने में मदद कर सकता हूँ। पूछें कि हाल में क्या बिका, किससे भुगतान लेना है, या किन उत्पादों पर ध्यान चाहिए।",
+        "thinking": "आपके व्यापार का संदर्भ पढ़ रहा हूँ…",
+        "genericError": "सहायक अभी जवाब नहीं दे पाया। कृपया फिर कोशिश करें।",
+        "dismiss": "हटाएं",
+        "inputPlaceholder": "अपने व्यापार के बारे में पूछें…",
+        "inputLabel": "व्यापार सहायक से पूछें",
+        "enterToSend": "Enter से भेजें",
+        "send": "सवाल भेजें",
+        "readOnlyLabel": "केवल पढ़ने वाला सहायक",
+        "privacyLabel": "सीमित संदर्भ · कोई बदलाव नहीं",
+        "copied": "कॉपी हो गया",
+        "promptEyebrow": "यहां से शुरू करें",
+        "promptTitle": "उपयोगी सवाल",
+        "suggestionSales": "पिछले 30 दिनों में मेरी बिक्री कैसी रही?",
+        "suggestionReceivables": "सबसे पहले किन ग्राहकों से संपर्क करना चाहिए?",
+        "suggestionStock": "इस हफ्ते क्या स्टॉक में मंगाना चाहिए?",
+        "suggestionInvoices": "बिल और वसूली का छोटा सा सारांश दें।",
+        "capabilitiesTitle": "यह क्या देख सकता है",
+        "capabilitySales": "बिक्री की गति और हाल की बिल गतिविधि",
+        "capabilityCustomers": "बकाया और फॉलो-अप वाले ग्राहक",
+        "capabilityStock": "कम स्टॉक वाले उत्पाद और इन्वेंट्री संकेत"
     }
 }

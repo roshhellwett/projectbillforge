@@ -39,7 +39,9 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
 
     const transaction = await db.transaction(async (tx) => {
       const customerRows = await tx.execute(
-        sql`SELECT id, current_balance, credit_limit FROM customers WHERE id = ${data.customerId} FOR UPDATE`
+        sql`SELECT id, current_balance, credit_limit FROM customers
+            WHERE id = ${data.customerId} AND business_id = ${session.id}
+            FOR UPDATE`
       ) as unknown as { id: string; current_balance: number | null; credit_limit: number | null }[];
       const lockedCustomer = customerRows[0];
 
@@ -133,7 +135,10 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
           currentBalance: newBalance.toDecimalPlaces(2).toNumber(),
           updatedAt: new Date(),
         })
-        .where(eq(customers.id, data.customerId));
+        .where(and(eq(customers.id, data.customerId), eq(customers.businessId, session.id)));
+
+      await assertCustomerBalanceConsistent(tx, data.customerId);
+      await assertNoOverpaidInvoices(tx, data.customerId);
 
       return { transaction: newTransaction, overpayment: data.type === 'debit' ? remainingAmount : 0 };
     });
@@ -141,11 +146,6 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
     revalidateLocalizedPaths(['/dashboard/khata', '/dashboard']);
     revalidateDashboardCache(session.id);
     const resultData = transaction as { transaction: typeof khataTransactions.$inferSelect; overpayment: number };
-
-    try {
-      await assertCustomerBalanceConsistent(db, data.customerId);
-      await assertNoOverpaidInvoices(db, data.customerId);
-    } catch (_) { }
 
     return { success: true, transaction: resultData.transaction, overpayment: resultData.overpayment };
   } catch (error: unknown) {
@@ -432,7 +432,9 @@ export async function deleteKhataTransaction(id: string) {
         : -transaction.amount;
 
       const customerRows = await tx.execute(
-        sql`SELECT id, current_balance FROM customers WHERE id = ${transaction.customerId} FOR UPDATE`
+        sql`SELECT id, current_balance FROM customers
+            WHERE id = ${transaction.customerId} AND business_id = ${session.id}
+            FOR UPDATE`
       ) as unknown as { id: string; current_balance: number | null }[];
       const customer = customerRows[0];
 
@@ -445,7 +447,7 @@ export async function deleteKhataTransaction(id: string) {
             currentBalance: newBalance.toNumber(),
             updatedAt: new Date(),
           })
-          .where(eq(customers.id, transaction.customerId));
+          .where(and(eq(customers.id, transaction.customerId), eq(customers.businessId, session.id)));
       }
 
       
@@ -519,15 +521,13 @@ export async function deleteKhataTransaction(id: string) {
 
       await tx.update(khataTransactions)
         .set({ status: 'cancelled' })
-        .where(eq(khataTransactions.id, id));
+        .where(and(eq(khataTransactions.id, id), eq(khataTransactions.businessId, session.id)));
+
+      await assertCustomerBalanceConsistent(tx, transaction.customerId);
+      await assertNoOverpaidInvoices(tx, transaction.customerId);
     });
 
     revalidateLocalizedPaths(['/dashboard/khata', '/dashboard']);
-
-    try {
-      await assertCustomerBalanceConsistent(db, transaction.customerId);
-      await assertNoOverpaidInvoices(db, transaction.customerId);
-    } catch (_) { }
 
     return { success: true };
   } catch (error: unknown) {
@@ -567,9 +567,19 @@ export async function resetCustomerKhata(customerId: string, consentAccepted: bo
         sql`UPDATE invoices SET status = 'archived', updated_at = NOW() WHERE customer_id = ${customerId} AND business_id = ${session.id} AND status = 'active'`
       );
 
+      // Keep the ledger auditable while making the reset a real boundary for
+      // reconciliation. Recalculation must not resurrect pre-reset activity.
+      await tx.execute(
+        sql`UPDATE khata_transactions
+            SET status = 'cancelled'
+            WHERE customer_id = ${customerId}
+              AND business_id = ${session.id}
+              AND status = 'active'`,
+      );
+
       await tx.update(customers)
         .set({ currentBalance: 0, updatedAt: new Date() })
-        .where(eq(customers.id, customerId));
+        .where(and(eq(customers.id, customerId), eq(customers.businessId, session.id)));
 
       const resetId = crypto.randomUUID();
       await tx.insert(khataResets).values({
@@ -581,16 +591,14 @@ export async function resetCustomerKhata(customerId: string, consentAccepted: bo
         consentAccepted: true,
       });
 
+      await assertCustomerBalanceConsistent(tx, customerId);
+      await assertNoOverpaidInvoices(tx, customerId);
+
       return { amountReset: currentBalance, invoiceCount, resetDate: new Date() };
     });
 
     revalidateLocalizedPaths(['/dashboard/khata', '/dashboard', '/dashboard/customers']);
     revalidateDashboardCache(session.id);
-
-    try {
-      await assertCustomerBalanceConsistent(db, customerId);
-      await assertNoOverpaidInvoices(db, customerId);
-    } catch (_) { }
 
     return { success: true, ...result };
   } catch (error: unknown) {
@@ -652,7 +660,7 @@ export async function recalculateCustomerBalance(customerId: string) {
 
       await tx.update(customers)
         .set({ currentBalance: balance.toDecimalPlaces(2).toNumber(), updatedAt: new Date() })
-        .where(eq(customers.id, customerId));
+        .where(and(eq(customers.id, customerId), eq(customers.businessId, session.id)));
 
       return balance.toDecimalPlaces(2).toNumber();
     });

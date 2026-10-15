@@ -1,4 +1,4 @@
-import { pgTable, text, integer, real, boolean, timestamp, index, jsonb, numeric, date, customType } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, real, boolean, timestamp, index, jsonb, numeric, date, customType, check } from 'drizzle-orm/pg-core';
 
 const numeric2 = customType<{ data: number }>({
   dataType() {
@@ -17,7 +17,7 @@ const numeric5 = customType<{ data: number }>({
     return Number(value);
   },
 });
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 
 export const businesses = pgTable('businesses', {
   id: text('id').primaryKey(),
@@ -114,6 +114,7 @@ export const invoices = pgTable('invoices', {
   businessCreatedIdx: index('idx_invoices_business_created').on(table.businessId, table.createdAt),
   // Customer-scoped khata reconciliation queries scan by (customer, date).
   customerDateIdx: index('idx_invoices_customer_date').on(table.customerId, table.invoiceDate),
+  amountPaidNotOverTotal: check('chk_invoices_amount_paid', sql`${table.amountPaid} <= ${table.total}`),
 }));
 
 export const khataTransactions = pgTable('khata_transactions', {
@@ -176,6 +177,9 @@ export const verificationTokens = pgTable('verification_tokens', {
   identifier: text('identifier').notNull(),
   token: text('token').notNull(),
   expires: timestamp('expires').notNull(),
+  purpose: text('purpose', { enum: ['email_verification', 'password_reset'] })
+    .notNull()
+    .default('email_verification'),
 });
 
 export const idempotencyKeys = pgTable('idempotency_keys', {

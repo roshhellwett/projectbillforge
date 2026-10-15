@@ -12,7 +12,10 @@ export default function middleware(req: NextRequest) {
     const token = req.cookies.get('next-auth.session-token')?.value
       || req.cookies.get('__Secure-next-auth.session-token')?.value;
     if (!token) {
-      const locale = pathname.startsWith('/hi') ? 'hi' : 'en';
+      const localeSegment = pathname.split('/')[1];
+      const locale = routing.locales.includes(localeSegment as (typeof routing.locales)[number])
+        ? localeSegment
+        : routing.defaultLocale;
       return NextResponse.redirect(new URL(`/${locale}/login`, req.url));
     }
   }

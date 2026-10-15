@@ -151,6 +151,18 @@ export function MobileDrawer({
                 </button>
 
                 <Link
+                  href="/dashboard/assistant"
+                  onClick={onClose}
+                  className="w-full flex items-center justify-between p-3 rounded-xl bg-indigo-500/[0.06] hover:bg-indigo-500/[0.10] border border-indigo-500/15 text-xs font-semibold text-[var(--foreground)] transition-all"
+                >
+                  <span className="flex items-center gap-3">
+                    <Sparkles size={16} className="text-indigo-600 dark:text-indigo-300" />
+                    {t("assistant")}
+                  </span>
+                  <ChevronRight size={16} className="text-[var(--foreground)]/40" />
+                </Link>
+
+                <Link
                   href="/dashboard/settings"
                   onClick={onClose}
                   className="w-full flex items-center justify-between p-3 rounded-xl bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] border border-[var(--border)] text-xs font-medium text-[var(--foreground)] transition-all"

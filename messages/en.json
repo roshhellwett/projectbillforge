@@ -62,7 +62,8 @@
         "lowStockTitle": "Low Stock Alerts",
         "lowStockWellStocked": "All products are well stocked",
         "lowStockThreshold": "Threshold: {threshold}",
-        "lowStockCount": "{count} left"
+        "lowStockCount": "{count} left",
+        "assistant": "Copilot"
     },
     "Khata": {
         "title": "Khata Ledger",
@@ -267,5 +268,40 @@
         "viewInvoice": "View invoice",
         "cancelInvoice": "Cancel invoice",
         "amountPaid": "amount paid"
+    },
+    "Assistant": {
+        "eyebrow": "BillForge Copilot",
+        "titleLineOne": "See the signal.",
+        "titleLineTwo": "Make the next move.",
+        "subtitle": "Ask plain-English questions about sales, receivables, invoices, and stock. Copilot reads your business context and gives you a focused answer without touching your records.",
+        "dataBoundaryTitle": "Private by design",
+        "dataBoundaryText": "Only a bounded summary from your authenticated workspace is sent to your selected OpenRouter model. The assistant is read-only.",
+        "freshnessTitle": "Fresh context",
+        "freshnessText": "Answers use the latest available dashboard data at the moment you ask.",
+        "chatTitle": "Your business copilot",
+        "chatSubtitle": "A focused view of what deserves your attention next.",
+        "online": "Ready",
+        "newChat": "New chat",
+        "welcomeMessage": "Hi! I can help you understand your business at a glance. Try asking me what sold recently, who owes you money, or which products need attention.",
+        "thinking": "Reading your business context…",
+        "genericError": "The copilot could not answer right now. Please try again.",
+        "dismiss": "Dismiss",
+        "inputPlaceholder": "Ask about your business…",
+        "inputLabel": "Ask the business copilot",
+        "enterToSend": "Enter to send",
+        "send": "Send question",
+        "readOnlyLabel": "Read-only assistant",
+        "privacyLabel": "Scoped context · no changes",
+        "copied": "Copied",
+        "promptEyebrow": "Start here",
+        "promptTitle": "Useful questions",
+        "suggestionSales": "How did my sales perform in the last 30 days?",
+        "suggestionReceivables": "Which customers should I follow up with first?",
+        "suggestionStock": "What should I restock this week?",
+        "suggestionInvoices": "Give me a quick invoice and collection snapshot.",
+        "capabilitiesTitle": "What it can see",
+        "capabilitySales": "Sales momentum and recent invoice activity",
+        "capabilityCustomers": "Receivables and customers who need a follow-up",
+        "capabilityStock": "Low-stock products and inventory signals"
     }
 }

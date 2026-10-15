@@ -40,7 +40,7 @@ export async function BusinessSnapshot({
             {t("snapshotTitle")}
           </h2>
         </div>
-        <span className="badge badge-success text-[10px]">Real-Time Sync</span>
+         <span className="badge badge-success text-[10px]">Current view</span>
       </div>
 
       <div className="space-y-3 flex-1 flex flex-col justify-around">

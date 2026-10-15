@@ -75,7 +75,8 @@ export const invoiceSchema = z.object({
   customerName: z.string().min(1, "Customer name is required").max(200).trim(),
   customerGstin: z.string().regex(gstinRegex, "Invalid GSTIN format").optional().or(z.literal('')),
   customerAddress: z.string().max(500).optional().transform(s => s?.trim() || undefined),
-  invoiceDate: z.string().min(1, "Invoice date is required"),
+  invoiceDate: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invoice date must use YYYY-MM-DD format"),
   items: z.array(invoiceItemSchema)
     .min(1, "At least one item is required")
     .max(MAX_INVOICE_ITEMS, `Maximum ${MAX_INVOICE_ITEMS} line items per invoice`),

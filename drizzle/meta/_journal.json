@@ -15,6 +15,20 @@
       "when": 1784323200000,
       "tag": "0001_financial_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792070346034,
+      "tag": "0002_production_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792071692070,
+      "tag": "0003_invoice_integrity",
+      "breakpoints": true
     }
   ]
 }

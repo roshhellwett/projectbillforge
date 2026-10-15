@@ -35,6 +35,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
 
   const navItems = [
     { href: "/dashboard", label: t("home"), icon: LayoutDashboard },
+    { href: "/dashboard/assistant", label: t("assistant"), icon: Sparkles },
     { href: "/dashboard/invoices", label: t("invoices"), icon: Receipt },
     { href: "/dashboard/customers", label: t("customers"), icon: Users },
     { href: "/dashboard/products", label: t("products"), icon: Package },

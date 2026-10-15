@@ -165,7 +165,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         <p className="text-[11px] text-[var(--foreground)]/40 text-center mt-6">
-          Protected by Upstash rate-limit · Bcrypt 12-round hashing · RBI audit ready
+          Protected by rate limiting · Bcrypt 12-round hashing · Audit-friendly history
         </p>
       </motion.div>
     </div>

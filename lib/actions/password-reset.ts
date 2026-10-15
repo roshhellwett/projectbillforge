@@ -3,11 +3,12 @@
 import { hash, compare } from "bcryptjs";
 import { db } from "@/lib/db";
 import { businesses, verificationTokens } from "@/lib/schema";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, or } from "drizzle-orm";
 import { checkActionRateLimit } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import { sendEmail, passwordResetHtml } from "@/lib/email";
 import { serializeError } from "@/lib/errors";
+import { hashToken } from "@/lib/token";
 
 export async function requestPasswordReset(email: string, locale: string = "en") {
   try {
@@ -37,8 +38,9 @@ export async function requestPasswordReset(email: string, locale: string = "en")
 
     await db.insert(verificationTokens).values({
       identifier: normalizedEmail,
-      token,
+      token: hashToken(token),
       expires,
+      purpose: "password_reset",
     });
 
     const { subject, html } = passwordResetHtml(token, locale);
@@ -58,25 +60,36 @@ export async function resetPassword(token: string, newPassword: string) {
     if (!/[a-z]/.test(newPassword)) return { error: "Password must contain at least one lowercase letter." };
     if (!/[0-9]/.test(newPassword)) return { error: "Password must contain at least one number." };
 
-    const [entry] = await db.select()
-      .from(verificationTokens)
-      .where(and(
-        eq(verificationTokens.token, token),
-        gt(verificationTokens.expires, new Date()),
-      ))
-      .limit(1);
-
-    if (!entry) {
-      return { error: "Invalid or expired reset link." };
-    }
-
     const passwordHash = await hash(newPassword, 12);
-    await db.update(businesses)
-      .set({ passwordHash, updatedAt: new Date() })
-      .where(eq(businesses.email, entry.identifier));
+    const consumed = await db.transaction(async (tx) => {
+      const tokenHash = hashToken(token);
+      const [entry] = await tx.select()
+        .from(verificationTokens)
+        .where(and(
+          or(eq(verificationTokens.token, tokenHash), eq(verificationTokens.token, token)),
+          eq(verificationTokens.purpose, "password_reset"),
+          gt(verificationTokens.expires, new Date()),
+        ))
+        .limit(1);
 
-    await db.delete(verificationTokens)
-      .where(eq(verificationTokens.token, token));
+      if (!entry) return false;
+
+      const [updatedBusiness] = await tx.update(businesses)
+        .set({ passwordHash, updatedAt: new Date() })
+        .where(eq(businesses.email, entry.identifier))
+        .returning({ id: businesses.id });
+
+      if (!updatedBusiness) return false;
+
+      await tx.delete(verificationTokens)
+        .where(and(
+          eq(verificationTokens.token, entry.token),
+          eq(verificationTokens.purpose, "password_reset"),
+        ));
+      return true;
+    });
+
+    if (!consumed) return { error: "Invalid or expired reset link." };
 
     return { success: true };
   } catch (error: unknown) {

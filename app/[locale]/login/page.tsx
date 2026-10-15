@@ -70,7 +70,7 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
                   Verifying Secure Identity...
                 </p>
                 <p className="text-xs text-[var(--foreground)]/50">
-                  Checking 256-bit session token & Upstash rate limiter
+                   Checking your session and sign-in protection
                 </p>
               </div>
             </div>
@@ -90,7 +90,7 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
             <div className="mb-8">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-200/50 dark:bg-zinc-800/50 border border-zinc-300 dark:border-zinc-700 text-[var(--foreground)] text-xs font-semibold mb-4">
                 <ShieldCheck size={14} className="animate-pulse" />
-                <span>256-Bit SSL & Zero-Knowledge Architecture</span>
+                 <span>Protected credentials & encrypted sessions</span>
               </div>
               <h1 className="text-3xl font-bold gradient-text mb-1 tracking-tight">BillForge</h1>
               <p className="text-xs text-[var(--foreground)]/50 tracking-wider uppercase font-semibold">
@@ -239,7 +239,7 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
               <span>•</span>
               <span className="flex items-center gap-1"><Cpu size={11} className="text-[var(--foreground)]" /> Zero-Trust Auth</span>
               <span>•</span>
-              <span>RBI Audit Ready</span>
+               <span>Audit-friendly records</span>
             </div>
           </motion.div>
         </div>
@@ -291,17 +291,17 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
                   transition={{ duration: 0.3 }}
                   className="grid grid-cols-2 gap-4"
                 >
-                  {/* Card 1: Zero-Knowledge Bcrypt */}
+                   {/* Card 1: Password hashing */}
                   <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl p-5 text-white shadow-xl">
                     <div className="flex items-center justify-between mb-3">
                       <div className="p-2.5 rounded-xl bg-white/20 text-white">
                         <LockKeyhole size={20} />
                       </div>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white/20 text-white uppercase tracking-wider">
-                        NIST Best Practice
+                         Bcrypt 12 rounds
                       </span>
                     </div>
-                    <h3 className="font-bold text-base mb-1">Zero-Knowledge Storage</h3>
+                     <h3 className="font-bold text-base mb-1">Protected Password Storage</h3>
                     <p className="text-xs text-white/70 leading-relaxed">
                       Passwords undergo 12 rounds of salted Bcrypt hashing. Even database administrators can never decipher your credentials.
                     </p>
@@ -335,7 +335,7 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
                     </div>
                     <h3 className="font-bold text-base mb-1">CSRF & Session Tokens</h3>
                     <p className="text-xs text-white/70 leading-relaxed">
-                      HTTP-Only encrypted cookies ensure zero cross-site scripting (XSS) or session hijacking vulnerabilities across multi-tab workflows.
+                       HTTP-only cookies and short-lived sessions reduce exposure across tabs and keep browser credentials out of client scripts.
                     </p>
                   </div>
 
@@ -349,9 +349,9 @@ export default function LoginPage({ searchParams: searchParamsPromise }: { searc
                         Audit Immutable
                       </span>
                     </div>
-                    <h3 className="font-bold text-base mb-1">RBI & GSTIN Ledger Lock</h3>
+                     <h3 className="font-bold text-base mb-1">GST-aware Ledger Snapshots</h3>
                     <p className="text-xs text-white/70 leading-relaxed">
-                      Every invoice and Khata transaction is recorded with immutable reference locking and exact tax rounding algorithms.
+                       Invoice and Khata entries keep reference links and deterministic tax rounding for traceable review.
                     </p>
                   </div>
                 </motion.div>

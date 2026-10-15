@@ -211,7 +211,7 @@ export default function ResetPasswordPage({ searchParams }: { searchParams: Prom
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)]/70 text-xs font-semibold mb-4">
             <ShieldCheck size={13} />
-            <span>256-bit signed reset · Bcrypt 12-round hashing</span>
+             <span>Time-limited reset link · Bcrypt 12-round hashing</span>
           </div>
           <h1 className="text-3xl font-bold gradient-text mb-1 tracking-tight">BillForge</h1>
           <p className="text-[11px] text-[var(--foreground)]/50 tracking-[0.15em] uppercase font-semibold">

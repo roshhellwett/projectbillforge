@@ -200,46 +200,126 @@ async function createInvoiceInner(
     const invoiceNumber = generateInvoiceNumber();
     const invoiceDate = data.invoiceDate;
 
-    let subtotal = new Decimal(0);
-    let totalCgst = new Decimal(0);
-    let totalSgst = new Decimal(0);
-    let totalIgst = new Decimal(0);
-
-    const processedItems = data.items.map(item => {
-      const gst = calculateGST(item.rate, item.quantity, item.gstRate, data.isInterState || false);
-      subtotal = subtotal.plus(gst.amount);
-      totalCgst = totalCgst.plus(gst.cgst);
-      totalSgst = totalSgst.plus(gst.sgst);
-      totalIgst = totalIgst.plus(gst.igst);
-
-      return {
-        productId: item.productId,
-        productName: item.productName,
-        quantity: item.quantity,
-        rate: item.rate,
-        gstRate: item.gstRate,
-        amount: gst.amount,
-        cgst: gst.cgst,
-        sgst: gst.sgst,
-        igst: gst.igst,
-      };
-    });
-
-    const total = subtotal.plus(totalCgst).plus(totalSgst).plus(totalIgst).toNumber();
     const paymentMode = data.paymentMode || 'cash';
-    const isPaidDirect = paymentMode !== 'khata';
-    const paymentStatus = isPaidDirect ? 'paid' : 'paid_by_khata';
-    const amountPaid = isPaidDirect ? total : 0;
 
     const invoice = await db.transaction(async (tx) => {
+      // Hydrate every referenced product inside the same transaction that locks
+      // and decrements stock. Client-submitted names, prices, tax rates, and
+      // line totals are display hints only — the server owns the invoice math.
+      const productProps = new Map<string, number>();
+      for (const item of data.items) {
+        const quantity = new Decimal(item.quantity);
+        productProps.set(
+          item.productId,
+          new Decimal(productProps.get(item.productId) ?? 0).plus(quantity).toNumber(),
+        );
+      }
+
+      const productIds = Array.from(productProps.keys());
+      const sqlIds = sql.join(productIds.map(id => sql`${id}`), sql`, `);
+      const productRows = await tx.execute(
+        sql`SELECT id, name, rate, gst_rate, stock_quantity, business_id
+            FROM products
+            WHERE business_id = ${session.id} AND is_active = true AND id IN (${sqlIds})
+            FOR UPDATE`,
+      ) as unknown as Array<{
+        id: string;
+        name: string;
+        rate: number;
+        gst_rate: number | null;
+        stock_quantity: number | null;
+        business_id: string;
+      }>;
+
+      for (const [id, quantity] of productProps.entries()) {
+        const product = productRows.find(row => row.id === id);
+        if (!product) {
+          throw new Error("One or more selected products are no longer available.");
+        }
+        if (new Decimal(product.stock_quantity ?? 0).lessThan(quantity)) {
+          throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stock_quantity ?? 0}, Required: ${quantity}`);
+        }
+      }
+
+      // A customer reference is tenant-scoped for every payment mode, not only
+      // Khata. Lock it before taking its snapshot so a concurrent edit cannot
+      // produce a cross-tenant or internally inconsistent invoice.
+      let customer: {
+        id: string;
+        name: string;
+        gstin: string | null;
+        address: string | null;
+        current_balance: number | null;
+        credit_limit: number | null;
+      } | undefined;
+      if (data.customerId) {
+        const customerRows = await tx.execute(
+          sql`SELECT id, name, gstin, address, current_balance, credit_limit
+              FROM customers
+              WHERE id = ${data.customerId} AND business_id = ${session.id}
+              FOR UPDATE`,
+        ) as unknown as Array<{
+          id: string;
+          name: string;
+          gstin: string | null;
+          address: string | null;
+          current_balance: number | null;
+          credit_limit: number | null;
+        }>;
+        customer = customerRows[0];
+        if (!customer) {
+          throw new Error("Customer not found in your business.");
+        }
+      }
+
+      let subtotal = new Decimal(0);
+      let totalCgst = new Decimal(0);
+      let totalSgst = new Decimal(0);
+      let totalIgst = new Decimal(0);
+      const processedItems = data.items.map(item => {
+        const product = productRows.find(row => row.id === item.productId);
+        if (!product) {
+          throw new Error("One or more selected products are no longer available.");
+        }
+
+        const rate = Number(product.rate);
+        const gstRate = Number(product.gst_rate ?? 0);
+        const gst = calculateGST(rate, item.quantity, gstRate, data.isInterState || false);
+        subtotal = subtotal.plus(gst.amount);
+        totalCgst = totalCgst.plus(gst.cgst);
+        totalSgst = totalSgst.plus(gst.sgst);
+        totalIgst = totalIgst.plus(gst.igst);
+
+        return {
+          productId: product.id,
+          productName: product.name,
+          quantity: item.quantity,
+          rate,
+          gstRate,
+          amount: gst.amount,
+          cgst: gst.cgst,
+          sgst: gst.sgst,
+          igst: gst.igst,
+        };
+      });
+
+      const totalDecimal = subtotal.plus(totalCgst).plus(totalSgst).plus(totalIgst);
+      if (totalDecimal.greaterThan(100_000_000)) {
+        throw new Error("Invoice total exceeds the maximum allowed amount.");
+      }
+      const total = totalDecimal.toNumber();
+      const isPaidDirect = paymentMode !== 'khata';
+      const paymentStatus = isPaidDirect ? 'paid' : 'paid_by_khata';
+      const amountPaid = isPaidDirect ? total : 0;
+
       const [newInvoice] = await tx.insert(invoices).values({
         id: crypto.randomUUID(),
         businessId: session.id,
         invoiceNumber,
         customerId: data.customerId || null,
-        customerName: data.customerName,
-        customerGstin: data.customerGstin || null,
-        customerAddress: data.customerAddress || null,
+        customerName: customer?.name ?? data.customerName,
+        customerGstin: customer ? customer.gstin ?? null : data.customerGstin || null,
+        customerAddress: customer ? customer.address ?? null : data.customerAddress || null,
         invoiceDate,
         subtotal: subtotal.toNumber(),
         cgst: totalCgst.toNumber(),
@@ -253,73 +333,26 @@ async function createInvoiceInner(
         status: 'active',
       }).returning();
 
-      if (processedItems.length > 0) {
-        
-        const productProps = new Map<string, { qty: number; name: string }>();
-        for (const item of processedItems) {
-          const existing = productProps.get(item.productId);
-          if (existing) {
-            existing.qty += item.quantity;
-          } else {
-            productProps.set(item.productId, { qty: item.quantity, name: item.productName });
-          }
-        }
+      const quantityCases = sql.join(
+        Array.from(productProps.entries()).map(([id, quantity]) => sql`WHEN id = ${id} THEN stock_quantity - ${quantity}`),
+        sql` `,
+      );
 
-        const productIds = Array.from(productProps.keys());
-        const sqlIds = sql.join(productIds.map(id => sql`${id}`), sql`, `);
+      await tx.execute(sql`
+        UPDATE products
+        SET
+          stock_quantity = CASE ${quantityCases} ELSE stock_quantity END,
+          updated_at = NOW()
+        WHERE business_id = ${session.id} AND id IN (${sqlIds})
+      `);
 
-        
-        const productRows = await tx.execute(
-          sql`SELECT id, name, stock_quantity, business_id FROM products WHERE id IN (${sqlIds}) FOR UPDATE`
-        ) as unknown as { id: string; name: string; stock_quantity: number | null; business_id: string }[];
-
-        
-        for (const [id, props] of productProps.entries()) {
-          const product = productRows.find(p => p.id === id);
-          if (!product) {
-            throw new Error(`Product not found: ${props.name}`);
-          }
-          if (product.business_id !== session.id) {
-            throw new Error(`Product ${product.name} does not belong to your business`);
-          }
-          if ((product.stock_quantity ?? 0) < props.qty) {
-            throw new Error(`Insufficient stock for ${product.name}. Available: ${product.stock_quantity ?? 0}, Required: ${props.qty}`);
-          }
-        }
-
-        
-        const quantityCases = sql.join(
-          Array.from(productProps.entries()).map(([id, props]) => sql`WHEN id = ${id} THEN stock_quantity - ${props.qty}`),
-          sql` `
-        );
-
-        await tx.execute(sql`
-          UPDATE products
-          SET 
-            stock_quantity = CASE ${quantityCases} ELSE stock_quantity END,
-            updated_at = NOW()
-          WHERE id IN (${sqlIds})
-        `);
-      }
-
-      if (data.customerId && paymentMode === 'khata') {
-        const customerRows = await tx.execute(
-          sql`SELECT id, business_id, current_balance, credit_limit FROM customers WHERE id = ${data.customerId} FOR UPDATE`
-        ) as unknown as { id: string; business_id: string; current_balance: number | null; credit_limit: number | null }[];
-        const customer = customerRows[0];
-        if (!customer) {
-          throw new Error("Customer not found");
-        }
-        if (customer.business_id !== session.id) {
-          throw new Error("Customer does not belong to your business");
-        }
-
+      if (customer && paymentMode === 'khata') {
         let creditLimit = customer.credit_limit;
-        if (creditLimit === null || creditLimit === 0) {
+        if (creditLimit === null || Number(creditLimit) === 0) {
           creditLimit = DEFAULT_CREDIT_LIMIT;
           await tx.update(customers)
             .set({ creditLimit, updatedAt: new Date() })
-            .where(eq(customers.id, data.customerId));
+            .where(and(eq(customers.id, customer.id), eq(customers.businessId, session.id)));
         }
 
         const currentBalance = new Decimal(customer.current_balance || 0);
@@ -336,12 +369,12 @@ async function createInvoiceInner(
             currentBalance: newBalance.toNumber(),
             updatedAt: new Date(),
           })
-          .where(eq(customers.id, data.customerId));
+          .where(and(eq(customers.id, customer.id), eq(customers.businessId, session.id)));
 
         await tx.insert(khataTransactions).values({
           id: crypto.randomUUID(),
           businessId: session.id,
-          customerId: data.customerId!,
+          customerId: customer.id,
           type: 'credit',
           amount: total,
           note: `Invoice ${invoiceNumber}`,
@@ -430,12 +463,14 @@ export async function cancelInvoice(id: string) {
           SET 
             stock_quantity = CASE ${quantityCases} ELSE stock_quantity END,
             updated_at = NOW()
-          WHERE id IN (${sqlIds})
+          WHERE business_id = ${session.id} AND id IN (${sqlIds})
         `);
       }
       if (invoice.customerId) {
         const customerRows = await tx.execute(
-          sql`SELECT id, current_balance FROM customers WHERE id = ${invoice.customerId} FOR UPDATE`
+          sql`SELECT id, current_balance FROM customers
+              WHERE id = ${invoice.customerId} AND business_id = ${session.id}
+              FOR UPDATE`
         ) as unknown as { id: string; current_balance: number | null }[];
         const customer = customerRows[0];
 
@@ -455,7 +490,7 @@ export async function cancelInvoice(id: string) {
               currentBalance: baseBalanceChange.toNumber(),
               updatedAt: new Date(),
             })
-            .where(eq(customers.id, invoice.customerId));
+            .where(and(eq(customers.id, invoice.customerId), eq(customers.businessId, session.id)));
 
           
           const reversalType = isKhata ? 'debit' : 'credit';
@@ -532,7 +567,7 @@ export async function cancelInvoice(id: string) {
                     currentBalance: adjustedBalance.toNumber(),
                     updatedAt: new Date(),
                   })
-                  .where(eq(customers.id, invoice.customerId));
+                  .where(and(eq(customers.id, invoice.customerId), eq(customers.businessId, session.id)));
               }
             }
           }
