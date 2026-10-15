@@ -1,48 +1,52 @@
-"use client";
-
-import { StaggerContainer, StaggerItem, FadeIn } from "@/components/ui/MotionWrapper";
+import { StaggerContainer, StaggerItem } from "@/components/ui/MotionWrapper";
+import {
+  AttentionSkeleton,
+  BusinessSnapshotSkeleton,
+  LowStockSkeleton,
+  OverviewCardsSkeleton,
+  QuickActionsSkeleton,
+  RecentInvoicesSkeleton,
+  SalesTrendSkeleton,
+  TopReceivablesSkeleton,
+  WelcomeBannerSkeleton,
+} from "./components/skeletons";
 
 export default function DashboardLoading() {
-    return (
-        <StaggerContainer className="space-y-8 p-4 md:p-8">
-            
-            <FadeIn>
-                <div className="h-9 w-48 skeleton rounded-xl" />
-                <div className="h-4 w-64 skeleton rounded-lg mt-2" />
-            </FadeIn>
-
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {[...Array(4)].map((_, i) => (
-                    <StaggerItem key={i}>
-                        <div className="glass-card p-6">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 skeleton rounded-2xl" />
-                                <div className="space-y-2 flex-1">
-                                    <div className="h-3 w-20 skeleton rounded-md" />
-                                    <div className="h-7 w-28 skeleton rounded-lg" />
-                                </div>
-                            </div>
-                        </div>
-                    </StaggerItem>
-                ))}
-            </div>
-
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {[...Array(2)].map((_, i) => (
-                    <StaggerItem key={i}>
-                        <div className="glass-card p-6">
-                            <div className="h-6 w-40 skeleton rounded-lg mb-5" />
-                            <div className="space-y-3">
-                                {[...Array(4)].map((_, j) => (
-                                    <div key={j} className="h-16 skeleton rounded-xl" />
-                                ))}
-                            </div>
-                        </div>
-                    </StaggerItem>
-                ))}
-            </div>
-        </StaggerContainer>
-    );
+  return (
+    <div aria-busy="true">
+      <StaggerContainer className="mx-auto w-full max-w-[1600px] space-y-6 sm:space-y-8">
+        <StaggerItem>
+          <WelcomeBannerSkeleton />
+        </StaggerItem>
+        <StaggerItem>
+          <AttentionSkeleton />
+        </StaggerItem>
+        <StaggerItem>
+          <QuickActionsSkeleton />
+        </StaggerItem>
+        <StaggerItem>
+          <OverviewCardsSkeleton />
+        </StaggerItem>
+        <div className="grid grid-cols-1 items-stretch gap-4 sm:gap-5 lg:gap-6 xl:grid-cols-3">
+          <StaggerItem className="xl:col-span-2">
+            <SalesTrendSkeleton />
+          </StaggerItem>
+          <StaggerItem>
+            <BusinessSnapshotSkeleton />
+          </StaggerItem>
+        </div>
+        <div className="grid grid-cols-1 items-stretch gap-4 sm:gap-5 lg:grid-cols-2 lg:gap-6">
+          <StaggerItem>
+            <RecentInvoicesSkeleton />
+          </StaggerItem>
+          <StaggerItem>
+            <TopReceivablesSkeleton />
+          </StaggerItem>
+        </div>
+        <StaggerItem>
+          <LowStockSkeleton />
+        </StaggerItem>
+      </StaggerContainer>
+    </div>
+  );
 }

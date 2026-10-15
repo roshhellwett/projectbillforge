@@ -23,11 +23,13 @@ export default function InvoicesPageClient({ initialData }: {
   const t = useTranslations("Invoices");
   const router = useRouter();
   const {
-    products, customers, filteredInvoices, loading, search, showNewInvoice,
+    products, customers, invoices, filteredInvoices, loading, search, showNewInvoice,
     printFormat, saving, cancelId, cancelling, viewInvoice, businessProfile,
     showSettingsPrompt, settingsPromptMessage, offset, totalInvoices,
-    setSearch, setShowNewInvoice, setPrintFormat, setCancelId,
-    setViewInvoice, setShowSettingsPrompt,
+    statusFilter, loadError, loadMoreError, loadingMore, createError,
+    cancelError, refreshing, successMessage,
+    setSearch, setShowNewInvoice, setPrintFormat, setCancelId, setStatusFilter,
+    setViewInvoice, setShowSettingsPrompt, setCancelError,
     openNewInvoice, loadData, loadMoreInvoices, handleCreateSubmit, handleCancelInvoice,
   } = useInvoices(initialData);
 
@@ -43,51 +45,85 @@ export default function InvoicesPageClient({ initialData }: {
 
   return (
     <StaggerContainer className="space-y-4 sm:space-y-6">
-      <InvoiceHeader onAdd={openNewInvoice} />
+      <InvoiceHeader onAdd={openNewInvoice} disabled={loading || refreshing || (Boolean(loadError) && invoices.length === 0)} invoiceCount={totalInvoices} />
+
+      {(refreshing || successMessage) && (
+        <div className="flex flex-wrap items-center gap-2 text-sm" role="status" aria-live="polite">
+          {refreshing && <span className="text-[var(--foreground)]/60">{t("refreshingInvoices")}</span>}
+          {successMessage && <span className="font-semibold text-[var(--color-success)]">{successMessage}</span>}
+        </div>
+      )}
 
       <StaggerItem className="glass-card overflow-hidden">
-        <InvoiceSearchBar value={search} onChange={setSearch} />
+        <InvoiceSearchBar
+          value={search}
+          onChange={setSearch}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          resultCount={filteredInvoices.length}
+        />
 
-        {loading ? (
+        {loadError && (
+          <div className="m-4 sm:m-6 p-4 rounded-xl border border-[var(--color-danger)]/25 bg-[var(--color-danger)]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3" role="alert">
+            <div>
+              <p className="font-semibold text-sm text-[var(--foreground)]">{t("loadErrorTitle")}</p>
+              <p className="text-sm text-[var(--foreground)]/65 mt-1">{loadError}</p>
+            </div>
+             <button type="button" onClick={() => void loadData()} disabled={loading || refreshing} className="glass-btn-secondary min-h-[44px] shrink-0 disabled:opacity-50">
+               {loading || refreshing ? t("refreshingInvoices") : t("retryLabel")}
+            </button>
+          </div>
+        )}
+
+        {loading || (refreshing && invoices.length === 0) ? (
           <div className="p-4"><SkeletonTable rows={5} /></div>
+        ) : loadError && invoices.length === 0 && !initialData ? (
+          <div className="p-8 text-center text-sm text-[var(--foreground)]/60">{t("loadErrorMessage")}</div>
         ) : filteredInvoices.length === 0 ? (
-          <EmptyState visible />
+          <EmptyState
+            visible
+            filtered={search.trim().length > 0 || statusFilter !== "all"}
+            onClear={() => { setSearch(""); setStatusFilter("all"); }}
+            onCreate={openNewInvoice}
+          />
         ) : (
           <InvoiceTable
             invoices={filteredInvoices}
             customers={customers}
-            businessName={businessProfile?.name || ""}
+            canView={Boolean(businessProfile)}
             onView={(inv) => { if (businessProfile) setViewInvoice(inv); }}
             onWhatsApp={handleWhatsAppShare}
             onCancel={setCancelId}
           />
         )}
 
-        {!loading && (
+        {!loading && !refreshing && (
           <InvoiceLoadMore
-            remaining={totalInvoices - offset}
+            remaining={Math.max(0, totalInvoices - offset)}
             onLoadMore={loadMoreInvoices}
+            loading={loadingMore}
+            error={loadMoreError}
           />
         )}
       </StaggerItem>
 
       {showNewInvoice && (
         <NewInvoiceModal
-          onClose={() => { setShowNewInvoice(false); loadData(); }}
+          onClose={() => setShowNewInvoice(false)}
           onSubmit={handleCreateSubmit}
           customers={customers}
           products={products}
           saving={saving}
-          error=""
+          error={createError || ""}
         />
       )}
 
       <ConfirmDialog
         open={!!cancelId}
         title={t("cancelInvoiceTitle")}
-        message={t("cancelInvoiceMessage")}
+        message={cancelError || t("cancelInvoiceMessage")}
         onConfirm={handleCancelInvoice}
-        onCancel={() => setCancelId(null)}
+        onCancel={() => { setCancelId(null); setCancelError(null); }}
         loading={cancelling}
       />
 

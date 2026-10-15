@@ -12,6 +12,7 @@ const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
 export type AssistantErrorCode =
   | "AI_NOT_CONFIGURED"
+  | "AI_DATA_UNAVAILABLE"
   | "AI_RATE_LIMITED"
   | "AI_TIMEOUT"
   | "AI_UPSTREAM_ERROR"
@@ -279,6 +280,11 @@ async function callOpenRouter(
         model,
         temperature: 0.2,
         max_tokens: 700,
+        // Some OpenRouter reasoning models can spend the whole output budget
+        // on hidden reasoning and return a null `content`. The assistant is
+        // intentionally concise, so disable exposed reasoning when supported
+        // and leave the response budget for the user-facing answer.
+        reasoning: { effort: "low", exclude: true },
         messages: [
           { role: "system", content: `${systemPrompt}\n${JSON.stringify(context)}` },
           ...toSafeHistory(input.history),
@@ -358,7 +364,17 @@ export async function askBusinessAssistant(input: AssistantRequest) {
     );
   }
 
-  const context = await buildBusinessContext(session.id);
+  let context: BusinessContext;
+  try {
+    context = await buildBusinessContext(session.id);
+  } catch (error) {
+    console.error("Business assistant context build failed", error);
+    throw new AssistantError(
+      "AI_DATA_UNAVAILABLE",
+      "Your business data is temporarily unavailable. Please try again.",
+      503,
+    );
+  }
   const answer = await callOpenRouter(input, context);
 
   return {

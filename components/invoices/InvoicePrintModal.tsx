@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { X, Printer } from "lucide-react";
 import { formatCurrency, formatDate, formatReceiptDate } from "@/lib/formatters";
+import { useTranslations } from "next-intl";
 
 interface InvoiceItem {
     productId: string;
@@ -99,10 +100,50 @@ export function InvoicePrintModal({
     onFormatChange,
     onClose
 }: InvoicePrintModalProps) {
+    const t = useTranslations("Invoices");
     const invoiceItems = invoice.items ?? [];
     const itemTotals = getItemTotals(invoiceItems);
     const hasIgst = invoiceItems.some((item) => item.igst > 0);
     const safeAmountPaid = Number(invoice.amountPaid ?? 0).toFixed(2);
+    const modalRef = useRef<HTMLDivElement>(null);
+    const closeRef = useRef(onClose);
+
+    useEffect(() => { closeRef.current = onClose; }, [onClose]);
+
+    useEffect(() => {
+        const previousActive = document.activeElement as HTMLElement | null;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        const focusInitial = window.setTimeout(() => modalRef.current?.querySelector<HTMLElement>("button:not([disabled])")?.focus(), 0);
+        const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                closeRef.current();
+                return;
+            }
+            if (event.key !== "Tab" || !modalRef.current) return; /*
+            const focusable = Array.from(modalRef.current.querySelectorAll<HTMLElement>("button:not([disabled]), [tabindex]:not([tabindex=\"-1\"])")");
+            */
+            const focusable = Array.from(modalRef.current.querySelectorAll<HTMLElement>("button:not([disabled]), [tabindex]:not([tabindex='-1'])"));
+            if (focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            window.clearTimeout(focusInitial);
+            document.removeEventListener("keydown", handleKeyDown);
+            document.body.style.overflow = previousOverflow;
+            if (previousActive?.isConnected) previousActive.focus();
+        };
+    }, []);
 
     const handlePrintThermal = () => {
         const safeBusinessName = escapeHtml(businessProfile.name);
@@ -355,25 +396,30 @@ export function InvoicePrintModal({
 
     return (
         <div className="glass-overlay">
-            <div className="glass-card glass-modal-panel w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="invoice-preview-title" className="glass-card glass-modal-panel w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-3xl max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between p-4 sm:p-5 md:p-6 border-b border-[var(--border)]/50">
-                    <h2 className="text-lg font-semibold text-[var(--foreground)]">Invoice</h2>
-                    <div className="flex items-center gap-4">
+                    <h2 id="invoice-preview-title" className="text-lg font-semibold text-[var(--foreground)]">{t("invoicePreview")}</h2>
+                    <div className="flex items-center gap-2 sm:gap-4">
                         <div className="flex items-center gap-2 bg-[var(--foreground)]/5 p-1 rounded-lg">
                             <button
+                                type="button"
                                 onClick={() => onFormatChange("a4")}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${printFormat === "a4" ? "bg-[var(--color-primary)] text-white shadow-sm" : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"}`}
+                                aria-pressed={printFormat === "a4"}
+                                className={`px-2 sm:px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${printFormat === "a4" ? "bg-[var(--color-primary)] text-white shadow-sm" : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"}`}
                             >
-                                A4 Size
+                                {t("a4Format")}
                             </button>
                             <button
+                                type="button"
                                 onClick={() => onFormatChange("thermal")}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${printFormat === "thermal" ? "bg-[var(--color-primary)] text-white shadow-sm" : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"}`}
+                                aria-pressed={printFormat === "thermal"}
+                                className={`px-2 sm:px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${printFormat === "thermal" ? "bg-[var(--color-primary)] text-white shadow-sm" : "text-[var(--foreground)]/60 hover:text-[var(--foreground)]"}`}
                             >
-                                80mm Thermal
+                                {t("thermalFormat")}
                             </button>
                         </div>
                         <button
+                            type="button"
                             onClick={() => {
                                 if (printFormat === "thermal") {
                                     handlePrintThermal();
@@ -381,12 +427,12 @@ export function InvoicePrintModal({
                                     handlePrintA4();
                                 }
                             }}
-                            className="glass-btn-primary flex items-center gap-2 py-2 px-4"
+                            className="glass-btn-primary flex items-center gap-2 py-2 px-3 sm:px-4"
                         >
-                            <Printer size={16} /> Print
+                            <Printer size={16} aria-hidden="true" /> <span className="hidden sm:inline">{t("printInvoice")}</span><span className="sm:hidden">{t("printShort")}</span>
                         </button>
-                        <button onClick={onClose} className="p-1.5 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors">
-                            <X size={20} className="text-[var(--foreground)]/60" />
+                        <button type="button" onClick={onClose} className="p-2 hover:bg-[var(--foreground)]/5 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40" aria-label={t("closeModal")}>
+                            <X size={20} className="text-[var(--foreground)]/60" aria-hidden="true" />
                         </button>
                     </div>
                 </div>

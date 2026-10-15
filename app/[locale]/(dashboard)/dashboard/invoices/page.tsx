@@ -6,10 +6,14 @@ import InvoicesPageClient from "./InvoicesPageClient";
 import type { Invoice } from "./hooks/useInvoices";
 
 const PAGE_SIZE = 50;
+const REFERENCE_DATA_LIMIT = 200;
 
 export default async function InvoicesPage() {
   const [productsResult, customersResult, invoicesResult, businessResult] = await Promise.all([
-    getProducts(), getCustomers(), getInvoices(PAGE_SIZE, 0), getBusinessProfile(),
+    getProducts(REFERENCE_DATA_LIMIT, 0),
+    getCustomers(REFERENCE_DATA_LIMIT, 0),
+    getInvoices(PAGE_SIZE, 0),
+    getBusinessProfile(),
   ]);
 
   if (!productsResult.success || !customersResult.success || !invoicesResult.success || !businessResult.success) {

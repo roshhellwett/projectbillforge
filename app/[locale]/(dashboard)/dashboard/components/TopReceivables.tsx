@@ -1,64 +1,79 @@
 import { getTranslations } from "next-intl/server";
-import { Users, ArrowUpRight, BookOpen } from "lucide-react";
+import { ArrowUpRight, BookOpen, Users } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 import { Link } from "@/i18n/routing";
+import { DashboardDataState } from "./DashboardDataState";
 
-export async function TopReceivables({ customersPromise }: { customersPromise: Promise<{ success?: boolean; customers?: { id: string; name: string; currentBalance: number | null }[] }> }) {
+interface ReceivableCustomer {
+  id: string;
+  name: string;
+  currentBalance: number | null;
+}
+
+export async function TopReceivables({
+  customersPromise,
+}: {
+  customersPromise: Promise<{ success?: boolean; customers?: ReceivableCustomer[] }>;
+}) {
   const t = await getTranslations("Dashboard");
   const customersResult = await customersPromise;
-  const topCustomers = customersResult.success && customersResult.customers ? customersResult.customers : [];
+  const topCustomers = customersResult.success ? customersResult.customers ?? [] : [];
 
   return (
-    <div className="glass-card p-6 sm:p-8 h-full flex flex-col justify-between card-hover-lift">
-      <div className="flex items-center justify-between mb-5">
+    <section aria-labelledby="dashboard-top-receivables-title" className="glass-card flex h-full flex-col p-5 sm:p-6 md:p-7 lg:p-8">
+      <div className="mb-5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-2.5 bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)] rounded-xl">
-            <BookOpen size={18} />
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-2.5 text-[var(--foreground)]">
+            <BookOpen size={18} aria-hidden="true" />
           </div>
-          <h2 className="text-base sm:text-lg font-extrabold tracking-tight text-[var(--foreground)]">
+          <h2 id="dashboard-top-receivables-title" className="text-base font-extrabold tracking-tight text-[var(--foreground)] sm:text-lg">
             {t("topReceivablesTitle")}
           </h2>
         </div>
-        <span className="badge badge-warning text-[10px]">Udhaar Alert</span>
+        <span className="badge badge-warning shrink-0 text-[10px]">{t("topReceivablesBadge")}</span>
       </div>
 
-      {topCustomers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center flex-1 py-12 text-center text-[var(--foreground)]/50 bg-[var(--surface-elevated)] rounded-2xl border border-[var(--border)]">
-          <Users size={32} className="mb-2 opacity-40" />
-          <p className="text-sm font-semibold">{t("topReceivablesEmpty")}</p>
+      {!customersResult.success ? (
+        <DashboardDataState
+          title={t("dashboardDataErrorTitle")}
+          description={t("dashboardDataErrorDescription")}
+          retryLabel={t("dashboardDataRetry")}
+        />
+      ) : topCustomers.length === 0 ? (
+        <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface-elevated)] px-5 py-10 text-center text-[var(--foreground)]/50">
+          <Users size={32} aria-hidden="true" className="opacity-40" />
+          <p className="mt-2 text-sm font-semibold">{t("topReceivablesEmpty")}</p>
         </div>
       ) : (
-        <div className="space-y-2.5 flex-1">
+        <div className="flex-1 space-y-2.5">
           {topCustomers.map((customer) => (
-            <div
+            <Link
               key={customer.id}
-              className="flex items-center justify-between p-3.5 sm:p-4 bg-[var(--surface-elevated)] hover:bg-[var(--surface-hover)] transition-all duration-200 border border-[var(--border)] rounded-2xl group"
+              href="/dashboard/khata"
+              aria-label={`${customer.name}: ${formatCurrency(customer.currentBalance)}`}
+              className="group flex items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface-elevated)] p-3.5 transition-colors hover:bg-[var(--surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] sm:p-4"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] flex items-center justify-center font-bold text-xs shrink-0 font-mono">
+              <span className="flex min-w-0 items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface)] font-mono text-xs font-bold text-[var(--foreground)]">
                   {customer.name ? customer.name.substring(0, 2).toUpperCase() : "CU"}
-                </div>
-                <div className="min-w-0">
-                  <span className="text-xs sm:text-sm font-bold text-[var(--foreground)] truncate block group-hover:text-[var(--color-primary)] transition-colors">
-                    {customer.name}
-                  </span>
-                  <span className="text-[10px] text-[var(--foreground)]/50">Khata Customer</span>
-                </div>
-              </div>
-              <span className="text-sm sm:text-base font-black font-mono text-[var(--color-danger)]">
-                {formatCurrency(customer.currentBalance)}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-xs font-bold text-[var(--foreground)] transition-colors group-hover:text-[var(--color-primary)] sm:text-sm">{customer.name}</span>
+                  <span className="block text-[10px] text-[var(--foreground)]/50">{t("khataCustomerLabel")}</span>
+                </span>
               </span>
-            </div>
+              <span className="shrink-0 font-mono text-sm font-black text-[var(--color-danger)] sm:text-base">{formatCurrency(customer.currentBalance)}</span>
+            </Link>
           ))}
         </div>
       )}
 
       <Link
         href="/dashboard/khata"
-        className="mt-5 pt-4 border-t border-[var(--border)] text-center text-xs sm:text-sm font-bold text-[var(--color-primary)] hover:underline flex items-center justify-center gap-1 transition-colors"
+        className="mt-5 flex min-h-10 items-center justify-center gap-1 border-t border-[var(--border)] pt-4 text-center text-xs font-bold text-[var(--color-primary)] transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] sm:text-sm"
       >
-        {t("topReceivablesViewAll")} <ArrowUpRight size={14} />
+        {t("topReceivablesViewAll")} <ArrowUpRight size={14} aria-hidden="true" />
       </Link>
-    </div>
+    </section>
   );
 }
