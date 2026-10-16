@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { getProducts } from "@/lib/actions/products";
+import { getProducts, searchProducts } from "@/lib/actions/products";
 import { getCustomers } from "@/lib/actions/customers";
 import { getInvoices, createInvoice, cancelInvoice } from "@/lib/actions/invoices";
 import { getBusinessProfile } from "@/lib/actions/business";
@@ -19,7 +19,7 @@ export interface Product {
 
 export interface Customer {
   id: string; name: string; phone: string | null;
-  gstin: string | null; address: string | null;
+  email?: string | null; gstin: string | null; address: string | null;
 }
 
 export interface InvoiceItem {
@@ -51,7 +51,12 @@ export interface BusinessProfile {
   pincode: string | null; termsAndConditions: string | null;
 }
 
-export type InvoiceStatusFilter = "all" | "open" | "paid" | "cancelled";
+export type InvoiceStatusFilter = "all" | "open" | "paid" | "cancelled" | "archived";
+
+type InvoiceQueryFilters = {
+  search?: string;
+  status?: InvoiceStatusFilter;
+};
 
 interface InvoiceServerRow extends Omit<Invoice, "invoiceDate"> {
   invoiceDate: string;
@@ -85,6 +90,7 @@ export function useInvoices(initialData?: {
   const [offset, setOffset] = useState(initialData?.invoices?.length ?? 0);
   const [totalInvoices, setTotalInvoices] = useState(initialData?.totalInvoices ?? 0);
   const [statusFilter, setStatusFilter] = useState<InvoiceStatusFilter>("all");
+  const [appliedFilters, setAppliedFilters] = useState<InvoiceQueryFilters>({ search: "", status: "all" });
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -93,9 +99,18 @@ export function useInvoices(initialData?: {
   const [refreshing, setRefreshing] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const initialLoadRef = useRef(!initialData);
+  const invoiceIdempotencyKeyRef = useRef<{ key: string; signature: string } | null>(null);
+  const initialFetchRef = useRef(false);
+  const filterEffectReadyRef = useRef(false);
+  const requestVersionRef = useRef(0);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (filters: InvoiceQueryFilters = {}) => {
+    const requestVersion = ++requestVersionRef.current;
     const isInitialLoad = initialLoadRef.current;
+    const queryFilters: InvoiceQueryFilters = {
+      search: filters.search ?? search.trim(),
+      status: filters.status ?? statusFilter,
+    };
     if (isInitialLoad) setLoading(true);
     else setRefreshing(true);
     setLoadError(null);
@@ -104,27 +119,32 @@ export function useInvoices(initialData?: {
       const [productsResult, customersResult, invoicesResult, businessResult] = await Promise.all([
         getProducts(REFERENCE_DATA_LIMIT, 0),
         getCustomers(REFERENCE_DATA_LIMIT, 0),
-        getInvoices(PAGE_SIZE, 0),
+        getInvoices(PAGE_SIZE, 0, queryFilters),
         getBusinessProfile(),
       ]);
+      if (requestVersion !== requestVersionRef.current) return;
       const results = [productsResult, customersResult, invoicesResult, businessResult];
       const unauthorized = results.find((result) => result.error === "Unauthorized");
       if (unauthorized) {
         router.push("/login");
         return;
       }
-      const dataErrors: string[] = [];
+      let hasDataError = false;
       if (productsResult.success) setProducts(productsResult.products);
-      else if (productsResult.error) dataErrors.push(productsResult.error);
+      else if (productsResult.error) hasDataError = true;
       if (customersResult.success) setCustomers(customersResult.customers);
-      else if (customersResult.error) dataErrors.push(customersResult.error);
+      else if (customersResult.error) hasDataError = true;
       if (invoicesResult.success) {
         setInvoices(invoicesResult.invoices.map((inv: InvoiceServerRow) => ({ ...inv, invoiceDate: new Date(inv.invoiceDate) })));
         setTotalInvoices(invoicesResult.total ?? 0);
         setOffset(invoicesResult.invoices.length);
+        setAppliedFilters({
+          search: queryFilters.search?.trim() ?? "",
+          status: queryFilters.status ?? "all",
+        });
       } else if (invoicesResult.error) {
         if (invoicesResult.error === "Unauthorized") { router.push("/login"); return; }
-        dataErrors.push(invoicesResult.error);
+        hasDataError = true;
       }
       if (businessResult.success && businessResult.business) {
         setBusinessProfile({
@@ -137,28 +157,49 @@ export function useInvoices(initialData?: {
           termsAndConditions: businessResult.business.termsAndConditions || null,
         });
       } else if (businessResult.error) {
-        dataErrors.push(businessResult.error);
+        hasDataError = true;
       }
-      if (dataErrors.length > 0) {
-        const message = dataErrors[0];
+      if (hasDataError) {
+        const message = t("loadErrorMessage");
         setLoadError(message);
         addToast(message, "error");
       }
     } catch {
+      if (requestVersion !== requestVersionRef.current) return;
       const message = t("loadErrorMessage");
       setLoadError(message);
       addToast(message, "error");
     } finally {
-      initialLoadRef.current = false;
-      setLoading(false);
-      setRefreshing(false);
+      if (requestVersion === requestVersionRef.current) {
+        initialLoadRef.current = false;
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
-  }, [addToast, router, t]);
+  }, [addToast, router, search, statusFilter, t]);
 
-  useEffect(() => { if (!initialData) void loadData(); }, [initialData, loadData]);
+  useEffect(() => {
+    if (initialFetchRef.current) return;
+    initialFetchRef.current = true;
+    if (!initialData) void loadData({ search: "", status: "all" });
+  }, [initialData, loadData]);
+
+  useEffect(() => {
+    if (!filterEffectReadyRef.current) {
+      filterEffectReadyRef.current = true;
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      void loadData({ search: search.trim(), status: statusFilter });
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [loadData, search, statusFilter]);
 
   useEffect(() => {
     if (searchParams.get("new") === "true") {
+       invoiceIdempotencyKeyRef.current = null;
       setShowNewInvoice(true);
       router.replace("/dashboard/invoices");
     }
@@ -169,7 +210,10 @@ export function useInvoices(initialData?: {
     setLoadingMore(true);
     setLoadMoreError(null);
     try {
-      const result = await getInvoices(PAGE_SIZE, offset);
+      const result = await getInvoices(PAGE_SIZE, offset, {
+        search: search.trim(),
+        status: statusFilter,
+      });
       if (result.success && result.invoices) {
         setInvoices(prev => [...prev, ...result.invoices.map((inv: InvoiceServerRow) => ({ ...inv, invoiceDate: new Date(inv.invoiceDate) }))]);
         setOffset(prev => prev + result.invoices.length);
@@ -177,7 +221,7 @@ export function useInvoices(initialData?: {
         if (result.invoices.length === 0) setTotalInvoices(offset);
       } else if (result.error) {
         if (result.error === "Unauthorized") { router.push("/login"); return; }
-        setLoadMoreError(result.error);
+        setLoadMoreError(t("loadMoreError"));
       }
     } catch {
       setLoadMoreError(t("loadMoreError"));
@@ -201,6 +245,12 @@ export function useInvoices(initialData?: {
       return;
     }
     setSaving(true);
+    const signature = JSON.stringify({ formDataPayload, itemsPayload, isInterStatePayload });
+    const existingIdempotency = invoiceIdempotencyKeyRef.current;
+    const idempotencyKey = existingIdempotency?.signature === signature
+      ? existingIdempotency.key
+      : crypto.randomUUID();
+    invoiceIdempotencyKeyRef.current = { key: idempotencyKey, signature };
     try {
       const result = await createInvoice({
         ...formDataPayload,
@@ -209,6 +259,7 @@ export function useInvoices(initialData?: {
         customerAddress: formDataPayload.customerAddress || undefined,
         items: itemsPayload,
         isInterState: isInterStatePayload,
+        idempotencyKey,
       });
       if (result.error) {
         if ((result as { redirectToSettings?: boolean }).redirectToSettings) {
@@ -223,6 +274,7 @@ export function useInvoices(initialData?: {
         setSuccessMessage(t("createdSuccess"));
         setCreateError(null);
         setShowNewInvoice(false);
+        invoiceIdempotencyKeyRef.current = null;
         await loadData();
         router.refresh();
       } else {
@@ -271,33 +323,53 @@ export function useInvoices(initialData?: {
     }
   };
 
-  const normalizedSearch = search.trim().toLowerCase();
+  const normalizedSearch = (appliedFilters.search ?? "").trim().toLowerCase();
   const filteredInvoices = invoices.filter(inv => {
-    const matchingCustomer = customers.find((customer) =>
-      (inv.customerId && customer.id === inv.customerId) || customer.name === inv.customerName,
-    );
     const matchesSearch = normalizedSearch.length === 0 || [
       inv.invoiceNumber,
       inv.customerName,
+      inv.customerGstin ?? "",
+      inv.customerAddress ?? "",
       inv.paymentMode ?? "",
       inv.paymentStatus ?? "",
-      matchingCustomer?.phone ?? "",
       ...(Array.isArray(inv.items) ? inv.items.map((item) => item.productName) : []),
-    ].some(value => value.toLowerCase().includes(normalizedSearch));
+    ].some(value => value.toLowerCase().includes(normalizedSearch))
+      || (normalizedSearch.length > 0
+        && Boolean(inv.customerId)
+        && !customers.some((customer) => customer.id === inv.customerId));
 
-    const matchesStatus = statusFilter === "all"
-      || (statusFilter === "cancelled" && inv.status === "cancelled")
-      || (statusFilter === "paid" && inv.status === "active" && inv.paymentStatus === "paid")
-      || (statusFilter === "open" && inv.status === "active" && inv.paymentStatus !== "paid");
+    const appliedStatus = appliedFilters.status ?? "all";
+    const matchesStatus = appliedStatus === "all"
+      || (appliedStatus === "cancelled" && inv.status === "cancelled")
+      || (appliedStatus === "archived" && inv.status === "archived")
+      || (appliedStatus === "paid" && inv.status === "active" && inv.paymentStatus === "paid")
+      || (appliedStatus === "open" && inv.status === "active" && inv.paymentStatus !== "paid");
 
     return matchesSearch && matchesStatus;
   });
 
   const openNewInvoice = () => {
+    invoiceIdempotencyKeyRef.current = null;
     setCreateError(null);
     setSuccessMessage(null);
     setShowNewInvoice(true);
   };
+
+  const closeNewInvoice = () => {
+    if (saving) return;
+    invoiceIdempotencyKeyRef.current = null;
+    setShowNewInvoice(false);
+  };
+
+  const searchInvoiceProducts = useCallback(async (query: string): Promise<Product[]> => {
+    const result = await searchProducts(query, 50);
+    return result.success ? result.products : [];
+  }, []);
+
+  const searchInvoiceCustomers = useCallback(async (query: string): Promise<Customer[]> => {
+    const result = await getCustomers(50, 0, query);
+    return result.success ? result.customers : [];
+  }, []);
 
   return {
     products, customers, invoices, filteredInvoices, loading, search,
@@ -308,6 +380,9 @@ export function useInvoices(initialData?: {
     setSearch, setShowNewInvoice, setPrintFormat, setCancelId, setStatusFilter,
     setViewInvoice, setShowSettingsPrompt, setCancelError,
     openNewInvoice,
+    closeNewInvoice,
+    searchInvoiceCustomers,
+    searchInvoiceProducts,
     loadData, loadMoreInvoices, handleCreateSubmit, handleCancelInvoice,
   };
 }

@@ -7,6 +7,7 @@ import { StaggerContainer, StaggerItem } from "@/components/ui/MotionWrapper";
 import { WelcomeBanner } from "./components/WelcomeBanner";
 import { AttentionPanel } from "./components/AttentionPanel";
 import { QuickActions } from "./components/QuickActions";
+import { GettingStartedCard } from "./components/GettingStartedCard";
 import { OverviewCards } from "./components/OverviewCards";
 import { SalesTrend } from "./components/SalesTrend";
 import { BusinessSnapshot } from "./components/BusinessSnapshot";
@@ -54,6 +55,12 @@ export default function DashboardPage() {
       <StaggerItem>
         <Suspense fallback={<QuickActionsSkeleton />}>
           <QuickActions />
+        </Suspense>
+      </StaggerItem>
+
+      <StaggerItem>
+        <Suspense fallback={null}>
+          <GettingStartedCard salesPromise={salesPromise} productsPromise={productsPromise} />
         </Suspense>
       </StaggerItem>
 

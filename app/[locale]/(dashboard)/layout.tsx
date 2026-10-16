@@ -20,14 +20,12 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="h-dvh max-h-dvh w-full bg-[var(--background)] text-[var(--foreground)] flex overflow-hidden relative">
+    <div className="dashboard-shell h-dvh max-h-dvh w-full bg-[var(--background)] text-[var(--foreground)] flex overflow-hidden relative">
       <DashboardSidebar session={session} />
-      <main className="flex-1 h-full overflow-y-auto overflow-x-hidden relative z-10 w-full">
+      <main id="main-content" className="dashboard-main flex-1 h-full overflow-y-auto overflow-x-hidden relative z-10 w-full">
         <DashboardTransition>
-          <div className="p-4 sm:p-6 md:pl-6 lg:pl-8 pt-20 md:pt-8 min-h-full flex flex-col pb-24 md:pb-8">
-            <DashboardClientLayout session={session}>
-              {children}
-            </DashboardClientLayout>
+          <div className="dashboard-content-shell dashboard-content-padding min-h-full flex flex-col">
+            <DashboardClientLayout session={session}>{children}</DashboardClientLayout>
           </div>
         </DashboardTransition>
       </main>

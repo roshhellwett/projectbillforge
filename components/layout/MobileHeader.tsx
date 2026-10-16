@@ -2,7 +2,8 @@
 
 import React, { useRef, useState } from "react";
 import { Link } from "@/i18n/routing";
-import { Search, Menu, X, Receipt, Shield, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Search, Menu } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import MobileDrawer from "./MobileDrawer";
 
@@ -17,6 +18,7 @@ interface MobileHeaderProps {
 }
 
 export default function MobileHeader({ session }: MobileHeaderProps) {
+  const shellT = useTranslations("Shell");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -44,8 +46,8 @@ export default function MobileHeader({ session }: MobileHeaderProps) {
               <span className="font-bold text-base tracking-tight text-[var(--foreground)] leading-tight">
                 Bill<span className="text-[var(--foreground)]/60 font-medium">Forge</span>
               </span>
-              <span className="text-[9px] font-bold tracking-wider uppercase text-[var(--foreground)]/80 flex items-center gap-0.5">
-                • PRO
+               <span className="text-[9px] font-bold tracking-wider uppercase text-[var(--foreground)]/80 flex items-center gap-0.5">
+                 • {shellT("workspace")}
               </span>
             </div>
           </Link>
@@ -53,22 +55,24 @@ export default function MobileHeader({ session }: MobileHeaderProps) {
           {/* Quick Actions & Menu Trigger */}
           <div className="flex items-center gap-2">
             <button
+               type="button"
               onClick={triggerSearch}
               className="p-2 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--foreground)]/70 hover:text-[var(--foreground)] active:scale-95 transition-all flex items-center justify-center"
-              aria-label="Search"
+               aria-label={shellT("search")}
             >
-              <Search size={18} />
+               <Search size={18} aria-hidden="true" />
             </button>
 
             <ThemeToggle />
 
             <button
+               type="button"
               ref={menuButtonRef}
               onClick={() => setIsDrawerOpen(true)}
               className="p-2 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 active:scale-95 transition-all flex items-center justify-center relative"
-              aria-label="Open Menu"
+               aria-label={shellT("accountMenu")}
             >
-              <Menu size={20} />
+               <Menu size={20} aria-hidden="true" />
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--color-success)] border border-[var(--surface)]" />
             </button>
           </div>

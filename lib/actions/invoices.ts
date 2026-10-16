@@ -6,9 +6,8 @@ import { db } from "@/lib/db";
 import { invoices, customers, products, khataTransactions, businesses } from "@/lib/schema";
 import { invoiceSchema, type InvoiceInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, ilike, inArray, or, sql } from "drizzle-orm";
 import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
-import { allocatePaymentAcrossInvoices } from "@/lib/accounting";
 import { DEFAULT_CREDIT_LIMIT } from "@/lib/constants";
 import { checkActionRateLimit } from "@/lib/rate-limit";
 import { assertCustomerBalanceConsistent, assertNoOverpaidInvoices } from "@/lib/balance-invariants";
@@ -52,7 +51,7 @@ async function getCachedSummary(bId: string, tStr: string) {
 async function getCachedRecentInvoices(bId: string, limitNum: number) {
   return await db.query.invoices.findMany({
     where: and(eq(invoices.businessId, bId), eq(invoices.status, 'active')),
-    orderBy: [desc(invoices.createdAt)],
+     orderBy: [desc(invoices.createdAt), desc(invoices.id)],
     limit: limitNum,
   });
 }
@@ -385,7 +384,7 @@ async function createInvoiceInner(
       return newInvoice;
     });
 
-    revalidateLocalizedPaths(['/dashboard/invoices', '/dashboard/khata', '/dashboard']);
+    revalidateLocalizedPaths(['/dashboard/invoices', '/dashboard/khata', '/dashboard', '/dashboard/reports']);
     revalidateDashboardCache(session.id);
     return { success: true, invoice };
   } catch (error: unknown) {
@@ -393,22 +392,71 @@ async function createInvoiceInner(
   }
 }
 
-export async function getInvoices(limit = 50, offset = 0) {
+export type InvoiceListStatus = "all" | "open" | "paid" | "cancelled" | "archived";
+
+export type InvoiceListFilters = {
+  search?: string;
+  status?: InvoiceListStatus;
+};
+
+function escapeLikeTerm(value: string) {
+  return value.replace(/[\\%_]/g, "\\$&");
+}
+
+export async function getInvoices(limit = 50, offset = 0, filters: InvoiceListFilters = {}) {
   limit = Math.max(1, Math.min(limit, 200));
   offset = Math.max(0, offset);
   try {
     const session = await requireBusinessSession();
 
+    const conditions = [eq(invoices.businessId, session.id)];
+    if (filters.status === "cancelled" || filters.status === "archived") {
+      conditions.push(eq(invoices.status, filters.status));
+    } else if (filters.status === "paid") {
+      conditions.push(eq(invoices.status, "active"), eq(invoices.paymentStatus, "paid"));
+    } else if (filters.status === "open") {
+      conditions.push(
+        eq(invoices.status, "active"),
+        sql`COALESCE(${invoices.paymentStatus}, 'unpaid') <> 'paid'`,
+      );
+    }
+
+    const normalizedSearch = filters.search?.trim().slice(0, 100) ?? "";
+    if (normalizedSearch) {
+      const pattern = `%${escapeLikeTerm(normalizedSearch)}%`;
+      const searchCondition = or(
+        ilike(invoices.invoiceNumber, pattern),
+        ilike(invoices.customerName, pattern),
+        ilike(invoices.customerGstin, pattern),
+        ilike(invoices.customerAddress, pattern),
+        ilike(invoices.paymentMode, pattern),
+        ilike(invoices.paymentStatus, pattern),
+        sql`COALESCE(${invoices.items}, '[]'::jsonb)::text ILIKE ${pattern}`,
+        sql`EXISTS (
+          SELECT 1 FROM customers c
+          WHERE c.id = ${invoices.customerId}
+            AND c.business_id = ${session.id}
+             AND (
+               c.phone ILIKE ${pattern}
+               OR c.email ILIKE ${pattern}
+               OR c.gstin ILIKE ${pattern}
+               OR c.address ILIKE ${pattern}
+             )
+        )`,
+      );
+      if (searchCondition) conditions.push(searchCondition);
+    }
+
     const [invoiceList, [countResult]] = await Promise.all([
       db.query.invoices.findMany({
-        where: eq(invoices.businessId, session.id),
-        orderBy: [desc(invoices.createdAt)],
+        where: and(...conditions),
+        orderBy: [desc(invoices.createdAt), desc(invoices.id)],
         limit,
         offset,
       }),
       db.select({ count: sql<number>`COUNT(*)` })
         .from(invoices)
-        .where(eq(invoices.businessId, session.id)),
+        .where(and(...conditions)),
     ]);
 
     return { success: true, invoices: invoiceList, total: Number(countResult.count) };
@@ -451,6 +499,18 @@ export async function cancelInvoice(id: string) {
         const productIds = Array.from(productProps.keys());
         const sqlIds = sql.join(productIds.map(id => sql`${id}`), sql`, `);
 
+        // Cancellation must be atomic with stock restoration. If a product was
+        // removed outside the normal catalog flow, fail before the invoice
+        // status is committed instead of silently losing the stock adjustment.
+        const existingProducts = await tx
+          .select({ id: products.id })
+          .from(products)
+          .where(and(eq(products.businessId, session.id), inArray(products.id, productIds)))
+          .for("update");
+        if (existingProducts.length !== productIds.length) {
+          throw new Error("This invoice cannot be cancelled because one or more products are no longer available.");
+        }
+
         
         const quantityCases = sql.join(
           Array.from(productProps.entries()).map(([id, qty]) => sql`WHEN id = ${id} THEN stock_quantity + ${qty}`),
@@ -475,30 +535,28 @@ export async function cancelInvoice(id: string) {
         const customer = customerRows[0];
 
         const isKhata = invoice.paymentMode === 'khata';
-        const hadPayment = (invoice.amountPaid ?? 0) > 0;
 
-        let baseBalanceChange: Decimal | undefined;
-        if (customer && (isKhata || hadPayment)) {
+        // Direct cash/UPI invoices never touch the Khata balance at creation,
+        // so cancelling them must not create a synthetic customer debt. Only
+        // a credit-sale invoice has a ledger entry to reverse.
+        if (customer && isKhata) {
           const currentBalance = new Decimal(customer.current_balance || 0);
           const invTotalStr = new Decimal(invoice.total || 0);
-          baseBalanceChange = isKhata
-            ? currentBalance.minus(invTotalStr)        
-            : currentBalance.plus(invTotalStr);         
+          const newBalance = currentBalance.minus(invTotalStr);
 
           await tx.update(customers)
             .set({
-              currentBalance: baseBalanceChange.toNumber(),
+              currentBalance: newBalance.toNumber(),
               updatedAt: new Date(),
             })
             .where(and(eq(customers.id, invoice.customerId), eq(customers.businessId, session.id)));
 
           
-          const reversalType = isKhata ? 'debit' : 'credit';
           await tx.insert(khataTransactions).values({
             id: crypto.randomUUID(),
             businessId: session.id,
             customerId: invoice.customerId,
-            type: reversalType,
+            type: 'debit',
             amount: invoice.total ?? 0,
             note: `Invoice ${invoice.invoiceNumber} Cancelled - Reversal`,
             referenceInvoiceId: invoice.id,
@@ -506,73 +564,8 @@ export async function cancelInvoice(id: string) {
         }
 
         
-        let orphanedPayment = new Decimal(isKhata ? 0 : (invoice.amountPaid || 0));
-        if (orphanedPayment.greaterThan(0)) {
-          const pendingInvoicesRows = await tx.execute(
-            sql`SELECT id, total, amount_paid FROM invoices 
-                WHERE customer_id = ${invoice.customerId} 
-                AND business_id = ${session.id}
-                AND payment_status IN ('paid_by_khata', 'partial')
-                AND status = 'active'
-                AND id != ${invoice.id}
-                ORDER BY invoice_date ASC, created_at ASC 
-                FOR UPDATE`
-          ) as unknown as { id: string; total: number | null; amount_paid: number | null }[];
-
-          const pendingInputs = pendingInvoicesRows.map(r => ({ id: r.id, total: r.total, amountPaid: r.amount_paid }));
-          const allocation = allocatePaymentAcrossInvoices(pendingInputs, orphanedPayment);
-          const invoicesToUpdate = allocation.updates;
-          const allocatedAmount = orphanedPayment.minus(allocation.remaining);
-          orphanedPayment = new Decimal(allocation.remaining);
-
-          
-          if (invoicesToUpdate.length > 0) {
-            const ids = invoicesToUpdate.map(inv => inv.id);
-            const sqlIds = sql.join(ids.map(id => sql`${id}`), sql`, `);
-
-            const amountPaidCases = sql.join(
-              invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.amountPaid}::numeric`),
-              sql` `
-            );
-
-            const statusCases = sql.join(
-              invoicesToUpdate.map(inv => sql`WHEN id = ${inv.id} THEN ${inv.status}::text`),
-              sql` `
-            );
-
-            await tx.execute(sql`
-              UPDATE invoices 
-              SET 
-                amount_paid = CASE ${amountPaidCases} END,
-                payment_status = CASE ${statusCases} END,
-                updated_at = NOW()
-              WHERE id IN (${sqlIds})
-            `);
-
-            
-            if (allocatedAmount.greaterThan(0)) {
-              await tx.insert(khataTransactions).values({
-                id: crypto.randomUUID(),
-                businessId: session.id,
-                customerId: invoice.customerId,
-                type: 'debit',
-                amount: allocatedAmount.toNumber(),
-                note: `Invoice ${invoice.invoiceNumber} Cancelled - Reallocation`,
-                referenceInvoiceId: invoice.id,
-              });
-              if (baseBalanceChange) {
-                const adjustedBalance = baseBalanceChange.minus(allocatedAmount);
-                await tx.update(customers)
-                  .set({
-                    currentBalance: adjustedBalance.toNumber(),
-                    updatedAt: new Date(),
-                  })
-                  .where(and(eq(customers.id, invoice.customerId), eq(customers.businessId, session.id)));
-              }
-            }
-          }
-        }
-
+        // Cash/UPI payments are not Khata collections. They must not be
+        // reallocated to another invoice when the invoice is cancelled.
         if (invoice.customerId) {
           await assertCustomerBalanceConsistent(tx, invoice.customerId);
           await assertNoOverpaidInvoices(tx, invoice.customerId);
@@ -580,7 +573,7 @@ export async function cancelInvoice(id: string) {
       }
     });
 
-    revalidateLocalizedPaths(['/dashboard/invoices', '/dashboard/khata', '/dashboard']);
+    revalidateLocalizedPaths(['/dashboard/invoices', '/dashboard/khata', '/dashboard', '/dashboard/reports']);
     revalidateDashboardCache(session.id);
 
     return { success: true };

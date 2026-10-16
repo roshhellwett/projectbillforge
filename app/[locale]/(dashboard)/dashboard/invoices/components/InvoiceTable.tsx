@@ -21,6 +21,7 @@ export function InvoiceTable({ invoices, customers, canView = true, onView, onWh
     <>
       <div className="hidden sm:block overflow-x-auto w-full">
         <table className="w-full min-w-[700px] border-collapse">
+          <caption className="sr-only">{t("tableCaption")}</caption>
           <thead className="bg-[var(--surface-elevated)] border-b border-[var(--border)]">
             <tr>
               <th scope="col" className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wider text-[var(--foreground)]/60">{t("thInvoice")}</th>

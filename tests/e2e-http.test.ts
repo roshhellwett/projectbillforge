@@ -55,6 +55,15 @@ test("E2E HTTP: Verify public pages and authentication redirect guards against r
   const settingsRes = await fetch(`${BASE_URL}/en/dashboard/settings`, { redirect: "manual" });
   assert.ok(settingsRes.status === 200 || settingsRes.status === 307 || settingsRes.status === 308, "Settings route accessible or protected by redirect");
 
+  const reportsRes = await fetch(`${BASE_URL}/en/dashboard/reports`, { redirect: "manual" });
+  assert.ok(reportsRes.status === 200 || reportsRes.status === 307 || reportsRes.status === 308, "Reports route accessible or protected by redirect");
+
+  const helpRes = await fetch(`${BASE_URL}/en/dashboard/help`, { redirect: "manual" });
+  assert.ok(helpRes.status === 200 || helpRes.status === 307 || helpRes.status === 308, "Help route accessible or protected by redirect");
+
+  const assistantReadinessRes = await fetch(`${BASE_URL}/api/ai/assistant`);
+  assert.equal(assistantReadinessRes.status, 401, "Unauthenticated Copilot readiness must be rejected");
+
   const authProvidersRes = await fetch(`${BASE_URL}/api/auth/providers`);
   assert.equal(authProvidersRes.status, 200, "NextAuth API /providers endpoint should respond with 200 OK");
   const providersJson = await authProvidersRes.json();

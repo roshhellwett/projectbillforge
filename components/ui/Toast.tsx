@@ -1,9 +1,9 @@
 "use client";
 
-import { createContext, useState, useCallback, useContext, ReactNode } from "react";
+import { createContext, useState, useCallback, useContext, type ReactNode } from "react";
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react";
 
-type ToastType = "success" | "error" | "info" | "warning";
+export type ToastType = "success" | "error" | "info" | "warning";
 
 interface Toast {
   id: string;
@@ -51,34 +51,37 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 function ToastContainer({ toasts, removeToast }: { toasts: Toast[]; removeToast: (id: string) => void }) {
   const icons = {
-    success: <CheckCircle size={18} className="text-[var(--foreground)]" />,
-    error: <AlertCircle size={18} className="text-[var(--foreground)]" />,
-    info: <Info size={18} className="text-[var(--foreground)]" />,
-    warning: <AlertTriangle size={18} className="text-[var(--foreground)]" />,
+    success: <CheckCircle size={18} className="text-current" aria-hidden="true" />,
+    error: <AlertCircle size={18} className="text-current" aria-hidden="true" />,
+    info: <Info size={18} className="text-current" aria-hidden="true" />,
+    warning: <AlertTriangle size={18} className="text-current" aria-hidden="true" />,
   };
 
   const backgrounds = {
-    success: "bg-zinc-100 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 border-zinc-300 dark:border-zinc-700",
-    error: "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-zinc-800 dark:border-zinc-200",
-    info: "bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 border-zinc-300 dark:border-zinc-700",
-    warning: "bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100 border-zinc-400 dark:border-zinc-600",
+    success: "status-success",
+    error: "status-danger",
+    info: "status-info",
+    warning: "status-warning",
   };
 
   return (
-    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 max-w-sm toast-container">
+    <div className="fixed top-4 right-4 z-[100] flex max-w-sm flex-col gap-2 toast-container" role="region" aria-label="Notifications">
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-lg shadow-lg animate-slide-in ${backgrounds[toast.type]}`}
+          className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-lg backdrop-blur-lg animate-slide-in ${backgrounds[toast.type]}`}
+          role={toast.type === "error" ? "alert" : "status"}
+          aria-live={toast.type === "error" ? "assertive" : "polite"}
         >
           {icons[toast.type]}
-          <p className="flex-1 text-sm font-medium">{toast.message}</p>
+          <p className="flex-1 text-sm font-medium text-current">{toast.message}</p>
           <button
+            type="button"
             onClick={() => removeToast(toast.id)}
-            className="p-2 opacity-60 hover:opacity-100 transition-opacity"
-            aria-label="Dismiss"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg opacity-70 transition-opacity hover:opacity-100 focus-visible:opacity-100"
+            aria-label="Dismiss notification"
           >
-            <X size={16} />
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
       ))}

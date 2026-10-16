@@ -5,7 +5,6 @@ import { getBusinessProfile, updateBusinessProfile } from "@/lib/actions/busines
 import { useToast } from "@/components/ui/Toast";
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
-import { DEFAULT_TERMS } from "@/lib/constants";
 import type { IndustryType } from "@/lib/types";
 
 interface FormData {
@@ -23,6 +22,8 @@ interface FormData {
 }
 
 interface ValidationErrors {
+  name?: string;
+  address?: string;
   gstin?: string;
   phone?: string;
   pincode?: string;
@@ -34,7 +35,7 @@ function isIndustryType(v: string): v is IndustryType {
 
 const initialForm: FormData = {
   name: "", gstin: "", address: "", phone: "", state: "", pincode: "",
-  termsAndConditions: DEFAULT_TERMS,
+  termsAndConditions: "",
   redemptionPeriodDays: 30, finePercentage: 2, fineFrequencyDays: 7,
   industryType: "custom",
 };
@@ -49,9 +50,15 @@ export function useSettingsForm() {
   const [originalData, setOriginalData] = useState<FormData>(initialForm);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [isOAuthUser, setIsOAuthUser] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
+    setSaveError(null);
+    setSaveSuccess(null);
     try {
       const result = await getBusinessProfile();
       if (result.success && result.business) {
@@ -63,7 +70,7 @@ export function useSettingsForm() {
           phone: b.phone || "",
           state: b.state || "",
           pincode: b.pincode || "",
-          termsAndConditions: b.termsAndConditions || DEFAULT_TERMS,
+          termsAndConditions: b.termsAndConditions ?? "",
           redemptionPeriodDays: b.redemptionPeriodDays ?? 30,
           finePercentage: Number(b.finePercentage) || 2,
           fineFrequencyDays: b.fineFrequencyDays ?? 7,
@@ -71,22 +78,28 @@ export function useSettingsForm() {
         };
         setFormData(data);
         setOriginalData(data);
-        setIsOAuthUser(!b.passwordHash || b.passwordHash.length === 0);
-      } else if (result.error) {
-        addToast(result.error, "error");
+         setIsOAuthUser(!result.hasPassword);
+      } else {
+        const message = t("loadError");
+        setLoadError(message);
+        addToast(message, "error");
       }
     } catch {
-      addToast("Could not load settings. Please try again.", "error");
+      const message = t("loadError");
+      setLoadError(message);
+      addToast(message, "error");
     } finally {
       setLoading(false);
     }
-  }, [addToast]);
+  }, [addToast, t]);
 
-  useEffect(() => { loadProfile(); }, [loadProfile]);
+  useEffect(() => { void loadProfile(); }, [loadProfile]);
 
   const setField = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
     setFormData(prev => ({ ...prev, [key]: value }));
     setValidationErrors(prev => ({ ...prev, [key]: undefined }));
+    setSaveError(null);
+    setSaveSuccess(null);
   }, []);
 
   const isDirty = Object.keys(originalData).some(k => {
@@ -96,21 +109,34 @@ export function useSettingsForm() {
 
   const validate = (): boolean => {
     const errs: ValidationErrors = {};
+    if (!formData.name.trim()) {
+      errs.name = t("validationName");
+    }
+    if (!formData.address.trim()) {
+      errs.address = t("validationAddress");
+    }
     if (formData.gstin && !/^\d{2}[A-Z]{5}\d{4}[A-Z]\d[Z]\d$/.test(formData.gstin)) {
-      errs.gstin = "Invalid GSTIN format";
+      errs.gstin = t("validationGstin");
     }
     if (formData.phone && !/^[6-9]\d{9}$/.test(formData.phone.replace(/\D/g, ""))) {
-      errs.phone = "Enter a valid 10-digit Indian mobile number";
+      errs.phone = t("validationPhone");
     }
     if (formData.pincode && !/^\d{6}$/.test(formData.pincode)) {
-      errs.pincode = "Pincode must be 6 digits";
+      errs.pincode = t("validationPincode");
     }
     setValidationErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   const save = async () => {
-    if (!validate()) return;
+    if (saving) return;
+    setSaveError(null);
+    setSaveSuccess(null);
+    if (!validate()) {
+      setSaveError(t("validationSummary"));
+      return;
+    }
+
     setSaving(true);
     const changed: Record<string, unknown> = {};
     (Object.keys(formData) as (keyof FormData)[]).forEach(k => {
@@ -119,21 +145,27 @@ export function useSettingsForm() {
       }
     });
     if (Object.keys(changed).length === 0) {
-      addToast("No changes to save", "info");
+      addToast(t("noChanges"), "info");
       setSaving(false);
       return;
     }
     try {
       const result = await updateBusinessProfile(changed as Parameters<typeof updateBusinessProfile>[0]);
-      if (result.error) {
-        addToast(result.error, "error");
-      } else {
-        addToast(t("successMessage"), "success");
+      if ("success" in result && result.success) {
+        const message = t("successMessage");
+        setSaveSuccess(message);
+        addToast(message, "success");
         setOriginalData({ ...formData });
         router.refresh();
+      } else {
+        const message = t("saveError");
+        setSaveError(message);
+        addToast(message, "error");
       }
     } catch {
-      addToast("Could not save settings. Please try again.", "error");
+      const message = t("saveError");
+      setSaveError(message);
+      addToast(message, "error");
     } finally {
       setSaving(false);
     }
@@ -141,6 +173,6 @@ export function useSettingsForm() {
 
   return {
     formData, setField, loading, saving, isDirty, validationErrors, isOAuthUser,
-    validate, save, loadProfile,
+    loadError, saveError, saveSuccess, validate, save, loadProfile,
   };
 }

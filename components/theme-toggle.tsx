@@ -3,10 +3,12 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Sun, Moon } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+  const t = useTranslations("Shell");
 
   useEffect(() => {
     setMounted(true);
@@ -22,17 +24,18 @@ export function ThemeToggle() {
 
   return (
     <button
+      type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--surface-hover)] border border-[var(--border)] text-xs font-semibold text-[var(--foreground)] hover:border-[var(--foreground)]/30 transition-all shadow-2xs cursor-pointer"
-      aria-label="Toggle Dark Mode"
-      title={isDark ? "Switch to Light Theme" : "Switch to Dark Theme"}
+      aria-label={t("toggleTheme")}
+      title={isDark ? t("switchToLight") : t("switchToDark")}
     >
       {isDark ? (
-        <Moon size={13} className="text-[var(--foreground)] shrink-0" />
+         <Moon size={13} className="text-[var(--foreground)] shrink-0" aria-hidden="true" />
       ) : (
-        <Sun size={13} className="text-[var(--foreground)] shrink-0" />
+         <Sun size={13} className="text-[var(--foreground)] shrink-0" aria-hidden="true" />
       )}
-      <span>{isDark ? "Dark" : "Light"}</span>
+      <span>{isDark ? t("darkTheme") : t("lightTheme")}</span>
     </button>
   );
 }

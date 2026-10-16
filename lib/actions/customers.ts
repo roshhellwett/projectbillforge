@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { customers, khataTransactions, invoices } from "@/lib/schema";
 import { customerSchema, type CustomerInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq, and, desc, sql, gt } from "drizzle-orm";
+import { eq, and, desc, ilike, or, sql, gt } from "drizzle-orm";
 import { revalidateLocalizedPaths } from "@/lib/revalidate";
 import { checkActionRateLimit } from "@/lib/rate-limit";
 import { serializeError } from "@/lib/errors";
@@ -126,25 +126,46 @@ export async function deleteCustomer(id: string) {
   }
 }
 
-export async function getCustomers(limit = 50, offset = 0) {
+export async function getCustomers(limit = 50, offset = 0, search = "") {
   limit = Math.max(1, Math.min(limit, 200));
   offset = Math.max(0, offset);
   try {
     const session = await requireBusinessSession();
+    const normalizedSearch = search.trim().slice(0, 100).replace(/[\\%_]/g, "\\$&");
+    const whereClause = normalizedSearch
+      ? and(
+          eq(customers.businessId, session.id),
+          or(
+            ilike(customers.name, `%${normalizedSearch}%`),
+            ilike(customers.phone, `%${normalizedSearch}%`),
+            ilike(customers.email, `%${normalizedSearch}%`),
+            ilike(customers.gstin, `%${normalizedSearch}%`),
+            ilike(customers.address, `%${normalizedSearch}%`),
+          ),
+        )
+      : eq(customers.businessId, session.id);
 
-    const [customerList, [countResult]] = await Promise.all([
+    const [customerList, [countResult], [dueCountResult]] = await Promise.all([
       db.query.customers.findMany({
-        where: eq(customers.businessId, session.id),
-        orderBy: [desc(customers.createdAt)],
+        where: whereClause,
+        orderBy: [desc(customers.createdAt), desc(customers.id)],
         limit,
         offset,
       }),
       db.select({ count: sql<number>`COUNT(*)` })
         .from(customers)
-        .where(eq(customers.businessId, session.id)),
+        .where(whereClause),
+      db.select({ count: sql<number>`COUNT(*)` })
+        .from(customers)
+        .where(and(whereClause, gt(customers.currentBalance, 0))),
     ]);
 
-    return { success: true, customers: customerList, total: Number(countResult.count) };
+    return {
+      success: true,
+      customers: customerList,
+      total: Number(countResult.count),
+      totalDue: Number(dueCountResult.count),
+    };
   } catch (error: unknown) {
     return { error: serializeError(error).error };
   }

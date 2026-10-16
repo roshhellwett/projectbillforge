@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from "@/lib/actions/customers";
 import { recalculateCustomerBalance } from "@/lib/actions/khata";
 import { formatCurrency } from "@/lib/formatters";
@@ -35,42 +36,88 @@ const defaultForm: CustomerFormData = {
   name: "", phone: "", email: "", gstin: "", address: "", creditLimit: "",
 };
 
-export function useCustomers(initialData?: { customers?: Customer[]; totalCustomers?: number }) {
+export function useCustomers(initialData?: { customers?: Customer[]; totalCustomers?: number; totalDue?: number }, initialError?: string) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("Customers");
   const { addToast } = useToast();
   const [customers, setCustomers] = useState<Customer[]>(initialData?.customers ?? []);
   const [loading, setLoading] = useState(!initialData);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(initialError ?? null);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [formData, setFormData] = useState<CustomerFormData>(defaultForm);
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [offset, setOffset] = useState(initialData?.customers?.length ?? 0);
   const [totalCustomers, setTotalCustomers] = useState(initialData?.totalCustomers ?? 0);
+  const [totalDue, setTotalDue] = useState(initialData?.totalDue ?? 0);
+  const initialLoadRef = useRef(!initialData);
+  const initialFetchRef = useRef(false);
+  const searchEffectReadyRef = useRef(false);
+  const requestVersionRef = useRef(0);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
+  const loadData = useCallback(async (query = search.trim()) => {
+    const requestVersion = ++requestVersionRef.current;
+    const isInitialLoad = initialLoadRef.current;
+    if (isInitialLoad) setLoading(true);
+    else setRefreshing(true);
+    setLoadError(null);
+    setLoadMoreError(null);
     try {
-      const result = await getCustomers(PAGE_SIZE, 0);
+      const result = await getCustomers(PAGE_SIZE, 0, query);
+      if (requestVersion !== requestVersionRef.current) return;
       if (result.success) {
         setCustomers(result.customers);
         setTotalCustomers(result.total ?? 0);
+        setTotalDue(result.totalDue ?? 0);
         setOffset(result.customers.length);
       } else if (result.error) {
-        addToast(result.error, "error");
+        const message = t("loadErrorMessage");
+        setLoadError(message);
+        addToast(message, "error");
       }
     } catch {
-      addToast("Could not load customers. Please try again.", "error");
+      if (requestVersion !== requestVersionRef.current) return;
+      const message = t("loadErrorMessage");
+      setLoadError(message);
+      addToast(message, "error");
     } finally {
-      setLoading(false);
+      if (requestVersion === requestVersionRef.current) {
+        initialLoadRef.current = false;
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
-  }, [addToast]);
+  }, [addToast, search, t]);
 
-  useEffect(() => { if (!initialData) loadData(); }, []);
+  useEffect(() => {
+    if (initialFetchRef.current) return;
+    initialFetchRef.current = true;
+    if (!initialData) void loadData("");
+  }, [initialData, loadData]);
+
+  useEffect(() => {
+    if (!searchEffectReadyRef.current) {
+      searchEffectReadyRef.current = true;
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      void loadData(search.trim());
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [loadData, search]);
 
   useEffect(() => {
     if (searchParams.get("new") === "true") {
@@ -82,20 +129,39 @@ export function useCustomers(initialData?: { customers?: Customer[]; totalCustom
   }, [searchParams, router]);
 
   const loadMoreCustomers = async () => {
-    const result = await getCustomers(PAGE_SIZE, offset);
-    if (result.success && result.customers) {
-      setCustomers(prev => [...prev, ...result.customers]);
-      setOffset(prev => prev + result.customers.length);
+    if (loadingMore || offset >= totalCustomers) return;
+    setLoadingMore(true);
+    setLoadMoreError(null);
+    try {
+      const result = await getCustomers(PAGE_SIZE, offset, search.trim());
+      if (result.success && result.customers) {
+        setCustomers(prev => [...prev, ...result.customers]);
+        setOffset(prev => prev + result.customers.length);
+        if (typeof result.total === "number") setTotalCustomers(result.total);
+        if (result.customers.length === 0) setTotalCustomers(offset);
+      } else if (result.error === "Unauthorized") {
+        router.push("/login");
+      } else {
+        setLoadMoreError(t("loadMoreError"));
+      }
+    } catch {
+      setLoadMoreError(t("loadMoreError"));
+    } finally {
+      setLoadingMore(false);
     }
   };
 
   const openModal = () => {
+    setFormError(null);
+    setSuccessMessage(null);
     setFormData(defaultForm);
     setEditingCustomer(null);
     setShowModal(true);
   };
 
   const handleEdit = (customer: Customer) => {
+    setFormError(null);
+    setSuccessMessage(null);
     setEditingCustomer(customer);
     setFormData({
       name: customer.name, phone: customer.phone || "",
@@ -106,18 +172,21 @@ export function useCustomers(initialData?: { customers?: Customer[]; totalCustom
   };
 
   const handleSyncBalance = async (customerId: string) => {
+    setSuccessMessage(null);
     setSyncingId(customerId);
     try {
       const result = await recalculateCustomerBalance(customerId);
       if (result.success) {
-        addToast("Balance synced", "success");
-        void loadData();
+        addToast(t("successBalanceSync"), "success");
+        setSuccessMessage(t("successBalanceSync"));
+        await loadData();
         router.refresh();
-      } else if (result.error) {
-        addToast(result.error, "error");
+      } else {
+        addToast(result.error ?? t("syncError"), "error");
       }
     } catch {
-      addToast("Could not sync the balance. Please try again.", "error");
+      const message = t("syncError");
+      addToast(message, "error");
     } finally {
       setSyncingId(null);
     }
@@ -125,28 +194,67 @@ export function useCustomers(initialData?: { customers?: Customer[]; totalCustom
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+    setSuccessMessage(null);
+    const name = formData.name.trim();
+    const phone = formData.phone.trim();
+    const email = formData.email.trim();
+    const gstin = formData.gstin.trim().toUpperCase();
+    const address = formData.address.trim();
+    const creditLimit = formData.creditLimit.trim() ? Number(formData.creditLimit) : 0;
+
+    if (!name) {
+      setFormError(t("validationName"));
+      return;
+    }
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      setFormError(t("validationPhone"));
+      return;
+    }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setFormError(t("validationEmail"));
+      return;
+    }
+    if (gstin && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstin)) {
+      setFormError(t("validationGstin"));
+      return;
+    }
+    if (!address) {
+      setFormError(t("validationAddress"));
+      return;
+    }
+    if (!Number.isFinite(creditLimit) || creditLimit < 0) {
+      setFormError(t("validationCreditLimit"));
+      return;
+    }
     setSaving(true);
     const data = {
-      name: formData.name, phone: formData.phone,
-      email: formData.email || undefined, gstin: formData.gstin || undefined,
-      address: formData.address,
-      creditLimit: formData.creditLimit ? Number(formData.creditLimit) : 0,
+      name, phone,
+      email: email || undefined, gstin: gstin || undefined,
+      address,
+      creditLimit,
     };
     try {
       const result = editingCustomer
         ? await updateCustomer(editingCustomer.id, data)
         : await createCustomer(data);
-      if (result.error) {
-        addToast(result.error, "error");
+      if (!result.success) {
+        const message = result.error ?? t("saveError");
+        setFormError(message);
+        addToast(message, "error");
       } else {
-        addToast(editingCustomer ? "Customer updated" : "Customer created", "success");
+        const message = editingCustomer ? t("successUpdated") : t("successCreated");
+        addToast(message, "success");
+        setSuccessMessage(message);
         setShowModal(false);
         setEditingCustomer(null);
-        void loadData();
+        await loadData();
         router.refresh();
       }
     } catch {
-      addToast("Could not save the customer. Please try again.", "error");
+      const message = t("saveError");
+      setFormError(message);
+      addToast(message, "error");
     } finally {
       setSaving(false);
     }
@@ -154,33 +262,47 @@ export function useCustomers(initialData?: { customers?: Customer[]; totalCustom
 
   const handleDelete = async () => {
     if (!deleteId) return;
+    setDeleteError(null);
     setDeleting(true);
+    let completed = false;
     try {
       const result = await deleteCustomer(deleteId);
       if (result.success) {
-        addToast("Customer deleted", "success");
-        void loadData();
+        completed = true;
+        setDeleteError(null);
+        const message = t("successDeleted");
+        addToast(message, "success");
+        setSuccessMessage(message);
+        await loadData();
         router.refresh();
-      } else if (result.error) {
-        addToast(result.error, "error");
+      } else {
+        const message = result.error ?? t("deleteError");
+        setDeleteError(message);
+        addToast(message, "error");
       }
     } catch {
-      addToast("Could not delete the customer. Please try again.", "error");
+      const message = t("deleteError");
+      setDeleteError(message);
+      addToast(message, "error");
     } finally {
       setDeleting(false);
-      setDeleteId(null);
+      if (completed) setDeleteId(null);
     }
   };
 
-  const filteredCustomers = customers.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.phone?.includes(search)
-  );
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredCustomers = customers.filter(c => {
+    if (!normalizedSearch) return true;
+    return [c.name, c.phone ?? "", c.email ?? "", c.gstin ?? "", c.address ?? ""]
+      .some(value => value.toLowerCase().includes(normalizedSearch));
+  });
 
   return {
-    customers, filteredCustomers, loading, search, showModal, editingCustomer,
-    formData, saving, deleteId, deleting, syncingId, offset, totalCustomers,
-    setSearch, setShowModal, setFormData, setDeleteId,
-    openModal, handleEdit, handleSubmit, handleDelete, handleSyncBalance, loadMoreCustomers, loadData,
+    customers, filteredCustomers, totalDue, loading, refreshing, search, showModal, editingCustomer,
+    formData, saving, formError, deleteId, deleting, deleteError, syncingId,
+    offset, totalCustomers, loadError, loadMoreError, loadingMore, successMessage,
+    setSearch, setShowModal, setFormData, setFormError, setDeleteId, setDeleteError,
+    openModal, handleEdit, handleSubmit, handleDelete, handleSyncBalance,
+    loadMoreCustomers, loadData,
   };
 }

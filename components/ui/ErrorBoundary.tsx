@@ -1,7 +1,7 @@
 "use client";
 
 import { Component, type ReactNode } from "react";
-import { AlertTriangle, RotateCcw } from "lucide-react";
+import { ErrorState } from "./ui";
 
 interface Props { children: ReactNode; fallback?: ReactNode }
 interface State { hasError: boolean; error?: Error }
@@ -20,21 +20,11 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return this.props.fallback || (
-        <div className="flex flex-col items-center justify-center p-12 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 flex items-center justify-center mb-4">
-            <AlertTriangle size={28} className="text-[var(--foreground)]" />
-          </div>
-          <h2 className="text-lg font-bold text-[var(--foreground)] mb-1">Something went wrong</h2>
-          <p className="text-sm text-[var(--foreground)]/50 mb-6 max-w-sm">
-            {this.state.error?.message || "An unexpected error occurred in this section."}
-          </p>
-          <button
-            onClick={() => this.setState({ hasError: false })}
-            className="inline-flex items-center gap-2 px-5 py-2 bg-zinc-900 dark:bg-zinc-100 hover:brightness-110 text-white dark:text-zinc-900 text-sm font-bold rounded-full transition-all"
-          >
-            <RotateCcw size={14} /> Try Again
-          </button>
-        </div>
+        <ErrorState
+          description="This section could not load. Your data is safe; try again."
+          onRetry={() => this.setState({ hasError: false, error: undefined })}
+          retryLabel="Try again"
+        />
       );
     }
     return this.props.children;

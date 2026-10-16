@@ -13,6 +13,7 @@ import { checkActionRateLimit } from "@/lib/rate-limit";
 import { assertCustomerBalanceConsistent, assertNoOverpaidInvoices } from "@/lib/balance-invariants";
 import { validateUuid } from "@/lib/uuid";
 import { serializeError } from "@/lib/errors";
+import { withIdempotency } from "@/lib/idempotency";
 
 type KhataTransactionRow = typeof khataTransactions.$inferSelect;
 
@@ -27,7 +28,12 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
     if (!validation.success) {
       return { error: validation.error.errors[0].message };
     }
-    validateUuid(data.customerId, "customerId");
+    const idempotencyKey = data.idempotencyKey
+      ? `khata:${session.id}:${data.idempotencyKey}`
+      : undefined;
+
+    return await withIdempotency(idempotencyKey, async () => {
+      validateUuid(data.customerId, "customerId");
 
     const customerCheck = await db.query.customers.findFirst({
       where: eq(customers.id, data.customerId),
@@ -89,6 +95,7 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
               AND business_id = ${session.id}
               AND payment_status IN ('paid_by_khata', 'partial')
               AND status = 'active'
+              AND payment_mode = 'khata'
               ORDER BY invoice_date ASC, created_at ASC 
               FOR UPDATE`
         ) as unknown as { id: string; total: number | null; amount_paid: number | null }[];
@@ -143,11 +150,12 @@ export async function createKhataTransaction(data: KhataTransactionInput) {
       return { transaction: newTransaction, overpayment: data.type === 'debit' ? remainingAmount : 0 };
     });
 
-    revalidateLocalizedPaths(['/dashboard/khata', '/dashboard']);
+    revalidateLocalizedPaths(['/dashboard/khata', '/dashboard', '/dashboard/reports']);
     revalidateDashboardCache(session.id);
     const resultData = transaction as { transaction: typeof khataTransactions.$inferSelect; overpayment: number };
 
-    return { success: true, transaction: resultData.transaction, overpayment: resultData.overpayment };
+      return { success: true, transaction: resultData.transaction, overpayment: resultData.overpayment };
+    });
   } catch (error: unknown) {
     return { error: serializeError(error).error };
   }
@@ -171,7 +179,7 @@ export async function getKhataStatement(customerId: string) {
       }),
       db.query.khataTransactions.findMany({
         where: and(eq(khataTransactions.customerId, customerId), eq(khataTransactions.businessId, session.id)),
-        orderBy: [asc(khataTransactions.createdAt)],
+        orderBy: [asc(khataTransactions.createdAt), asc(khataTransactions.id)],
       }),
       db.query.invoices.findMany({
         where: and(
@@ -344,7 +352,7 @@ export async function chargeLateFees(customerId: string) {
       return { charged: totalFine, count: finePerInvoice.length };
     });
 
-    revalidateLocalizedPaths(['/dashboard/khata', '/dashboard']);
+    revalidateLocalizedPaths(['/dashboard/khata', '/dashboard', '/dashboard/reports']);
     revalidateDashboardCache(session.id);
 
     try {
@@ -458,6 +466,7 @@ export async function deleteKhataTransaction(id: string) {
               WHERE customer_id = ${transaction.customerId}
               AND business_id = ${session.id}
               AND status = 'active'
+              AND payment_mode = 'khata'
               AND amount_paid > 0
               ORDER BY invoice_date DESC, created_at DESC
               FOR UPDATE`
@@ -527,7 +536,7 @@ export async function deleteKhataTransaction(id: string) {
       await assertNoOverpaidInvoices(tx, transaction.customerId);
     });
 
-    revalidateLocalizedPaths(['/dashboard/khata', '/dashboard']);
+    revalidateLocalizedPaths(['/dashboard/khata', '/dashboard', '/dashboard/reports']);
 
     return { success: true };
   } catch (error: unknown) {
@@ -541,7 +550,7 @@ export async function resetCustomerKhata(customerId: string, consentAccepted: bo
     const session = await requireBusinessSession();
     validateUuid(customerId, "customerId");
 
-    const rateCheck = await checkActionRateLimit(session.id, 'resetKhata', 3, '60 s');
+    const rateCheck = await checkActionRateLimit(session.id, 'resetCustomerKhata', 3, '60 s');
     if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
 
     const result = await db.transaction(async (tx) => {
@@ -555,16 +564,19 @@ export async function resetCustomerKhata(customerId: string, consentAccepted: bo
       }
 
       const [countResult] = await tx.execute(
-        sql`SELECT COUNT(*)::int as cnt FROM invoices WHERE customer_id = ${customerId} AND business_id = ${session.id} AND status = 'active'`
-      ) as unknown as { cnt: number }[];
+        sql`SELECT
+              (SELECT COUNT(*)::int FROM invoices WHERE customer_id = ${customerId} AND business_id = ${session.id} AND status = 'active' AND payment_mode = 'khata') AS invoice_count,
+              (SELECT COUNT(*)::int FROM khata_transactions WHERE customer_id = ${customerId} AND business_id = ${session.id} AND status = 'active') AS transaction_count`
+      ) as unknown as { invoice_count: number; transaction_count: number }[];
 
-      const invoiceCount = Number(countResult?.cnt ?? 0);
-      if (invoiceCount === 0) throw new Error("No active invoices to reset");
+      const invoiceCount = Number(countResult?.invoice_count ?? 0);
+      const transactionCount = Number(countResult?.transaction_count ?? 0);
+      if (invoiceCount === 0 && transactionCount === 0) throw new Error("No active Khata data to reset");
 
       const currentBalance = Number(customer.current_balance || 0);
 
       await tx.execute(
-        sql`UPDATE invoices SET status = 'archived', updated_at = NOW() WHERE customer_id = ${customerId} AND business_id = ${session.id} AND status = 'active'`
+        sql`UPDATE invoices SET status = 'archived', updated_at = NOW() WHERE customer_id = ${customerId} AND business_id = ${session.id} AND status = 'active' AND payment_mode = 'khata'`
       );
 
       // Keep the ledger auditable while making the reset a real boundary for
@@ -597,7 +609,7 @@ export async function resetCustomerKhata(customerId: string, consentAccepted: bo
       return { amountReset: currentBalance, invoiceCount, resetDate: new Date() };
     });
 
-    revalidateLocalizedPaths(['/dashboard/khata', '/dashboard', '/dashboard/customers']);
+    revalidateLocalizedPaths(['/dashboard/khata', '/dashboard', '/dashboard/customers', '/dashboard/reports']);
     revalidateDashboardCache(session.id);
 
     return { success: true, ...result };
@@ -615,7 +627,7 @@ export async function getCustomerResetHistory(customerId: string) {
         eq(khataResets.customerId, customerId),
         eq(khataResets.businessId, session.id),
       ),
-      orderBy: [desc(khataResets.resetDate)],
+      orderBy: [desc(khataResets.resetDate), desc(khataResets.id)],
       columns: { id: true, resetDate: true, amountReset: true, invoiceCount: true, createdAt: true },
     });
     return { success: true, resets };
@@ -665,7 +677,7 @@ export async function recalculateCustomerBalance(customerId: string) {
       return balance.toDecimalPlaces(2).toNumber();
     });
 
-    revalidateLocalizedPaths(['/dashboard/khata', '/dashboard/customers', '/dashboard']);
+    revalidateLocalizedPaths(['/dashboard/khata', '/dashboard/customers', '/dashboard', '/dashboard/reports']);
     return { success: true, newBalance: calculatedBalance };
   } catch (error: unknown) {
     return { error: serializeError(error).error };

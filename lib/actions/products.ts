@@ -1,10 +1,10 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { products } from "@/lib/schema";
+import { invoices, products } from "@/lib/schema";
 import { productSchema, type ProductInput } from "@/lib/validations";
 import { requireBusinessSession } from "@/lib/session";
-import { eq, sql, and, desc, ilike } from "drizzle-orm";
+import { eq, sql, and, desc, ilike, or } from "drizzle-orm";
 import { revalidateLocalizedPaths } from "@/lib/revalidate";
 import { checkActionRateLimit } from "@/lib/rate-limit";
 import { serializeError } from "@/lib/errors";
@@ -19,13 +19,6 @@ export async function createProduct(data: ProductInput) {
     const validation = productSchema.safeParse(data);
     if (!validation.success) {
       return { error: validation.error.errors[0].message };
-    }
-
-    
-    const stockQty = data.stockQuantity ?? 0;
-    const threshold = data.lowStockThreshold ?? 0;
-    if (stockQty > 0 && threshold >= stockQty) {
-      return { error: "Low stock threshold must be less than the stock quantity." };
     }
 
     const [product] = await db.insert(products).values({
@@ -59,27 +52,6 @@ export async function updateProduct(id: string, data: Partial<ProductInput>) {
       return { error: validation.error.errors[0].message };
     }
 
-    
-    if (data.stockQuantity !== undefined && data.lowStockThreshold !== undefined) {
-      if (data.stockQuantity > 0 && data.lowStockThreshold >= data.stockQuantity) {
-        return { error: "Low stock threshold must be less than the stock quantity." };
-      }
-    } else if (data.stockQuantity !== undefined || data.lowStockThreshold !== undefined) {
-      
-      const existing = await db.query.products.findFirst({
-        where: and(eq(products.id, id), eq(products.businessId, session.id)),
-      });
-      if (!existing) {
-        return { error: "Product not found" };
-      }
-      const finalStock = data.stockQuantity ?? (existing.stockQuantity ?? 0);
-      const finalThreshold = data.lowStockThreshold ?? (existing.lowStockThreshold ?? 0);
-      if (finalStock > 0 && finalThreshold >= finalStock) {
-        return { error: "Low stock threshold must be less than the stock quantity." };
-      }
-    }
-
-    
     const existingProduct = await db.query.products.findFirst({
       where: and(eq(products.id, id), eq(products.businessId, session.id)),
     });
@@ -97,7 +69,7 @@ export async function updateProduct(id: string, data: Partial<ProductInput>) {
       gstRate?: number;
       stockQuantity?: number;
       lowStockThreshold?: number;
-      metadata?: Record<string, unknown>;
+      metadata?: Record<string, unknown> | null;
     } = { updatedAt: new Date() };
     if (data.name !== undefined) updateFields.name = data.name;
     if (data.sku !== undefined) updateFields.sku = data.sku ?? null;
@@ -107,6 +79,7 @@ export async function updateProduct(id: string, data: Partial<ProductInput>) {
     if (data.gstRate !== undefined) updateFields.gstRate = data.gstRate;
     if (data.stockQuantity !== undefined) updateFields.stockQuantity = data.stockQuantity;
     if (data.lowStockThreshold !== undefined) updateFields.lowStockThreshold = data.lowStockThreshold;
+    if (data.metadata !== undefined) updateFields.metadata = data.metadata ?? null;
 
     const [product] = await db.update(products)
       .set(updateFields)
@@ -132,6 +105,17 @@ export async function deleteProduct(id: string) {
       return { error: "Product not found" };
     }
 
+    const [invoiceHistory] = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(invoices)
+      .where(and(
+        eq(invoices.businessId, session.id),
+        sql`${invoices.items} @> ${JSON.stringify([{ productId: id }])}::jsonb`,
+      ));
+    if (Number(invoiceHistory?.count ?? 0) > 0) {
+      return { error: "Cannot delete a product used on an invoice. Keep it in the catalog for audit history." };
+    }
+
     await db.delete(products)
       .where(and(eq(products.id, id), eq(products.businessId, session.id)));
 
@@ -142,25 +126,50 @@ export async function deleteProduct(id: string) {
   }
 }
 
-export async function getProducts(limit = 50, offset = 0) {
+export async function getProducts(limit = 50, offset = 0, search = "") {
   limit = Math.max(1, Math.min(limit, 200));
   offset = Math.max(0, offset);
   try {
     const session = await requireBusinessSession();
+    const normalizedSearch = search.trim().slice(0, 100).replace(/[\\%_]/g, "\\$&");
+    const whereClause = normalizedSearch
+      ? and(
+          eq(products.businessId, session.id),
+          or(
+            ilike(products.name, `%${normalizedSearch}%`),
+            ilike(products.sku, `%${normalizedSearch}%`),
+            ilike(products.hsnCode, `%${normalizedSearch}%`),
+            ilike(products.unit, `%${normalizedSearch}%`),
+          ),
+        )
+      : eq(products.businessId, session.id);
 
-    const [productList, [countResult]] = await Promise.all([
+    const [productList, [countResult], [lowStockCountResult]] = await Promise.all([
       db.query.products.findMany({
-        where: eq(products.businessId, session.id),
-        orderBy: [desc(products.createdAt)],
+        where: whereClause,
+        orderBy: [desc(products.createdAt), desc(products.id)],
         limit,
         offset,
       }),
       db.select({ count: sql<number>`COUNT(*)` })
         .from(products)
-        .where(eq(products.businessId, session.id)),
+        .where(whereClause),
+      db.select({ count: sql<number>`COUNT(*)` })
+        .from(products)
+        .where(and(
+          whereClause,
+          eq(products.isActive, true),
+          sql`${products.lowStockThreshold} > 0`,
+          sql`${products.stockQuantity} <= ${products.lowStockThreshold}`,
+        )),
     ]);
 
-    return { success: true, products: productList, total: Number(countResult.count) };
+    return {
+      success: true,
+      products: productList,
+      total: Number(countResult.count),
+      totalLowStock: Number(lowStockCountResult.count),
+    };
   } catch (error: unknown) {
     return { error: serializeError(error).error };
   }
@@ -170,13 +179,19 @@ export async function searchProducts(search: string, limit = 15) {
   limit = Math.max(1, Math.min(limit, 50));
   try {
     const session = await requireBusinessSession();
+    const normalizedSearch = search.trim().slice(0, 100).replace(/[\\%_]/g, "\\$&");
     const results = await db.query.products.findMany({
       where: and(
         eq(products.businessId, session.id),
         eq(products.isActive, true),
-        ilike(products.name, `%${search}%`),
+        or(
+          ilike(products.name, `%${normalizedSearch}%`),
+          ilike(products.sku, `%${normalizedSearch}%`),
+          ilike(products.hsnCode, `%${normalizedSearch}%`),
+          ilike(products.unit, `%${normalizedSearch}%`),
+        ),
       ),
-      orderBy: [desc(products.createdAt)],
+      orderBy: [desc(products.createdAt), desc(products.id)],
       limit,
     });
     return { success: true, products: results };

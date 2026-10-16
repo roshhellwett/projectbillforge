@@ -76,7 +76,14 @@ export const invoiceSchema = z.object({
   customerGstin: z.string().regex(gstinRegex, "Invalid GSTIN format").optional().or(z.literal('')),
   customerAddress: z.string().max(500).optional().transform(s => s?.trim() || undefined),
   invoiceDate: z.string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invoice date must use YYYY-MM-DD format"),
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invoice date must use YYYY-MM-DD format")
+    .refine((value) => {
+      const [year, month, day] = value.split("-").map(Number);
+      const date = new Date(Date.UTC(year, month - 1, day));
+      return date.getUTCFullYear() === year
+        && date.getUTCMonth() === month - 1
+        && date.getUTCDate() === day;
+    }, "Invoice date must be a real calendar date"),
   items: z.array(invoiceItemSchema)
     .min(1, "At least one item is required")
     .max(MAX_INVOICE_ITEMS, `Maximum ${MAX_INVOICE_ITEMS} line items per invoice`),
@@ -99,6 +106,7 @@ export const khataTransactionSchema = z.object({
     .max(1_00_00_000, "Amount exceeds allowed maximum (₹1 crore)"),
   paymentMethod: z.string().max(50).optional(),
   note: z.string().max(500).optional().transform(s => s?.trim() || undefined),
+  idempotencyKey: z.string().min(8).max(128).optional(),
 });
 
 export const businessProfileSchema = z.object({

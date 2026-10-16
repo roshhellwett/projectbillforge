@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 
 const smoothSpring = { type: "spring" as const, stiffness: 260, damping: 24 };
@@ -15,11 +15,13 @@ export function FadeIn({
     delay?: number;
     className?: string;
 }) {
+    const reduceMotion = useReducedMotion();
+
     return (
         <motion.div
-            initial={{ opacity: 0, y: 12 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{
+            transition={reduceMotion ? { duration: 0 } : {
                 duration: 0.5,
                 delay,
                 ease: [0.25, 1, 0.5, 1],
@@ -38,15 +40,17 @@ export function StaggerContainer({
     children: React.ReactNode;
     className?: string;
 }) {
+    const reduceMotion = useReducedMotion();
+
     return (
         <motion.div
-            initial="hidden"
+            initial={reduceMotion ? false : "hidden"}
             animate="visible"
             variants={{
                 hidden: { opacity: 0 },
                 visible: {
                     opacity: 1,
-                    transition: {
+                    transition: reduceMotion ? { duration: 0 } : {
                         staggerChildren: 0.07,
                         delayChildren: 0.05,
                     },
@@ -66,14 +70,16 @@ export function StaggerItem({
     children: React.ReactNode;
     className?: string;
 }) {
+    const reduceMotion = useReducedMotion();
+
     return (
         <motion.div
             variants={{
-                hidden: { opacity: 0, y: 12 },
+                hidden: reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 },
                 visible: {
                     opacity: 1,
                     y: 0,
-                    transition: smoothSpring,
+                    transition: reduceMotion ? { duration: 0 } : smoothSpring,
                 },
             }}
             className={className}
@@ -90,11 +96,13 @@ export function InteractiveItem({
     children: React.ReactNode;
     className?: string;
 }) {
+    const reduceMotion = useReducedMotion();
+
     return (
         <motion.div
-            whileHover={{ scale: 1.015, y: -1 }}
-            whileTap={{ scale: 0.97 }}
-            transition={gentleSpring}
+            whileHover={reduceMotion ? undefined : { scale: 1.015, y: -1 }}
+            whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+            transition={reduceMotion ? { duration: 0 } : gentleSpring}
             className={className}
         >
             {children}
@@ -114,18 +122,20 @@ export function FloatingIcon({
     animationKey: string;
     [x: string]: unknown;
 }) {
+    const reduceMotion = useReducedMotion();
+
     return (
         <motion.div
             key={animationKey}
-            initial={{ scale: 0.7, y: 8, opacity: 0 }}
+            initial={reduceMotion ? false : { scale: 0.7, y: 8, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
-            whileHover={{
+            whileHover={reduceMotion ? undefined : {
                 scale: 1.15,
                 rotate: [0, -8, 8, 0],
                 transition: { duration: 0.4, ease: "easeInOut" }
             }}
-            whileTap={{ scale: 0.9 }}
-            transition={{
+            whileTap={reduceMotion ? undefined : { scale: 0.9 }}
+            transition={reduceMotion ? { duration: 0 } : {
                 ...smoothSpring,
                 damping: isActive ? 14 : 22,
             }}
@@ -144,14 +154,16 @@ export function AnimatedRouteWrapper({
     children: React.ReactNode;
     pathKey: string;
 }) {
+    const reduceMotion = useReducedMotion();
+
     return (
         <AnimatePresence mode="popLayout">
             <motion.div
                 key={pathKey}
-                initial={{ opacity: 0, y: 6 }}
+                initial={reduceMotion ? false : { opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{
+                exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
+                transition={reduceMotion ? { duration: 0 } : {
                     duration: 0.15,
                     ease: [0.25, 1, 0.5, 1],
                 }}

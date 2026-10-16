@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { ChangeEvent, useTransition } from 'react';
 import { routing } from '@/i18n/routing';
@@ -8,6 +8,7 @@ import { routing } from '@/i18n/routing';
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     const [isPending, startTransition] = useTransition();
     const locale = useLocale();
+    const t = useTranslations('Shell');
     const router = useRouter();
     const pathname = usePathname();
 
@@ -23,6 +24,8 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
             <select
                 defaultValue={locale}
                 disabled={isPending}
+                aria-label={t('language')}
+                aria-busy={isPending}
                 onChange={onSelectChange}
                 className={`appearance-none bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg font-medium text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 cursor-pointer disabled:opacity-50 transition-colors
                     ${compact ? 'py-1.5 pl-2 pr-6 text-xs' : 'py-2 pl-3 pr-8 text-sm'}

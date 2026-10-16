@@ -8,6 +8,7 @@ import { eq, sql } from "drizzle-orm";
 import { revalidateLocalizedPaths, revalidateDashboardCache } from "@/lib/revalidate";
 import { serializeError } from "@/lib/errors";
 import { assertCustomerBalanceConsistent, assertNoOverpaidInvoices } from "@/lib/balance-invariants";
+import { checkActionRateLimit } from "@/lib/rate-limit";
 
 export async function getBusinessProfile() {
   try {
@@ -15,13 +16,28 @@ export async function getBusinessProfile() {
 
     const business = await db.query.businesses.findFirst({
       where: eq(businesses.id, session.id),
+      columns: {
+        name: true,
+        gstin: true,
+        address: true,
+        phone: true,
+        state: true,
+        pincode: true,
+        industryType: true,
+        termsAndConditions: true,
+        redemptionPeriodDays: true,
+        finePercentage: true,
+        fineFrequencyDays: true,
+        passwordHash: true,
+      },
     });
 
     if (!business) {
       return { error: "Business not found" };
     }
 
-    return { success: true, business };
+    const { passwordHash, ...safeBusiness } = business;
+    return { success: true, business: safeBusiness, hasPassword: Boolean(passwordHash) };
   } catch (error: unknown) {
     return { error: serializeError(error).error };
   }
@@ -91,12 +107,36 @@ export async function getResetAllKhataSummary() {
     const session = await requireBusinessSession();
     const [result] = await db.execute(sql`
       SELECT
-        COUNT(DISTINCT c.id)::int as customer_count,
-        COUNT(i.id)::int as invoice_count,
-        COALESCE(SUM(c.current_balance), 0) as total_balance
+        COUNT(*)::int as customer_count,
+        COALESCE(SUM(c.current_balance), 0) as total_balance,
+        (
+          SELECT COUNT(*)::int
+          FROM invoices i
+          WHERE i.business_id = ${session.id}
+             AND i.customer_id IS NOT NULL
+             AND i.status = 'active'
+             AND i.payment_mode = 'khata'
+        ) as invoice_count
       FROM customers c
-      LEFT JOIN invoices i ON i.customer_id = c.id AND i.business_id = c.business_id AND i.status = 'active'
       WHERE c.business_id = ${session.id}
+        AND (
+          ABS(COALESCE(c.current_balance, 0)) >= 0.01
+          OR EXISTS (
+            SELECT 1
+            FROM invoices i
+            WHERE i.customer_id = c.id
+              AND i.business_id = ${session.id}
+              AND i.status = 'active'
+              AND i.payment_mode = 'khata'
+            )
+            OR EXISTS (
+              SELECT 1
+              FROM khata_transactions t
+              WHERE t.customer_id = c.id
+                AND t.business_id = ${session.id}
+                AND t.status = 'active'
+            )
+        )
     `) as unknown as { customer_count: number; invoice_count: number; total_balance: number }[];
     return { success: true, ...result };
   } catch (error: unknown) {
@@ -109,6 +149,9 @@ export async function resetAllKhataData(consentAccepted: boolean) {
   try {
     const session = await requireBusinessSession();
 
+    const rateCheck = await checkActionRateLimit(session.id, "resetAllKhataData", 2, "10 m");
+    if (!rateCheck.success) return { error: "Too many requests. Please try again later." };
+
     const result = await db.transaction(async (tx) => {
       const customerRows = await tx.execute(
         sql`SELECT id, current_balance, business_id FROM customers WHERE business_id = ${session.id} FOR UPDATE`
@@ -118,19 +161,25 @@ export async function resetAllKhataData(consentAccepted: boolean) {
 
       for (const customer of customerRows) {
         const [countResult] = await tx.execute(
-          sql`SELECT COUNT(*)::int as cnt FROM invoices WHERE customer_id = ${customer.id} AND business_id = ${session.id} AND status = 'active'`
+          sql`SELECT COUNT(*)::int as cnt FROM invoices WHERE customer_id = ${customer.id} AND business_id = ${session.id} AND status = 'active' AND payment_mode = 'khata'`
+        ) as unknown as { cnt: number }[];
+
+        const [transactionResult] = await tx.execute(
+          sql`SELECT COUNT(*)::int as cnt FROM khata_transactions WHERE customer_id = ${customer.id} AND business_id = ${session.id} AND status = 'active'`
         ) as unknown as { cnt: number }[];
 
         const invoiceCount = Number(countResult?.cnt ?? 0);
+        const transactionCount = Number(transactionResult?.cnt ?? 0);
         const currentBalance = Number(customer.current_balance || 0);
-        if (invoiceCount === 0 && Math.abs(currentBalance) < 0.01) continue;
+        if (invoiceCount === 0 && transactionCount === 0 && Math.abs(currentBalance) < 0.01) continue;
 
         await tx.execute(
           sql`UPDATE invoices
               SET status = 'archived', updated_at = NOW()
               WHERE customer_id = ${customer.id}
                 AND business_id = ${session.id}
-                AND status = 'active'`
+                AND status = 'active'
+                AND payment_mode = 'khata'`
         );
 
         await tx.execute(
@@ -173,6 +222,7 @@ export async function resetAllKhataData(consentAccepted: boolean) {
       '/dashboard/invoices',
       '/dashboard/customers',
       '/dashboard/products',
+      '/dashboard/reports',
     ]);
     revalidateDashboardCache(session.id);
     return { success: true, ...result };

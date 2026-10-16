@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowUp,
   BarChart3,
-  Boxes,
   Check,
   CircleHelp,
   Clock3,
@@ -22,6 +21,14 @@ import {
   WandSparkles,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import {
+  ASSISTANT_MAX_HISTORY_MESSAGE_LENGTH,
+  ASSISTANT_MAX_MESSAGE_LENGTH,
+  boundAssistantHistory,
+  parseAssistantReadinessResponse,
+  parseAssistantResponse,
+  type AssistantReadinessData,
+} from "@/lib/ai/assistant-contract";
 
 type ChatMessage = {
   id: string;
@@ -29,9 +36,34 @@ type ChatMessage = {
   content: string;
 };
 
-type AssistantResponse =
-  | { data: { answer: string; generatedAt: string } }
-  | { error: { code: string; message: string } };
+type HistoryMessage = Pick<ChatMessage, "role" | "content">;
+
+type FailedRequest = {
+  message: string;
+  history: HistoryMessage[];
+};
+
+type ReadinessState =
+  | "unknown"
+  | "checking"
+  | "configured"
+  | "empty"
+  | "not_configured"
+  | "provider_auth_error"
+  | "unauthorized"
+  | "data_unavailable"
+  | "provider_unavailable"
+  | "responded";
+
+class AssistantRequestFailure extends Error {
+  public readonly code?: string;
+
+  constructor(message: string, code?: string) {
+    super(message);
+    this.code = code;
+    this.name = "AssistantRequestFailure";
+  }
+}
 
 const iconForSuggestion = [TrendingUp, Users, PackageSearch, ReceiptIndianRupee];
 
@@ -39,42 +71,58 @@ function makeId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function readinessStateFromData(data: AssistantReadinessData): ReadinessState {
+  if (data.provider === "not_configured") return "not_configured";
+  if (data.provider === "unknown") return "unknown";
+  if (data.data === "unavailable") return "data_unavailable";
+  if (data.data === "empty") return "empty";
+  if (data.provider === "configured" && data.data === "available") return "configured";
+  return "unknown";
+}
+
 function CopilotIllustration() {
+  const t = useTranslations("Assistant");
+  const flowLabels = [
+    t("illustrationQuestion"),
+    t("illustrationContext"),
+    t("illustrationAnswer"),
+  ];
+
   return (
-    <div className="relative min-h-[280px] overflow-hidden rounded-[2rem] border border-white/15 bg-[#10121c] p-5 text-white shadow-2xl shadow-indigo-950/20 sm:min-h-[330px]">
+    <div
+      role="img"
+      aria-label={t("illustrationAriaLabel")}
+      className="relative min-h-[280px] overflow-hidden rounded-[2rem] border border-white/15 bg-[#10121c] p-5 text-white shadow-2xl shadow-indigo-950/20 sm:min-h-[330px]"
+    >
       <div className="absolute inset-0 bg-grid-pattern opacity-20" />
       <div className="absolute -right-12 -top-14 h-48 w-48 rounded-full bg-indigo-500/35 blur-3xl" />
       <div className="absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-cyan-400/20 blur-3xl" />
       <motion.div
         animate={{ y: [0, -8, 0], rotate: [0, 1.5, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-8 top-10 w-[min(72%,235px)] rounded-2xl border border-white/15 bg-white/[0.09] p-4 shadow-2xl backdrop-blur-xl"
+        className="absolute left-8 top-10 w-[min(86%,330px)] rounded-2xl border border-white/15 bg-white/[0.09] p-4 shadow-2xl backdrop-blur-xl"
       >
         <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-400/20 text-indigo-200">
-              <ReceiptIndianRupee size={17} />
+              <MessageCircle size={17} />
             </div>
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">Business pulse</p>
-              <p className="mt-1 text-xs font-semibold text-white/90">One clear next move</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">{t("illustrationLabel")}</p>
+              <p className="mt-1 text-xs font-semibold text-white/90">{t("illustrationTitle")}</p>
             </div>
           </div>
           <Sparkles size={15} className="text-indigo-200" />
         </div>
-        <div className="mb-4 flex items-end gap-2">
-          <span className="text-3xl font-semibold tracking-tight">₹48.2k</span>
-          <span className="mb-1 rounded-full bg-emerald-400/15 px-2 py-1 text-[10px] font-semibold text-emerald-200">+18.4%</span>
-        </div>
-        <div className="flex h-14 items-end gap-1.5">
-          {[26, 36, 30, 46, 38, 54, 42, 62, 58, 72, 68, 82].map((height, index) => (
-            <motion.span
-              key={height + index}
-              initial={{ height: 0 }}
-              animate={{ height: `${height}%` }}
-              transition={{ delay: index * 0.04, duration: 0.6, ease: "easeOut" }}
-              className="flex-1 rounded-t-md bg-gradient-to-t from-indigo-400/35 to-indigo-200"
-            />
+        <div className="relative flex items-start justify-between gap-2">
+          <div className="absolute inset-x-8 top-4 h-px bg-white/15" />
+          {flowLabels.map((label) => (
+            <div key={label} className="relative flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border border-indigo-200/40 bg-indigo-300/15">
+                <span className="h-2 w-2 rounded-full bg-indigo-100" />
+              </span>
+              <span className="text-[10px] font-medium leading-4 text-white/65">{label}</span>
+            </div>
           ))}
         </div>
       </motion.div>
@@ -82,44 +130,43 @@ function CopilotIllustration() {
       <motion.div
         animate={{ y: [0, 7, 0], rotate: [0, -2, 0] }}
         transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
-        className="absolute bottom-8 right-6 w-44 rounded-2xl border border-white/15 bg-[#1a1d2a]/90 p-3 shadow-2xl backdrop-blur-xl"
+        className="absolute bottom-8 right-6 w-48 rounded-2xl border border-white/15 bg-[#1a1d2a]/90 p-3 shadow-2xl backdrop-blur-xl"
       >
-        <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-300/15 text-amber-200">
-            <Boxes size={15} />
+        <div className="flex items-start gap-2">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-cyan-300/15 text-cyan-200">
+            <ShieldCheck size={15} />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">Attention</p>
-            <p className="text-xs font-semibold text-white/85">3 items to restock</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">{t("illustrationBoundaryTitle")}</p>
+            <p className="mt-1 text-xs leading-5 text-white/70">{t("illustrationBoundaryText")}</p>
           </div>
         </div>
-        <div className="space-y-2">
-          {["USB-C Cable", "Screen Guard", "Power Adapter"].map((item, index) => (
-            <div key={item} className="flex items-center justify-between text-[10px] text-white/65">
-              <span className="truncate">{item}</span>
-              <span className="ml-2 rounded-full bg-white/10 px-1.5 py-0.5 text-white/80">{index + 2} left</span>
-            </div>
+        <div className="mt-4 grid grid-cols-6 gap-1.5 opacity-70" aria-hidden="true">
+          {Array.from({ length: 12 }, (_, index) => (
+            <span key={index} className="h-1.5 rounded-full bg-white/20" />
           ))}
         </div>
       </motion.div>
 
       <div className="absolute bottom-7 left-7 flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-2 text-[10px] font-medium text-white/65 backdrop-blur-md">
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
-        <span>Read-only business intelligence</span>
+        <span className="h-1.5 w-1.5 rounded-full bg-white/45" />
+        <span>{t("illustrationNoData")}</span>
       </div>
     </div>
   );
 }
 
 function MessageBubble({ message, onCopy }: { message: ChatMessage; onCopy: (content: string) => void }) {
+  const t = useTranslations("Assistant");
   const isUser = message.role === "user";
 
   return (
-    <motion.div
+    <motion.article
       initial={{ opacity: 0, y: 10, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.25 }}
       className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"}`}
+      aria-label={t(isUser ? "userMessageLabel" : "assistantMessageLabel")}
     >
       {!isUser && (
         <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-300">
@@ -141,27 +188,33 @@ function MessageBubble({ message, onCopy }: { message: ChatMessage; onCopy: (con
             type="button"
             onClick={() => onCopy(message.content)}
             className="mt-1 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-[var(--foreground)]/40 opacity-0 transition-opacity hover:text-[var(--foreground)] group-hover:opacity-100 focus-visible:opacity-100"
-            aria-label="Copy answer"
+            aria-label={t("copyAnswer")}
           >
-            <Copy size={11} /> Copy
+            <Copy size={11} /> {t("copy")}
           </button>
         )}
       </div>
-    </motion.div>
+    </motion.article>
   );
 }
 
 export default function AssistantPage() {
   const t = useTranslations("Assistant");
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    { id: "welcome", role: "assistant", content: t("welcomeMessage") },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [failedRequest, setFailedRequest] = useState<FailedRequest | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState(false);
+  const [readiness, setReadiness] = useState<ReadinessState>("unknown");
+  const [readinessCheckedAt, setReadinessCheckedAt] = useState<string | null>(null);
+  const [lastContextAt, setLastContextAt] = useState<string | null>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const requestControllerRef = useRef<AbortController | null>(null);
+  const conversationVersionRef = useRef(0);
+  const mountedRef = useRef(true);
 
   const suggestions = useMemo(
     () => [
@@ -176,58 +229,252 @@ export default function AssistantPage() {
   useEffect(() => {
     const transcript = transcriptRef.current;
     if (!transcript) return;
-    transcript.scrollTo({ top: transcript.scrollHeight, behavior: "smooth" });
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    transcript.scrollTo({ top: transcript.scrollHeight, behavior: reduceMotion ? "auto" : "smooth" });
   }, [messages, status]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+    setReadiness("checking");
+
+    void fetch("/api/ai/assistant", {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        let payload: unknown = null;
+        try {
+          payload = await response.json();
+        } catch {
+          throw new Error("Invalid readiness response");
+        }
+
+        const data = parseAssistantReadinessResponse(payload);
+        if (!response.ok) {
+          if (response.status === 401 && !cancelled) {
+            setReadiness("unauthorized");
+            setReadinessCheckedAt(null);
+            return;
+          }
+          throw new Error("Readiness unavailable");
+        }
+        if (!data) throw new Error("Readiness unavailable");
+        if (!cancelled) {
+          setReadiness(readinessStateFromData(data));
+          setReadinessCheckedAt(data.checkedAt);
+        }
+      })
+      .catch((readinessError) => {
+        if (!cancelled && !(readinessError instanceof DOMException && readinessError.name === "AbortError")) {
+          setReadiness("unknown");
+          setReadinessCheckedAt(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      requestControllerRef.current?.abort();
+    };
+  }, []);
+
   const handleCopy = async (content: string) => {
+    setCopyError(false);
     try {
       await navigator.clipboard.writeText(content);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
       setCopied(false);
+      setCopyError(true);
+      window.setTimeout(() => setCopyError(false), 2_500);
     }
   };
 
-  const sendMessage = async (rawMessage: string) => {
-    const message = rawMessage.trim();
+  const readinessLabel = {
+    unknown: t("readinessUnknown"),
+    checking: t("readinessChecking"),
+    configured: t("readinessConfigured"),
+    empty: t("readinessEmpty"),
+    not_configured: t("readinessNotConfigured"),
+    provider_auth_error: t("readinessProviderAuth"),
+    unauthorized: t("readinessUnauthorized"),
+    data_unavailable: t("readinessDataUnavailable"),
+    provider_unavailable: t("readinessProviderUnavailable"),
+    responded: t("readinessResponded"),
+  }[readiness];
+
+  const readinessTone = {
+    unknown: "bg-amber-500/70",
+    checking: "bg-amber-500 animate-pulse",
+    configured: "bg-indigo-500",
+    empty: "bg-sky-500",
+    not_configured: "bg-rose-500",
+    provider_auth_error: "bg-rose-500",
+    unauthorized: "bg-amber-500",
+    data_unavailable: "bg-rose-500",
+    provider_unavailable: "bg-rose-500",
+    responded: "bg-emerald-500",
+  }[readiness];
+
+  const getErrorMessage = (code: string | undefined, fallback: string) => {
+    switch (code) {
+      case "AI_NOT_CONFIGURED":
+        return t("errorNotConfigured");
+      case "AI_DATA_UNAVAILABLE":
+        return t("errorDataUnavailable");
+      case "AI_RATE_LIMITED":
+        return t("errorRateLimited");
+      case "AI_TIMEOUT":
+        return t("errorTimeout");
+      case "AI_UPSTREAM_ERROR":
+        return t("errorProviderUnavailable");
+      case "AI_NETWORK_ERROR":
+        return t("errorNetwork");
+      case "AI_PROVIDER_AUTH":
+        return t("errorProviderAuth");
+      case "AI_PROVIDER_RATE_LIMITED":
+        return t("errorProviderRateLimited");
+      case "AI_INVALID_RESPONSE":
+        return t("errorInvalidResponse");
+      case "UNAUTHORIZED":
+        return t("errorUnauthorized");
+      case "VALIDATION_ERROR":
+        return t("errorValidation");
+      case "PAYLOAD_TOO_LARGE":
+        return t("errorPayloadTooLarge");
+      case "INTERNAL_ERROR":
+        return t("errorInternal");
+      default:
+        return fallback.trim() || t("genericError");
+    }
+  };
+
+  const updateReadinessFromError = (code?: string) => {
+    if (code === "UNAUTHORIZED") {
+      setReadiness("unauthorized");
+    } else if (code === "AI_NOT_CONFIGURED") {
+      setReadiness("not_configured");
+    } else if (code === "AI_PROVIDER_AUTH") {
+      setReadiness("provider_auth_error");
+    } else if (code === "AI_DATA_UNAVAILABLE") {
+      setReadiness("data_unavailable");
+    } else if (
+      code === "AI_UPSTREAM_ERROR" ||
+      code === "AI_PROVIDER_RATE_LIMITED" ||
+      code === "AI_NETWORK_ERROR" ||
+      code === "AI_TIMEOUT" ||
+      code === "AI_INVALID_RESPONSE"
+    ) {
+      setReadiness("provider_unavailable");
+    }
+  };
+
+  const sendMessage = async (
+    rawMessage: string,
+    options: { retry?: boolean; history?: HistoryMessage[] } = {},
+  ) => {
+    const message = rawMessage.trim().slice(0, ASSISTANT_MAX_MESSAGE_LENGTH);
     if (!message || status === "sending") return;
 
-    const history = messages.slice(-8).map(({ role, content }) => ({ role, content }));
-    const userMessage: ChatMessage = { id: makeId("user"), role: "user", content: message };
+    const history = boundAssistantHistory(
+      options.history ?? messages.map(({ role, content }) => ({ role, content })),
+    ).map(({ role, content }) => ({
+      role,
+      content: content.slice(0, ASSISTANT_MAX_HISTORY_MESSAGE_LENGTH),
+    }));
 
-    setMessages((current) => [...current, userMessage]);
+    if (!options.retry) {
+      const userMessage: ChatMessage = { id: makeId("user"), role: "user", content: message };
+      setMessages((current) => [...current, userMessage]);
+      setFailedRequest(null);
+    }
     setInput("");
     setStatus("sending");
     setError(null);
+
+    const controller = new AbortController();
+    const conversationVersion = conversationVersionRef.current;
+    requestControllerRef.current = controller;
+    const timeout = window.setTimeout(() => controller.abort(), 30_000);
 
     try {
       const response = await fetch("/api/ai/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, history }),
+        signal: controller.signal,
+        cache: "no-store",
       });
 
-      let payload: AssistantResponse | null;
+      let payload: unknown;
       try {
-        payload = (await response.json()) as AssistantResponse | null;
+        payload = await response.json();
       } catch {
-        throw new Error(t("genericError"));
+        throw new AssistantRequestFailure(t("errorInvalidResponse"), "AI_INVALID_RESPONSE");
       }
-      if (!response.ok || !payload || typeof payload !== "object" || !("data" in payload)) {
-        const apiError = payload && "error" in payload ? payload.error.message : t("genericError");
-        throw new Error(apiError);
+
+      const parsedPayload = parseAssistantResponse(payload);
+      if (!response.ok || parsedPayload.kind !== "success") {
+        if (parsedPayload.kind === "error") {
+          throw new AssistantRequestFailure(
+            getErrorMessage(parsedPayload.error.code, parsedPayload.error.message),
+            parsedPayload.error.code,
+          );
+        }
+        throw new AssistantRequestFailure(t("errorInvalidResponse"), "AI_INVALID_RESPONSE");
       }
+
+      if (!mountedRef.current || conversationVersion !== conversationVersionRef.current) return;
 
       setMessages((current) => [
         ...current,
-        { id: makeId("assistant"), role: "assistant", content: payload.data.answer },
+        { id: makeId("assistant"), role: "assistant", content: parsedPayload.data.answer },
       ]);
+      setLastContextAt(parsedPayload.data.generatedAt);
+      setReadinessCheckedAt(parsedPayload.data.generatedAt);
+      setReadiness(parsedPayload.data.scope?.context === "empty" ? "empty" : "responded");
+      setFailedRequest(null);
       setStatus("idle");
     } catch (requestError) {
+      if (!mountedRef.current || conversationVersion !== conversationVersionRef.current) return;
+      let failure: AssistantRequestFailure;
+      if (requestError instanceof AssistantRequestFailure) {
+        failure = requestError;
+      } else if (requestError instanceof DOMException && requestError.name === "AbortError") {
+        failure = new AssistantRequestFailure(t("errorTimeout"), "AI_TIMEOUT");
+      } else if (requestError instanceof TypeError) {
+        failure = new AssistantRequestFailure(t("errorNetwork"), "AI_NETWORK_ERROR");
+      } else {
+        failure = new AssistantRequestFailure(t("genericError"));
+      }
       setStatus("error");
-      setError(requestError instanceof Error ? requestError.message : t("genericError"));
+      setFailedRequest({ message, history });
+      setError(failure.message);
+      updateReadinessFromError(failure.code);
+    } finally {
+      window.clearTimeout(timeout);
+      if (requestControllerRef.current === controller) {
+        requestControllerRef.current = null;
+      }
     }
+  };
+
+  const retryFailedQuestion = () => {
+    if (!failedRequest || status === "sending") return;
+    void sendMessage(failedRequest.message, {
+      retry: true,
+      history: failedRequest.history,
+    });
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -236,17 +483,22 @@ export default function AssistantPage() {
   };
 
   const handleInputKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey) {
+    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
       event.preventDefault();
       void sendMessage(input);
     }
   };
 
   const resetConversation = () => {
-    setMessages([{ id: "welcome", role: "assistant", content: t("welcomeMessage") }]);
+    conversationVersionRef.current += 1;
+    requestControllerRef.current?.abort();
+    requestControllerRef.current = null;
+    setMessages([]);
     setInput("");
     setError(null);
+    setFailedRequest(null);
     setStatus("idle");
+    setLastContextAt(null);
     requestAnimationFrame(() => inputRef.current?.focus());
   };
 
@@ -296,11 +548,17 @@ export default function AssistantPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-semibold text-[var(--foreground)]">{t("chatTitle")}</h2>
-                  <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" /> {t("online")}
+                  <span
+                    className="flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-elevated)] px-2 py-1 text-[10px] font-semibold text-[var(--foreground)]/55"
+                    aria-live="polite"
+                    title={readinessCheckedAt ?? undefined}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${readinessTone}`} /> {readinessLabel}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-[var(--foreground)]/50">{t("chatSubtitle")}</p>
+                <p className="mt-1 text-xs text-[var(--foreground)]/50">
+                  {t("chatSubtitle")} {lastContextAt ? t("lastAnswerFreshness") : ""}
+                </p>
               </div>
             </div>
             <button
@@ -312,7 +570,24 @@ export default function AssistantPage() {
             </button>
           </div>
 
-          <div ref={transcriptRef} className="h-[420px] space-y-5 overflow-y-auto px-4 py-5 sm:h-[470px] sm:px-6">
+          <div
+            ref={transcriptRef}
+            className="h-[420px] space-y-5 overflow-y-auto px-4 py-5 sm:h-[470px] sm:px-6"
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions text"
+            aria-label={t("transcriptLabel")}
+            aria-busy={status === "sending"}
+          >
+            {messages.length === 0 && status !== "sending" && (
+              <div className="flex h-full flex-col items-center justify-center px-6 text-center" role="status">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-300">
+                  <MessageCircle size={20} />
+                </div>
+                <p className="mt-4 text-sm font-semibold text-[var(--foreground)]">{t("emptyStateTitle")}</p>
+                <p className="mt-2 max-w-sm text-xs leading-5 text-[var(--foreground)]/55">{t("emptyStateText")}</p>
+              </div>
+            )}
             {messages.map((message) => (
               <MessageBubble key={message.id} message={message} onCopy={handleCopy} />
             ))}
@@ -323,7 +598,7 @@ export default function AssistantPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   className="flex items-center gap-3"
-                  aria-live="polite"
+                  role="status"
                 >
                   <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-300">
                     <WandSparkles size={16} />
@@ -348,27 +623,53 @@ export default function AssistantPage() {
             {error && (
               <div className="mb-3 flex items-start gap-2 rounded-xl border border-rose-500/20 bg-rose-500/[0.07] px-3 py-2.5 text-xs text-rose-700 dark:text-rose-300" role="alert">
                 <CircleHelp size={15} className="mt-0.5 shrink-0" />
-                <span>{error}</span>
-                <button type="button" onClick={() => setError(null)} className="ml-auto font-semibold underline underline-offset-2">
-                  {t("dismiss")}
-                </button>
+                <div className="min-w-0 flex-1">
+                  <p>{error}</p>
+                  {messages.some((message) => message.role === "assistant") && (
+                    <p className="mt-1 text-[10px] opacity-80">{t("staleAnswerNotice")}</p>
+                  )}
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  {failedRequest && (
+                    <button
+                      type="button"
+                      onClick={retryFailedQuestion}
+                      disabled={status === "sending"}
+                      className="inline-flex items-center gap-1 font-semibold underline underline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <RotateCcw size={12} /> {t("retry")}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      setFailedRequest(null);
+                    }}
+                    className="font-semibold underline underline-offset-2"
+                  >
+                    {t("dismiss")}
+                  </button>
+                </div>
               </div>
             )}
-            <form onSubmit={handleSubmit} className="relative">
+            <form onSubmit={handleSubmit} className="relative" aria-label={t("chatFormLabel")}>
               <textarea
                 ref={inputRef}
                 value={input}
-                onChange={(event) => setInput(event.target.value.slice(0, 1200))}
+                onChange={(event) => setInput(event.target.value.slice(0, ASSISTANT_MAX_MESSAGE_LENGTH))}
                 onKeyDown={handleInputKeyDown}
                 disabled={status === "sending"}
                 rows={2}
-                maxLength={1200}
+                maxLength={ASSISTANT_MAX_MESSAGE_LENGTH}
                 placeholder={t("inputPlaceholder")}
                 aria-label={t("inputLabel")}
+                aria-describedby="assistant-input-help assistant-input-count"
+                aria-keyshortcuts="Enter"
                 className="glass-input min-h-[88px] w-full resize-none pr-14 text-sm leading-6"
               />
-              <div className="absolute bottom-3 left-3 text-[10px] text-[var(--foreground)]/35">
-                {input.length}/1200 · {t("enterToSend")}
+              <div id="assistant-input-count" className="absolute bottom-3 left-3 text-[10px] text-[var(--foreground)]/35" aria-live="polite">
+                {input.length}/{ASSISTANT_MAX_MESSAGE_LENGTH}
               </div>
               <button
                 type="submit"
@@ -379,9 +680,10 @@ export default function AssistantPage() {
                 <ArrowUp size={17} />
               </button>
             </form>
+            <p id="assistant-input-help" className="mt-2 text-[10px] text-[var(--foreground)]/40">{t("enterToSend")}</p>
             <div className="mt-3 flex items-center justify-between gap-3 text-[10px] text-[var(--foreground)]/40">
               <span className="flex items-center gap-1.5"><ShieldCheck size={12} /> {t("readOnlyLabel")}</span>
-              <span>{copied ? <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-300"><Check size={12} /> {t("copied")}</span> : t("privacyLabel")}</span>
+              <span aria-live="polite">{copied ? <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-300"><Check size={12} /> {t("copied")}</span> : copyError ? <span className="text-[var(--color-danger)]">{t("copyFailed")}</span> : t("privacyLabel")}</span>
             </div>
           </div>
         </div>

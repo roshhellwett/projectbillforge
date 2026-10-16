@@ -38,42 +38,44 @@ export function CustomerCard({ customer, syncingId, onEdit, onDelete, onSyncBala
                 href={`tel:${customer.phone}`}
                 className="text-xs font-mono font-semibold text-[var(--foreground)]/60 hover:text-[var(--color-primary)] flex items-center gap-1.5 mt-1 transition-colors w-fit"
               >
-                <Phone size={13} className="text-[var(--color-primary)]" /> {customer.phone}
+                <Phone size={13} className="text-[var(--color-primary)]" aria-hidden="true" /> {customer.phone}
               </a>
             ) : (
-              <p className="text-xs text-[var(--foreground)]/30 mt-1 italic">No phone recorded</p>
+              <p className="text-xs text-[var(--foreground)]/30 mt-1 italic">{t("noPhone")}</p>
             )}
             {customer.email && (
               <a
                 href={`mailto:${customer.email}`}
                 className="text-xs text-[var(--foreground)]/60 hover:text-[var(--color-primary)] flex items-center gap-1.5 mt-0.5 transition-colors truncate"
               >
-                <Mail size={13} className="text-[var(--foreground)]" /> {customer.email}
+                <Mail size={13} className="text-[var(--foreground)]" aria-hidden="true" /> {customer.email}
               </a>
             )}
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
             <button
+              type="button"
               onClick={() => onEdit(customer)}
-              className="p-2 text-[var(--foreground)]/60 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-xl transition-all shadow-sm active:scale-95"
+              className="min-h-[44px] min-w-[44px] p-2 text-[var(--foreground)]/60 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-xl transition-all shadow-sm active:scale-95 flex items-center justify-center"
               aria-label={t("editCustomerBtn")}
               title={t("editCustomerBtn")}
             >
-              <Edit2 size={15} />
+              <Edit2 size={15} aria-hidden="true" />
             </button>
             <button
+              type="button"
               onClick={() => onDelete(customer.id)}
-              className={`p-2 rounded-xl transition-all shadow-sm active:scale-95 ${
+              className={`min-h-[44px] min-w-[44px] p-2 rounded-xl transition-all shadow-sm active:scale-95 flex items-center justify-center ${
                 hasBalance
-                  ? "text-[var(--foreground)]/20 cursor-not-allowed"
-                  : "text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-zinc-200 dark:hover:bg-zinc-800"
+                   ? "text-[var(--foreground)]/20 cursor-not-allowed"
+                   : "text-[var(--foreground)]/60 hover:text-[var(--foreground)] hover:bg-zinc-200 dark:hover:bg-zinc-800"
               }`}
-              aria-label={t("deleteCustomerBtn")}
+              aria-label={hasBalance ? t("deleteBlocked") : t("deleteCustomerBtn")}
               disabled={hasBalance}
               title={hasBalance ? t("deleteBlocked") : t("deleteCustomerBtn")}
             >
-              <Trash2 size={15} />
+              <Trash2 size={15} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -83,16 +85,16 @@ export function CustomerCard({ customer, syncingId, onEdit, onDelete, onSyncBala
           <div className="flex items-center gap-2 mb-4 pt-2 border-t border-[var(--border)]/40">
             <a
               href={`tel:${customer.phone}`}
-              className="flex-1 py-2 px-3 rounded-xl bg-[var(--surface-elevated)] hover:bg-[var(--color-primary)]/10 border border-[var(--border)] text-xs font-bold text-[var(--foreground)] flex items-center justify-center gap-1.5 transition-colors"
+              className="flex-1 min-h-[44px] py-2 px-3 rounded-xl bg-[var(--surface-elevated)] hover:bg-[var(--color-primary)]/10 border border-[var(--border)] text-xs font-bold text-[var(--foreground)] flex items-center justify-center gap-1.5 transition-colors"
             >
-              <Phone size={13} className="text-[var(--color-primary)]" /> Call
+              <Phone size={13} className="text-[var(--color-primary)]" aria-hidden="true" /> {t("call")}
             </a>
             <button
               type="button"
               onClick={handleWhatsApp}
-              className="flex-1 py-2 px-3 rounded-xl bg-[var(--surface-elevated)] hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-[var(--border)] text-xs font-bold text-[var(--foreground)] flex items-center justify-center gap-1.5 transition-colors"
+              className="flex-1 min-h-[44px] py-2 px-3 rounded-xl bg-[var(--surface-elevated)] hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-[var(--border)] text-xs font-bold text-[var(--foreground)] flex items-center justify-center gap-1.5 transition-colors"
             >
-              <MessageCircle size={13} className="text-[var(--foreground)]" /> WhatsApp
+              <MessageCircle size={13} className="text-[var(--foreground)]" aria-hidden="true" /> {t("whatsapp")}
             </button>
           </div>
         )}
@@ -102,7 +104,7 @@ export function CustomerCard({ customer, syncingId, onEdit, onDelete, onSyncBala
       <div className="pt-4 border-t border-[var(--border)] space-y-2">
         <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-[var(--foreground)]/60">
           <span className="flex items-center gap-1">
-            <Wallet size={13} /> {t("totalOwed")}
+             <Wallet size={13} aria-hidden="true" /> {t("totalOwed")}
           </span>
           <div className="flex items-center gap-1.5">
             <span
@@ -117,12 +119,14 @@ export function CustomerCard({ customer, syncingId, onEdit, onDelete, onSyncBala
               {bal < 0 ? "-" : ""}₹{fmt(customer.currentBalance)}
             </span>
             <button
+              type="button"
               onClick={() => onSyncBalance(customer.id)}
               disabled={syncingId === customer.id}
-              className="p-1 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] disabled:opacity-50 transition-colors"
+              className="min-h-[40px] min-w-[40px] p-1 text-[var(--foreground)]/40 hover:text-[var(--color-primary)] disabled:opacity-50 transition-colors flex items-center justify-center rounded-lg"
+              aria-label={t("syncBalance")}
               title={t("syncBalance")}
             >
-              <RefreshCw size={14} className={syncingId === customer.id ? "animate-spin text-[var(--color-primary)]" : ""} />
+              <RefreshCw size={14} aria-hidden="true" className={syncingId === customer.id ? "animate-spin text-[var(--color-primary)]" : ""} />
             </button>
           </div>
         </div>

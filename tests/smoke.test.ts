@@ -72,6 +72,16 @@ test("Smoke: Zod customerSchema and productSchema validate constraints", () => {
   });
   assert.ok(validProduct.success, "Valid product should pass Zod validation");
 
+  const restockThresholdCanExceedCurrentStock = productSchema.safeParse({
+    name: "Restock signal product",
+    unit: "piece",
+    rate: 100,
+    gstRate: 0,
+    stockQuantity: 0,
+    lowStockThreshold: 10,
+  });
+  assert.ok(restockThresholdCanExceedCurrentStock.success, "Low-stock thresholds may intentionally exceed current stock");
+
   const invalidRateProduct = productSchema.safeParse({
     name: "Free Item",
     rate: -10,
@@ -107,6 +117,35 @@ test("Smoke: Zod invoiceSchema validates line items and GST values", () => {
     items: [],
   });
   assert.equal(emptyItemsInvoice.success, false, "Invoices without items should be rejected");
+
+  const invalidCalendarDate = invoiceSchema.safeParse({
+    customerName: "Suresh Traders",
+    invoiceDate: "2026-02-31",
+    items: [{
+      productId: "prod-1", productName: "Wheat Flour", quantity: 1, rate: 400,
+      gstRate: 5, amount: 400, cgst: 10, sgst: 10, igst: 0,
+    }],
+  });
+  assert.equal(invalidCalendarDate.success, false, "Invalid calendar dates should be rejected");
+});
+
+test("Smoke: Khata writes accept bounded idempotency keys", () => {
+  const valid = khataTransactionSchema.safeParse({
+    customerId: "customer-1",
+    type: "debit",
+    amount: 250,
+    paymentMethod: "upi",
+    idempotencyKey: "a-stable-write-key",
+  });
+  assert.ok(valid.success, "A stable Khata write key should be accepted");
+
+  const invalid = khataTransactionSchema.safeParse({
+    customerId: "customer-1",
+    type: "debit",
+    amount: 250,
+    idempotencyKey: "short",
+  });
+  assert.equal(invalid.success, false, "Too-short Khata write keys should be rejected");
 });
 
 test("Smoke: Formatters format currency and dates accurately", () => {
@@ -134,7 +173,7 @@ test("Smoke: All localization files (en, hi, hi-en) exist and parse cleanly with
       json = JSON.parse(raw);
     }, `Syntax error parsing ${file}`);
 
-    const requiredSections = ["Landing", "Auth", "Dashboard", "Invoices", "Khata", "Products", "Customers", "Settings", "Assistant"];
+    const requiredSections = ["Landing", "Auth", "Dashboard", "Invoices", "Khata", "Products", "Customers", "Settings", "Reports", "Help", "Assistant"];
     for (const section of requiredSections) {
       assert.ok(section in json!, `Missing root translation section '${section}' in ${file}`);
     }

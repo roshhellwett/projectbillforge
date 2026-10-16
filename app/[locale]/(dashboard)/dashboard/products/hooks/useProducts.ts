@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getProducts, createProduct, updateProduct, deleteProduct } from "@/lib/actions/products";
 import { getBusinessProfile } from "@/lib/actions/business";
 import { useToast } from "@/components/ui/Toast";
@@ -29,12 +30,17 @@ export function getDefaultUnits(industry: IndustryType) {
   }
 }
 
-export function useProducts(initialData?: { products?: Product[]; totalProducts?: number; industryType?: IndustryType }) {
+export function useProducts(initialData?: { products?: Product[]; totalProducts?: number; totalLowStock?: number; industryType?: IndustryType }, initialError?: string) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations("Products");
   const { addToast } = useToast();
   const [products, setProducts] = useState<Product[]>(initialData?.products ?? []);
   const [loading, setLoading] = useState(!initialData);
+  const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(initialError ?? null);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -45,35 +51,76 @@ export function useProducts(initialData?: { products?: Product[]; totalProducts?
   });
   const [metadata, setMetadata] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [offset, setOffset] = useState(initialData?.products?.length ?? 0);
   const [totalProducts, setTotalProducts] = useState(initialData?.totalProducts ?? 0);
+  const [totalLowStock, setTotalLowStock] = useState(initialData?.totalLowStock ?? 0);
+  const initialLoadRef = useRef(!initialData);
+  const initialFetchRef = useRef(false);
+  const searchEffectReadyRef = useRef(false);
+  const requestVersionRef = useRef(0);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
+  const loadData = useCallback(async (query = search.trim()) => {
+    const requestVersion = ++requestVersionRef.current;
+    const isInitialLoad = initialLoadRef.current;
+    if (isInitialLoad) setLoading(true);
+    else setRefreshing(true);
+    setLoadError(null);
+    setLoadMoreError(null);
     try {
       const [productsResult, businessResult] = await Promise.all([
-        getProducts(PAGE_SIZE, 0), getBusinessProfile(),
+        getProducts(PAGE_SIZE, 0, query), getBusinessProfile(),
       ]);
+      if (requestVersion !== requestVersionRef.current) return;
       if (productsResult.success) {
         setProducts(productsResult.products);
         setTotalProducts(productsResult.total ?? 0);
+        setTotalLowStock(productsResult.totalLowStock ?? 0);
         setOffset(productsResult.products.length);
       } else if (productsResult.error) {
-        addToast(productsResult.error, "error");
+        const message = t("loadErrorMessage");
+        setLoadError(message);
+        addToast(message, "error");
       }
       if (businessResult.success && businessResult.business) {
         setIndustryType((businessResult.business.industryType as IndustryType) || "custom");
       }
     } catch {
-      addToast("Could not load products. Please try again.", "error");
+      if (requestVersion !== requestVersionRef.current) return;
+      const message = t("loadErrorMessage");
+      setLoadError(message);
+      addToast(message, "error");
     } finally {
-      setLoading(false);
+      if (requestVersion === requestVersionRef.current) {
+        initialLoadRef.current = false;
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
-  }, [addToast]);
+  }, [addToast, search, t]);
 
-  useEffect(() => { if (!initialData) loadData(); }, []);
+  useEffect(() => {
+    if (initialFetchRef.current) return;
+    initialFetchRef.current = true;
+    if (!initialData) void loadData("");
+  }, [initialData, loadData]);
+
+  useEffect(() => {
+    if (!searchEffectReadyRef.current) {
+      searchEffectReadyRef.current = true;
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      void loadData(search.trim());
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [loadData, search]);
 
   useEffect(() => {
     if (searchParams.get("new") === "true") {
@@ -85,10 +132,25 @@ export function useProducts(initialData?: { products?: Product[]; totalProducts?
   }, [searchParams, router]);
 
   const loadMoreProducts = async () => {
-    const result = await getProducts(PAGE_SIZE, offset);
-    if (result.success && result.products) {
-      setProducts(prev => [...prev, ...result.products]);
-      setOffset(prev => prev + result.products.length);
+    if (loadingMore || offset >= totalProducts) return;
+    setLoadingMore(true);
+    setLoadMoreError(null);
+    try {
+      const result = await getProducts(PAGE_SIZE, offset, search.trim());
+      if (result.success && result.products) {
+        setProducts(prev => [...prev, ...result.products]);
+        setOffset(prev => prev + result.products.length);
+        if (typeof result.total === "number") setTotalProducts(result.total);
+        if (result.products.length === 0) setTotalProducts(offset);
+      } else if (result.error === "Unauthorized") {
+        router.push("/login");
+      } else {
+        setLoadMoreError(t("loadMoreError"));
+      }
+    } catch {
+      setLoadMoreError(t("loadMoreError"));
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -102,12 +164,16 @@ export function useProducts(initialData?: { products?: Product[]; totalProducts?
   };
 
   const openModal = () => {
+    setFormError(null);
+    setSuccessMessage(null);
     resetForm();
     setEditingProduct(null);
     setShowModal(true);
   };
 
   const handleEdit = (product: Product) => {
+    setFormError(null);
+    setSuccessMessage(null);
     setEditingProduct(product);
     setFormData({
       name: product.name, sku: product.sku || "", hsnCode: product.hsnCode || "",
@@ -126,20 +192,38 @@ export function useProducts(initialData?: { products?: Product[]; totalProducts?
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+    setSuccessMessage(null);
+    const name = formData.name.trim();
+    const sku = formData.sku.trim();
+    const hsnCode = formData.hsnCode.trim();
     const stockQty = formData.stockQuantity ? Number(formData.stockQuantity) : 0;
     const threshold = formData.lowStockThreshold ? Number(formData.lowStockThreshold) : 0;
-    if (threshold >= stockQty && stockQty > 0) {
-      addToast("Low stock threshold cannot be greater than or equal to stock.", "error");
+    const parsedRate = Number(formData.rate);
+
+    if (!name) {
+      setFormError(t("validationName"));
       return;
     }
-    const parsedRate = Number(formData.rate);
-    if (!formData.rate || isNaN(parsedRate) || parsedRate <= 0) {
-      addToast("Rate must be greater than 0.", "error");
+    if (!formData.rate || !Number.isFinite(parsedRate) || parsedRate <= 0) {
+      setFormError(t("validationRate"));
+      return;
+    }
+    if (!Number.isFinite(stockQty) || stockQty < 0 || !Number.isFinite(threshold) || threshold < 0) {
+      setFormError(t("validationStock"));
+      return;
+    }
+    if (industryType === "pharmacy" && !editingProduct && (!metadata.batchNumber?.trim() || !metadata.expiryDate)) {
+      setFormError(t("validationPharmacyMetadata"));
+      return;
+    }
+    if (industryType === "mobile" && metadata.imei?.trim() && !/^\d{15}$/.test(metadata.imei.trim())) {
+      setFormError(t("validationImei"));
       return;
     }
     setSaving(true);
     const data = {
-      name: formData.name, sku: formData.sku || undefined, hsnCode: formData.hsnCode || undefined,
+      name, sku: sku || undefined, hsnCode: hsnCode || undefined,
       unit: formData.unit, rate: parsedRate, gstRate: formData.gstRate ? Number(formData.gstRate) : 0,
       stockQuantity: stockQty, lowStockThreshold: threshold,
       metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
@@ -148,17 +232,23 @@ export function useProducts(initialData?: { products?: Product[]; totalProducts?
       const result = editingProduct
         ? await updateProduct(editingProduct.id, data)
         : await createProduct(data);
-      if (result.error) {
-        addToast(result.error, "error");
+      if (!result.success) {
+        const message = result.error ?? t("saveError");
+        setFormError(message);
+        addToast(message, "error");
       } else {
-        addToast(editingProduct ? "Product updated" : "Product created", "success");
+        const message = editingProduct ? t("successUpdated") : t("successCreated");
+        addToast(message, "success");
+        setSuccessMessage(message);
         setShowModal(false);
         setEditingProduct(null);
-        void loadData();
+        await loadData();
         router.refresh();
       }
     } catch {
-      addToast("Could not save the product. Please try again.", "error");
+      const message = t("saveError");
+      setFormError(message);
+      addToast(message, "error");
     } finally {
       setSaving(false);
     }
@@ -166,34 +256,46 @@ export function useProducts(initialData?: { products?: Product[]; totalProducts?
 
   const handleDelete = async () => {
     if (!deleteId) return;
+    setDeleteError(null);
     setDeleting(true);
+    let completed = false;
     try {
       const result = await deleteProduct(deleteId);
       if (result.success) {
-        addToast("Product deleted", "success");
-        void loadData();
+        completed = true;
+        setDeleteError(null);
+        const message = t("successDeleted");
+        addToast(message, "success");
+        setSuccessMessage(message);
+        await loadData();
         router.refresh();
-      } else if (result.error) {
-        addToast(result.error, "error");
+      } else {
+        const message = result.error ?? t("deleteError");
+        setDeleteError(message);
+        addToast(message, "error");
       }
     } catch {
-      addToast("Could not delete the product. Please try again.", "error");
+      const message = t("deleteError");
+      setDeleteError(message);
+      addToast(message, "error");
     } finally {
       setDeleting(false);
-      setDeleteId(null);
+      if (completed) setDeleteId(null);
     }
   };
 
-  const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.sku?.toLowerCase().includes(search.toLowerCase())
-  );
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredProducts = products.filter(p => {
+    if (!normalizedSearch) return true;
+    return [p.name, p.sku ?? "", p.hsnCode ?? "", p.unit ?? ""]
+      .some(value => value.toLowerCase().includes(normalizedSearch));
+  });
 
   return {
-    products, filteredProducts, loading, search, showModal, editingProduct,
-    industryType, formData, metadata, saving, deleteId, deleting,
-    offset, totalProducts,
-    setSearch, setShowModal, setFormData, setMetadata, setDeleteId,
-    openModal, handleEdit, handleSubmit, handleDelete, loadMoreProducts,
+    products, filteredProducts, totalLowStock, loading, refreshing, search, showModal, editingProduct,
+    industryType, formData, metadata, saving, formError, deleteId, deleting, deleteError,
+    offset, totalProducts, loadError, loadMoreError, loadingMore, successMessage,
+    setSearch, setShowModal, setFormData, setFormError, setMetadata, setDeleteId, setDeleteError,
+    openModal, handleEdit, handleSubmit, handleDelete, loadMoreProducts, loadData,
   };
 }

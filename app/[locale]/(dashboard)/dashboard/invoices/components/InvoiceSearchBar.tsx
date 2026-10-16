@@ -57,6 +57,7 @@ export function InvoiceSearchBar({
             <option value="open">{t("filterOpen")}</option>
             <option value="paid">{t("filterPaid")}</option>
             <option value="cancelled">{t("filterCancelled")}</option>
+            <option value="archived">{t("filterArchived")}</option>
           </select>
           <span className="text-xs font-semibold text-[var(--foreground)]/60 px-1 sm:px-3 whitespace-nowrap" aria-live="polite">
             {t("resultCount", { count: resultCount })}

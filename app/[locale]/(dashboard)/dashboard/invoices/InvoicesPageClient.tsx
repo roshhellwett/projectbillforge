@@ -28,9 +28,9 @@ export default function InvoicesPageClient({ initialData }: {
     showSettingsPrompt, settingsPromptMessage, offset, totalInvoices,
     statusFilter, loadError, loadMoreError, loadingMore, createError,
     cancelError, refreshing, successMessage,
-    setSearch, setShowNewInvoice, setPrintFormat, setCancelId, setStatusFilter,
+    setSearch, setPrintFormat, setCancelId, setStatusFilter,
     setViewInvoice, setShowSettingsPrompt, setCancelError,
-    openNewInvoice, loadData, loadMoreInvoices, handleCreateSubmit, handleCancelInvoice,
+    openNewInvoice, closeNewInvoice, searchInvoiceCustomers, searchInvoiceProducts, loadData, loadMoreInvoices, handleCreateSubmit, handleCancelInvoice,
   } = useInvoices(initialData);
 
   const handleWhatsAppShare = (invoice: Invoice, customerPhone: string | null) => {
@@ -109,10 +109,12 @@ export default function InvoicesPageClient({ initialData }: {
 
       {showNewInvoice && (
         <NewInvoiceModal
-          onClose={() => setShowNewInvoice(false)}
+           onClose={closeNewInvoice}
           onSubmit={handleCreateSubmit}
-          customers={customers}
-          products={products}
+           customers={customers}
+           products={products}
+           onCustomerSearch={searchInvoiceCustomers}
+           onProductSearch={searchInvoiceProducts}
           saving={saving}
           error={createError || ""}
         />
@@ -125,6 +127,7 @@ export default function InvoicesPageClient({ initialData }: {
         onConfirm={handleCancelInvoice}
         onCancel={() => { setCancelId(null); setCancelError(null); }}
         loading={cancelling}
+        loadingLabel={t("processing")}
       />
 
       <ConfirmDialog
@@ -133,6 +136,7 @@ export default function InvoicesPageClient({ initialData }: {
         message={settingsPromptMessage + t("settingsPromptSuffix")}
         onConfirm={() => { setShowSettingsPrompt(false); router.push("/dashboard/settings"); }}
         onCancel={() => { setShowSettingsPrompt(false); }}
+        loadingLabel={t("processing")}
       />
 
       {viewInvoice && businessProfile && (

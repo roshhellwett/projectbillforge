@@ -23,6 +23,7 @@ interface Customer {
   id: string;
   name: string;
   phone: string | null;
+  email?: string | null;
   gstin: string | null;
   address: string | null;
 }
@@ -51,6 +52,8 @@ interface InvoiceFormData {
 interface NewInvoiceModalProps {
   customers: Customer[];
   products: Product[];
+  onCustomerSearch?: (query: string) => Promise<Customer[]>;
+  onProductSearch?: (query: string) => Promise<Product[]>;
   onClose: () => void;
   onSubmit: (formData: InvoiceFormData, items: InvoiceItem[], isInterState: boolean) => Promise<void>;
   saving: boolean;
@@ -81,7 +84,7 @@ function formatQuantity(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
 }
 
-export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving, error }: NewInvoiceModalProps) {
+export function NewInvoiceModal({ customers, products, onCustomerSearch, onProductSearch, onClose, onSubmit, saving, error }: NewInvoiceModalProps) {
   const t = useTranslations("Invoices");
   const router = useRouter();
   const [step, setStep] = useState<Step>("details");
@@ -98,10 +101,14 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
   const [selectedProduct, setSelectedProduct] = useState("");
   const [productQuery, setProductQuery] = useState("");
   const [productOpen, setProductOpen] = useState(false);
+  const [remoteProducts, setRemoteProducts] = useState<Product[]>([]);
+  const [remoteSearching, setRemoteSearching] = useState(false);
   const [productActiveIndex, setProductActiveIndex] = useState(-1);
   const [itemQuantity, setItemQuantity] = useState("");
   const [quantityError, setQuantityError] = useState<string | null>(null);
   const [customerOpen, setCustomerOpen] = useState(false);
+  const [remoteCustomers, setRemoteCustomers] = useState<Customer[]>([]);
+  const [remoteCustomerSearching, setRemoteCustomerSearching] = useState(false);
   const [customerActiveIndex, setCustomerActiveIndex] = useState(-1);
   const [detailsError, setDetailsError] = useState<string | null>(null);
 
@@ -111,6 +118,8 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
   const quantityInputRef = useRef<HTMLInputElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const reviewHeadingRef = useRef<HTMLHeadingElement>(null);
+  const productSearchRequestRef = useRef(0);
+  const customerSearchRequestRef = useRef(0);
   const savingRef = useRef(saving);
   const closeRef = useRef(onClose);
 
@@ -176,25 +185,100 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
     return () => document.removeEventListener("pointerdown", closeOpenList);
   }, [customerOpen, productOpen]);
 
-  const selectedCustomer = customers.find((customer) => customer.id === formData.customerId);
-  const selectedProductRecord = products.find((product) => product.id === selectedProduct);
+  useEffect(() => {
+    const query = formData.customerId ? "" : formData.customerName.trim();
+    if (!onCustomerSearch) {
+      customerSearchRequestRef.current += 1;
+      setRemoteCustomers([]);
+      setRemoteCustomerSearching(false);
+      return;
+    }
+    if (formData.customerId) {
+      setRemoteCustomerSearching(false);
+      return;
+    }
+    if (query.length < 2) {
+      customerSearchRequestRef.current += 1;
+      setRemoteCustomers([]);
+      setRemoteCustomerSearching(false);
+      return;
+    }
+    if (!customerOpen) return;
+
+    const requestId = ++customerSearchRequestRef.current;
+    const timer = window.setTimeout(() => {
+      setRemoteCustomerSearching(true);
+      void onCustomerSearch(query)
+        .then((result) => {
+          if (requestId === customerSearchRequestRef.current) setRemoteCustomers(result);
+        })
+        .catch(() => {
+          if (requestId === customerSearchRequestRef.current) setRemoteCustomers([]);
+        })
+        .finally(() => {
+          if (requestId === customerSearchRequestRef.current) setRemoteCustomerSearching(false);
+        });
+    }, 220);
+
+    return () => window.clearTimeout(timer);
+  }, [customerOpen, formData.customerId, formData.customerName, onCustomerSearch]);
+
+  useEffect(() => {
+    const query = productQuery.trim();
+    if (!onProductSearch || query.length < 2) {
+      productSearchRequestRef.current += 1;
+      setRemoteProducts([]);
+      setRemoteSearching(false);
+      return;
+    }
+    if (!productOpen) return;
+
+    const requestId = ++productSearchRequestRef.current;
+    const timer = window.setTimeout(() => {
+      setRemoteSearching(true);
+      void onProductSearch(query)
+        .then((result) => {
+          if (requestId === productSearchRequestRef.current) setRemoteProducts(result);
+        })
+        .catch(() => {
+          if (requestId === productSearchRequestRef.current) setRemoteProducts([]);
+        })
+        .finally(() => {
+          if (requestId === productSearchRequestRef.current) setRemoteSearching(false);
+        });
+    }, 220);
+
+    return () => window.clearTimeout(timer);
+  }, [onProductSearch, productOpen, productQuery]);
+
+  const selectedCustomer = customers.find((customer) => customer.id === formData.customerId)
+    ?? remoteCustomers.find((customer) => customer.id === formData.customerId);
+  const selectedProductRecord = products.find((product) => product.id === selectedProduct)
+    ?? remoteProducts.find((product) => product.id === selectedProduct);
 
   const filteredCustomers = useMemo(() => {
+    const customerMap = new Map<string, Customer>();
+    for (const customer of customers) customerMap.set(customer.id, customer);
+    for (const customer of remoteCustomers) customerMap.set(customer.id, customer);
+    const availableCustomers = Array.from(customerMap.values());
     const query = formData.customerId ? "" : formData.customerName.trim().toLowerCase();
-    if (!query) return customers;
-    return customers.filter((customer) =>
-      `${customer.name} ${customer.phone ?? ""}`.toLowerCase().includes(query),
+    if (!query) return availableCustomers;
+    return availableCustomers.filter((customer) =>
+      `${customer.name} ${customer.phone ?? ""} ${customer.email ?? ""} ${customer.gstin ?? ""} ${customer.address ?? ""}`.toLowerCase().includes(query),
     );
-  }, [customers, formData.customerId, formData.customerName]);
+  }, [customers, formData.customerId, formData.customerName, remoteCustomers]);
 
   const filteredProducts = useMemo(() => {
-    const activeProducts = products.filter((product) => product.isActive);
+    const productMap = new Map<string, Product>();
+    for (const product of products) if (product.isActive) productMap.set(product.id, product);
+    for (const product of remoteProducts) if (product.isActive) productMap.set(product.id, product);
+    const activeProducts = Array.from(productMap.values());
     const query = productQuery.trim().toLowerCase();
     if (!query) return activeProducts;
     return activeProducts.filter((product) =>
       `${product.name} ${product.unit ?? ""} ${product.sku ?? ""} ${product.hsnCode ?? ""}`.toLowerCase().includes(query),
     );
-  }, [products, productQuery]);
+  }, [products, productQuery, remoteProducts]);
 
   const totals = useMemo(() => {
     const sum = (key: "amount" | "cgst" | "sgst" | "igst") =>
@@ -522,7 +606,8 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                   {customerOpen && (
                     <div id="invoice-customer-dropdown" className="absolute z-40 mt-1 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-xl overflow-hidden">
                       <div id="invoice-customer-listbox" role="listbox" className="max-h-56 overflow-y-auto">
-                        {filteredCustomers.length > 0 ? filteredCustomers.map((customer, index) => (
+                         {remoteCustomerSearching && <div className="border-b border-[var(--border)]/50 p-3 text-xs text-[var(--foreground)]/55" role="status">{t("searchingCustomers")}</div>}
+                         {filteredCustomers.length > 0 ? filteredCustomers.map((customer, index) => (
                           <button
                             key={customer.id}
                             id={`invoice-customer-option-${index}`}
@@ -536,7 +621,7 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                             <span className="block font-semibold text-[var(--foreground)]">{customer.name}</span>
                             {customer.phone && <span className="block text-xs text-[var(--foreground)]/55 mt-0.5">{customer.phone}</span>}
                           </button>
-                        )) : (
+                         )) : !remoteCustomerSearching ? (
                           <div className="p-3 text-sm text-[var(--foreground)]/55" role="status">{t("customerNoMatch")}</div>
                         )}
                       </div>
@@ -651,7 +736,8 @@ export function NewInvoiceModal({ customers, products, onClose, onSubmit, saving
                         <div className="p-3 text-sm text-[var(--foreground)]/60 flex flex-col gap-2"><span>{t("noProducts")}</span><button type="button" onClick={openProducts} className="self-start text-[var(--color-primary)] font-semibold">{t("newProduct")}</button></div>
                       ) : (
                         <div id="invoice-product-listbox" role="listbox" className="max-h-60 overflow-y-auto">
-                          {filteredProducts.length === 0 ? (
+                           {remoteSearching && <div className="border-b border-[var(--border)]/50 p-3 text-xs text-[var(--foreground)]/55" role="status">{t("searchingProducts")}</div>}
+                           {filteredProducts.length === 0 && !remoteSearching ? (
                             <div className="p-3 text-sm text-[var(--foreground)]/60" role="status">{t("noMatchingProducts")}</div>
                           ) : filteredProducts.map((product, index) => {
                             const stock = getStock(product);
