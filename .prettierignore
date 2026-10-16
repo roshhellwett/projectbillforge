@@ -1,0 +1,8 @@
+node_modules/
+.next/
+dist/
+out/
+coverage/
+public/
+drizzle/meta/
+package-lock.json

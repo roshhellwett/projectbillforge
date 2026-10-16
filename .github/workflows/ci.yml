@@ -2,9 +2,9 @@ name: "BillForge CI Pipeline"
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
 
 jobs:
   test-and-build:
@@ -20,11 +20,11 @@ jobs:
       - name: Setup Node.js 22.x (LTS)
         uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
-          cache: 'npm'
+          node-version: "22.x"
+          cache: "npm"
 
       - name: Install dependencies
-        run: npm install --no-audit
+        run: npm ci --no-audit
 
       - name: Guard against external asset pointers
         # Enforces the "local-only assets" project rule — no Lovable CDN
@@ -43,6 +43,9 @@ jobs:
 
       - name: Run ESLint
         run: npm run lint
+
+      - name: Run TypeScript typecheck
+        run: npm run typecheck
 
       - name: Run Automated Test Suite
         run: npm test
