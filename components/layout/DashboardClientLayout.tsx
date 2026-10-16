@@ -40,7 +40,7 @@ export default function DashboardClientLayout({ children, session }: DashboardCl
     <>
       <a
         href="#main-content"
-        className="fixed left-4 top-3 z-[70] -translate-y-20 rounded-xl bg-[var(--foreground)] px-4 py-2 text-sm font-bold text-[var(--background)] shadow-xl transition-transform focus:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+        className="fixed left-4 top-3 z-[70] -translate-y-20 pointer-events-none focus:pointer-events-auto rounded-xl bg-[var(--foreground)] px-4 py-2 text-sm font-bold text-[var(--background)] shadow-xl transition-transform focus:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
       >
         {shellT("skipToContent")}
       </a>

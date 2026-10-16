@@ -48,8 +48,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
+function ToastContainer({
+  toasts,
+  removeToast,
+}: {
+  toasts: Toast[];
+  removeToast: (id: string) => void;
+}) {
+  if (toasts.length === 0) return null;
 
-function ToastContainer({ toasts, removeToast }: { toasts: Toast[]; removeToast: (id: string) => void }) {
   const icons = {
     success: <CheckCircle size={18} className="text-current" aria-hidden="true" />,
     error: <AlertCircle size={18} className="text-current" aria-hidden="true" />,
@@ -65,11 +72,15 @@ function ToastContainer({ toasts, removeToast }: { toasts: Toast[]; removeToast:
   };
 
   return (
-    <div className="fixed top-4 right-4 z-[100] flex max-w-sm flex-col gap-2 toast-container" role="region" aria-label="Notifications">
+    <div
+      className="fixed top-4 right-4 z-[100] flex max-w-sm flex-col gap-2 toast-container pointer-events-none"
+      role="region"
+      aria-label="Notifications"
+    >
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-lg backdrop-blur-lg animate-slide-in ${backgrounds[toast.type]}`}
+          className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-lg backdrop-blur-lg animate-slide-in pointer-events-auto ${backgrounds[toast.type]}`}
           role={toast.type === "error" ? "alert" : "status"}
           aria-live={toast.type === "error" ? "assertive" : "polite"}
         >
