@@ -82,11 +82,7 @@ function readinessStateFromData(data: AssistantReadinessData): ReadinessState {
 
 function CopilotIllustration() {
   const t = useTranslations("Assistant");
-  const flowLabels = [
-    t("illustrationQuestion"),
-    t("illustrationContext"),
-    t("illustrationAnswer"),
-  ];
+  const flowLabels = [t("illustrationQuestion"), t("illustrationContext"), t("illustrationAnswer")];
 
   return (
     <div
@@ -108,7 +104,9 @@ function CopilotIllustration() {
               <MessageCircle size={17} />
             </div>
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">{t("illustrationLabel")}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                {t("illustrationLabel")}
+              </p>
               <p className="mt-1 text-xs font-semibold text-white/90">{t("illustrationTitle")}</p>
             </div>
           </div>
@@ -117,7 +115,10 @@ function CopilotIllustration() {
         <div className="relative flex items-start justify-between gap-2">
           <div className="absolute inset-x-8 top-4 h-px bg-white/15" />
           {flowLabels.map((label) => (
-            <div key={label} className="relative flex min-w-0 flex-1 flex-col items-center gap-2 text-center">
+            <div
+              key={label}
+              className="relative flex min-w-0 flex-1 flex-col items-center gap-2 text-center"
+            >
               <span className="flex h-8 w-8 items-center justify-center rounded-full border border-indigo-200/40 bg-indigo-300/15">
                 <span className="h-2 w-2 rounded-full bg-indigo-100" />
               </span>
@@ -137,7 +138,9 @@ function CopilotIllustration() {
             <ShieldCheck size={15} />
           </div>
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">{t("illustrationBoundaryTitle")}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+              {t("illustrationBoundaryTitle")}
+            </p>
             <p className="mt-1 text-xs leading-5 text-white/70">{t("illustrationBoundaryText")}</p>
           </div>
         </div>
@@ -156,7 +159,13 @@ function CopilotIllustration() {
   );
 }
 
-function MessageBubble({ message, onCopy }: { message: ChatMessage; onCopy: (content: string) => void }) {
+function MessageBubble({
+  message,
+  onCopy,
+}: {
+  message: ChatMessage;
+  onCopy: (content: string) => void;
+}) {
   const t = useTranslations("Assistant");
   const isUser = message.role === "user";
 
@@ -230,7 +239,10 @@ export default function AssistantPage() {
     const transcript = transcriptRef.current;
     if (!transcript) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    transcript.scrollTo({ top: transcript.scrollHeight, behavior: reduceMotion ? "auto" : "smooth" });
+    transcript.scrollTo({
+      top: transcript.scrollHeight,
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
   }, [messages, status]);
 
   useEffect(() => {
@@ -268,7 +280,10 @@ export default function AssistantPage() {
         }
       })
       .catch((readinessError) => {
-        if (!cancelled && !(readinessError instanceof DOMException && readinessError.name === "AbortError")) {
+        if (
+          !cancelled &&
+          !(readinessError instanceof DOMException && readinessError.name === "AbortError")
+        ) {
           setReadiness("unknown");
           setReadinessCheckedAt(null);
         }
@@ -405,7 +420,7 @@ export default function AssistantPage() {
     const controller = new AbortController();
     const conversationVersion = conversationVersionRef.current;
     requestControllerRef.current = controller;
-    const timeout = window.setTimeout(() => controller.abort(), 30_000);
+    const timeout = window.setTimeout(() => controller.abort(), 60_000);
 
     try {
       const response = await fetch("/api/ai/assistant", {
@@ -512,7 +527,8 @@ export default function AssistantPage() {
               <Sparkles size={13} /> {t("eyebrow")}
             </div>
             <h1 className="max-w-xl text-3xl font-semibold tracking-[-0.045em] text-[var(--foreground)] sm:text-5xl sm:leading-[1.05]">
-              {t("titleLineOne")} <span className="text-indigo-600 dark:text-indigo-300">{t("titleLineTwo")}</span>
+              {t("titleLineOne")}{" "}
+              <span className="text-indigo-600 dark:text-indigo-300">{t("titleLineTwo")}</span>
             </h1>
             <p className="mt-5 max-w-xl text-sm leading-7 text-[var(--foreground)]/65 sm:text-base">
               {t("subtitle")}
@@ -522,14 +538,20 @@ export default function AssistantPage() {
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]/75 p-4 backdrop-blur-sm">
               <div className="mb-3 flex items-center gap-2 text-[var(--foreground)]/55">
                 <ShieldCheck size={16} className="text-emerald-600 dark:text-emerald-300" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.14em]">{t("dataBoundaryTitle")}</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.14em]">
+                  {t("dataBoundaryTitle")}
+                </span>
               </div>
-              <p className="text-xs leading-5 text-[var(--foreground)]/65">{t("dataBoundaryText")}</p>
+              <p className="text-xs leading-5 text-[var(--foreground)]/65">
+                {t("dataBoundaryText")}
+              </p>
             </div>
             <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)]/75 p-4 backdrop-blur-sm">
               <div className="mb-3 flex items-center gap-2 text-[var(--foreground)]/55">
                 <Clock3 size={16} className="text-indigo-600 dark:text-indigo-300" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.14em]">{t("freshnessTitle")}</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.14em]">
+                  {t("freshnessTitle")}
+                </span>
               </div>
               <p className="text-xs leading-5 text-[var(--foreground)]/65">{t("freshnessText")}</p>
             </div>
@@ -547,13 +569,16 @@ export default function AssistantPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-semibold text-[var(--foreground)]">{t("chatTitle")}</h2>
+                  <h2 className="text-sm font-semibold text-[var(--foreground)]">
+                    {t("chatTitle")}
+                  </h2>
                   <span
                     className="flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface-elevated)] px-2 py-1 text-[10px] font-semibold text-[var(--foreground)]/55"
                     aria-live="polite"
                     title={readinessCheckedAt ?? undefined}
                   >
-                    <span className={`h-1.5 w-1.5 rounded-full ${readinessTone}`} /> {readinessLabel}
+                    <span className={`h-1.5 w-1.5 rounded-full ${readinessTone}`} />{" "}
+                    {readinessLabel}
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-[var(--foreground)]/50">
@@ -580,12 +605,19 @@ export default function AssistantPage() {
             aria-busy={status === "sending"}
           >
             {messages.length === 0 && status !== "sending" && (
-              <div className="flex h-full flex-col items-center justify-center px-6 text-center" role="status">
+              <div
+                className="flex h-full flex-col items-center justify-center px-6 text-center"
+                role="status"
+              >
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-300">
                   <MessageCircle size={20} />
                 </div>
-                <p className="mt-4 text-sm font-semibold text-[var(--foreground)]">{t("emptyStateTitle")}</p>
-                <p className="mt-2 max-w-sm text-xs leading-5 text-[var(--foreground)]/55">{t("emptyStateText")}</p>
+                <p className="mt-4 text-sm font-semibold text-[var(--foreground)]">
+                  {t("emptyStateTitle")}
+                </p>
+                <p className="mt-2 max-w-sm text-xs leading-5 text-[var(--foreground)]/55">
+                  {t("emptyStateText")}
+                </p>
               </div>
             )}
             {messages.map((message) => (
@@ -612,7 +644,9 @@ export default function AssistantPage() {
                         className="h-1.5 w-1.5 rounded-full bg-indigo-500"
                       />
                     ))}
-                    <span className="ml-1 text-xs text-[var(--foreground)]/45">{t("thinking")}</span>
+                    <span className="ml-1 text-xs text-[var(--foreground)]/45">
+                      {t("thinking")}
+                    </span>
                   </div>
                 </motion.div>
               )}
@@ -621,7 +655,10 @@ export default function AssistantPage() {
 
           <div className="border-t border-[var(--border)] bg-[var(--surface-elevated)]/50 p-3 sm:p-4">
             {error && (
-              <div className="mb-3 flex items-start gap-2 rounded-xl border border-rose-500/20 bg-rose-500/[0.07] px-3 py-2.5 text-xs text-rose-700 dark:text-rose-300" role="alert">
+              <div
+                className="mb-3 flex items-start gap-2 rounded-xl border border-rose-500/20 bg-rose-500/[0.07] px-3 py-2.5 text-xs text-rose-700 dark:text-rose-300"
+                role="alert"
+              >
                 <CircleHelp size={15} className="mt-0.5 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <p>{error}</p>
@@ -657,7 +694,9 @@ export default function AssistantPage() {
               <textarea
                 ref={inputRef}
                 value={input}
-                onChange={(event) => setInput(event.target.value.slice(0, ASSISTANT_MAX_MESSAGE_LENGTH))}
+                onChange={(event) =>
+                  setInput(event.target.value.slice(0, ASSISTANT_MAX_MESSAGE_LENGTH))
+                }
                 onKeyDown={handleInputKeyDown}
                 disabled={status === "sending"}
                 rows={2}
@@ -668,7 +707,11 @@ export default function AssistantPage() {
                 aria-keyshortcuts="Enter"
                 className="glass-input min-h-[88px] w-full resize-none pr-14 text-sm leading-6"
               />
-              <div id="assistant-input-count" className="absolute bottom-3 left-3 text-[10px] text-[var(--foreground)]/35" aria-live="polite">
+              <div
+                id="assistant-input-count"
+                className="absolute bottom-3 left-3 text-[10px] text-[var(--foreground)]/35"
+                aria-live="polite"
+              >
                 {input.length}/{ASSISTANT_MAX_MESSAGE_LENGTH}
               </div>
               <button
@@ -680,10 +723,24 @@ export default function AssistantPage() {
                 <ArrowUp size={17} />
               </button>
             </form>
-            <p id="assistant-input-help" className="mt-2 text-[10px] text-[var(--foreground)]/40">{t("enterToSend")}</p>
+            <p id="assistant-input-help" className="mt-2 text-[10px] text-[var(--foreground)]/40">
+              {t("enterToSend")}
+            </p>
             <div className="mt-3 flex items-center justify-between gap-3 text-[10px] text-[var(--foreground)]/40">
-              <span className="flex items-center gap-1.5"><ShieldCheck size={12} /> {t("readOnlyLabel")}</span>
-              <span aria-live="polite">{copied ? <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-300"><Check size={12} /> {t("copied")}</span> : copyError ? <span className="text-[var(--color-danger)]">{t("copyFailed")}</span> : t("privacyLabel")}</span>
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck size={12} /> {t("readOnlyLabel")}
+              </span>
+              <span aria-live="polite">
+                {copied ? (
+                  <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-300">
+                    <Check size={12} /> {t("copied")}
+                  </span>
+                ) : copyError ? (
+                  <span className="text-[var(--color-danger)]">{t("copyFailed")}</span>
+                ) : (
+                  t("privacyLabel")
+                )}
+              </span>
             </div>
           </div>
         </div>
@@ -692,10 +749,16 @@ export default function AssistantPage() {
           <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-elevation)] sm:p-5">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--foreground)]/40">{t("promptEyebrow")}</p>
-                <h3 className="mt-1 text-sm font-semibold text-[var(--foreground)]">{t("promptTitle")}</h3>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--foreground)]/40">
+                  {t("promptEyebrow")}
+                </p>
+                <h3 className="mt-1 text-sm font-semibold text-[var(--foreground)]">
+                  {t("promptTitle")}
+                </h3>
               </div>
-              <div className="rounded-xl bg-indigo-500/10 p-2 text-indigo-600 dark:text-indigo-300"><LayoutDashboard size={16} /></div>
+              <div className="rounded-xl bg-indigo-500/10 p-2 text-indigo-600 dark:text-indigo-300">
+                <LayoutDashboard size={16} />
+              </div>
             </div>
             <div className="space-y-2">
               {suggestions.map(({ label, icon: Icon }) => (
@@ -708,7 +771,10 @@ export default function AssistantPage() {
                   }}
                   className="group flex w-full items-start gap-3 rounded-xl border border-transparent px-2.5 py-2.5 text-left text-xs leading-5 text-[var(--foreground)]/65 transition-colors hover:border-[var(--border)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]"
                 >
-                  <Icon size={15} className="mt-0.5 shrink-0 text-indigo-600 transition-transform group-hover:scale-110 dark:text-indigo-300" />
+                  <Icon
+                    size={15}
+                    className="mt-0.5 shrink-0 text-indigo-600 transition-transform group-hover:scale-110 dark:text-indigo-300"
+                  />
                   <span>{label}</span>
                 </button>
               ))}
@@ -718,12 +784,29 @@ export default function AssistantPage() {
           <div className="rounded-[1.75rem] border border-[var(--border)] bg-[var(--surface-elevated)] p-4 sm:p-5">
             <div className="mb-3 flex items-center gap-2 text-[var(--foreground)]/55">
               <BarChart3 size={16} />
-              <h3 className="text-xs font-bold uppercase tracking-[0.14em]">{t("capabilitiesTitle")}</h3>
+              <h3 className="text-xs font-bold uppercase tracking-[0.14em]">
+                {t("capabilitiesTitle")}
+              </h3>
             </div>
             <ul className="space-y-3 text-xs leading-5 text-[var(--foreground)]/60">
-              <li className="flex gap-2"><TrendingUp size={14} className="mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-300" /> {t("capabilitySales")}</li>
-              <li className="flex gap-2"><Users size={14} className="mt-0.5 shrink-0 text-indigo-600 dark:text-indigo-300" /> {t("capabilityCustomers")}</li>
-              <li className="flex gap-2"><PackageSearch size={14} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-300" /> {t("capabilityStock")}</li>
+              <li className="flex gap-2">
+                <TrendingUp
+                  size={14}
+                  className="mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-300"
+                />{" "}
+                {t("capabilitySales")}
+              </li>
+              <li className="flex gap-2">
+                <Users size={14} className="mt-0.5 shrink-0 text-indigo-600 dark:text-indigo-300" />{" "}
+                {t("capabilityCustomers")}
+              </li>
+              <li className="flex gap-2">
+                <PackageSearch
+                  size={14}
+                  className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-300"
+                />{" "}
+                {t("capabilityStock")}
+              </li>
             </ul>
           </div>
         </aside>

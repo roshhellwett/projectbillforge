@@ -110,15 +110,17 @@ function getStartDate(): string {
   return start.toISOString().slice(0, 10);
 }
 
+const DEFAULT_MODEL = "poolside/laguna-s-2.1:free";
+
 function isProviderConfigured(): boolean {
   const apiKey = process.env.OPENROUTER_API_KEY?.trim();
-  const model = process.env.OPENROUTER_MODEL?.trim() || process.env.MODEL?.trim();
+  const model = process.env.OPENROUTER_MODEL?.trim() || process.env.MODEL?.trim() || DEFAULT_MODEL;
   return Boolean(apiKey && model);
 }
 
 function getModelConfig() {
   const apiKey = process.env.OPENROUTER_API_KEY?.trim();
-  const model = process.env.OPENROUTER_MODEL?.trim() || process.env.MODEL?.trim();
+  const model = process.env.OPENROUTER_MODEL?.trim() || process.env.MODEL?.trim() || DEFAULT_MODEL;
 
   if (!apiKey || !model) {
     throw new AssistantError(
@@ -429,7 +431,7 @@ function parseProviderAnswer(payload: unknown): string {
 async function callOpenRouter(input: AssistantRequest, context: BusinessContext): Promise<string> {
   const { apiKey, model } = getModelConfig();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 35_000);
+  const timeout = setTimeout(() => controller.abort(), 45_000);
 
   try {
     const response = await fetch(OPENROUTER_ENDPOINT, {
