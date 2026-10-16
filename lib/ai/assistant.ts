@@ -33,11 +33,7 @@ export class AssistantError extends Error {
   public readonly code: AssistantErrorCode;
   public readonly status: number;
 
-  constructor(
-    code: AssistantErrorCode,
-    message: string,
-    status: number,
-  ) {
+  constructor(code: AssistantErrorCode, message: string, status: number) {
     super(message);
     this.code = code;
     this.status = status;
@@ -138,77 +134,86 @@ function getModelConfig() {
 async function buildBusinessContext(businessId: string): Promise<BusinessContext> {
   const startDate = getStartDate();
 
-  const [business, [sales], [customerCount], [productCount], [receivablesTotal], lowStock, topReceivables, recentInvoices, topProducts] =
-    await Promise.all([
-      db.query.businesses.findFirst({
-        where: eq(businesses.id, businessId),
-        columns: { name: true, state: true },
-      }),
-      db
-        .select({
-          invoiceCount: sql<number>`count(*)`,
-          sales: sql<number>`coalesce(sum(${invoices.total}), 0)`,
-          collected: sql<number>`coalesce(sum(${invoices.amountPaid}), 0)`,
-        })
-        .from(invoices)
-        .where(
-          and(
-            eq(invoices.businessId, businessId),
-            eq(invoices.status, "active"),
-            gte(invoices.invoiceDate, startDate),
-          ),
+  const [
+    business,
+    [sales],
+    [customerCount],
+    [productCount],
+    [receivablesTotal],
+    lowStock,
+    topReceivables,
+    recentInvoices,
+    topProducts,
+  ] = await Promise.all([
+    db.query.businesses.findFirst({
+      where: eq(businesses.id, businessId),
+      columns: { name: true, state: true },
+    }),
+    db
+      .select({
+        invoiceCount: sql<number>`count(*)`,
+        sales: sql<number>`coalesce(sum(${invoices.total}), 0)`,
+        collected: sql<number>`coalesce(sum(${invoices.amountPaid}), 0)`,
+      })
+      .from(invoices)
+      .where(
+        and(
+          eq(invoices.businessId, businessId),
+          eq(invoices.status, "active"),
+          gte(invoices.invoiceDate, startDate),
         ),
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(customers)
-        .where(eq(customers.businessId, businessId)),
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(products)
-        .where(and(eq(products.businessId, businessId), eq(products.isActive, true))),
-      db
-        .select({ total: sql<number>`coalesce(sum(${customers.currentBalance}), 0)` })
-        .from(customers)
-        .where(and(eq(customers.businessId, businessId), gt(customers.currentBalance, 0))),
-      db
-        .select({
-          name: products.name,
-          sku: products.sku,
-          stock: products.stockQuantity,
-          threshold: products.lowStockThreshold,
-          unit: products.unit,
-        })
-        .from(products)
-        .where(
-          and(
-            eq(products.businessId, businessId),
-            eq(products.isActive, true),
-            gt(products.lowStockThreshold, 0),
-            sql`${products.stockQuantity} <= ${products.lowStockThreshold}`,
-          ),
-        )
-        .orderBy(products.stockQuantity)
-        .limit(MAX_CONTEXT_ROWS),
-      db
-        .select({ name: customers.name, balance: customers.currentBalance })
-        .from(customers)
-        .where(and(eq(customers.businessId, businessId), gt(customers.currentBalance, 0)))
-        .orderBy(desc(customers.currentBalance))
-        .limit(MAX_CONTEXT_ROWS),
-      db
-        .select({
-          number: invoices.invoiceNumber,
-          customer: invoices.customerName,
-          total: invoices.total,
-          paid: invoices.amountPaid,
-          status: invoices.paymentStatus,
-          date: invoices.invoiceDate,
-        })
-        .from(invoices)
-        .where(and(eq(invoices.businessId, businessId), eq(invoices.status, "active")))
-        .orderBy(desc(invoices.createdAt))
-        .limit(MAX_CONTEXT_ROWS),
-      db.execute(sql`
+      ),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(customers)
+      .where(eq(customers.businessId, businessId)),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(products)
+      .where(and(eq(products.businessId, businessId), eq(products.isActive, true))),
+    db
+      .select({ total: sql<number>`coalesce(sum(${customers.currentBalance}), 0)` })
+      .from(customers)
+      .where(and(eq(customers.businessId, businessId), gt(customers.currentBalance, 0))),
+    db
+      .select({
+        name: products.name,
+        sku: products.sku,
+        stock: products.stockQuantity,
+        threshold: products.lowStockThreshold,
+        unit: products.unit,
+      })
+      .from(products)
+      .where(
+        and(
+          eq(products.businessId, businessId),
+          eq(products.isActive, true),
+          gt(products.lowStockThreshold, 0),
+          sql`${products.stockQuantity} <= ${products.lowStockThreshold}`,
+        ),
+      )
+      .orderBy(products.stockQuantity)
+      .limit(MAX_CONTEXT_ROWS),
+    db
+      .select({ name: customers.name, balance: customers.currentBalance })
+      .from(customers)
+      .where(and(eq(customers.businessId, businessId), gt(customers.currentBalance, 0)))
+      .orderBy(desc(customers.currentBalance))
+      .limit(MAX_CONTEXT_ROWS),
+    db
+      .select({
+        number: invoices.invoiceNumber,
+        customer: invoices.customerName,
+        total: invoices.total,
+        paid: invoices.amountPaid,
+        status: invoices.paymentStatus,
+        date: invoices.invoiceDate,
+      })
+      .from(invoices)
+      .where(and(eq(invoices.businessId, businessId), eq(invoices.status, "active")))
+      .orderBy(desc(invoices.createdAt))
+      .limit(MAX_CONTEXT_ROWS),
+    db.execute(sql`
         SELECT
           item->>'productName' AS name,
           COALESCE(SUM(NULLIF(item->>'quantity', '')::numeric), 0) AS units,
@@ -222,7 +227,7 @@ async function buildBusinessContext(businessId: string): Promise<BusinessContext
         ORDER BY sales DESC
         LIMIT ${MAX_CONTEXT_ROWS}
       `),
-    ]);
+  ]);
 
   if (!business) {
     throw new Error("Business profile not found for the authenticated session.");
@@ -255,7 +260,13 @@ async function buildBusinessContext(businessId: string): Promise<BusinessContext
       threshold: roundCurrency(product.threshold),
       unit: product.unit ?? "piece",
     })),
-    topProducts: (topProducts as unknown as Array<{ name: string | null; units: number | string | null; sales: number | string | null }>).map((product) => ({
+    topProducts: (
+      topProducts as unknown as Array<{
+        name: string | null;
+        units: number | string | null;
+        sales: number | string | null;
+      }>
+    ).map((product) => ({
       name: product.name ?? "Unnamed product",
       units: roundCurrency(product.units),
       sales: roundCurrency(product.sales),
@@ -356,7 +367,10 @@ const openRouterResponseSchema = z.object({
     .array(
       z.object({
         message: z
-          .object({ content: z.unknown().optional() })
+          .object({
+            content: z.unknown().optional(),
+            reasoning: z.unknown().optional(),
+          })
           .passthrough()
           .optional(),
         text: z.unknown().optional(),
@@ -366,10 +380,12 @@ const openRouterResponseSchema = z.object({
 });
 
 function toSafeHistory(history: AssistantRequest["history"]) {
-  return boundAssistantHistory(history).slice(-ASSISTANT_MAX_HISTORY_MESSAGES).map((message) => ({
-    role: message.role,
-    content: message.content.slice(0, ASSISTANT_MAX_HISTORY_MESSAGE_LENGTH),
-  }));
+  return boundAssistantHistory(history)
+    .slice(-ASSISTANT_MAX_HISTORY_MESSAGES)
+    .map((message) => ({
+      role: message.role,
+      content: message.content.slice(0, ASSISTANT_MAX_HISTORY_MESSAGE_LENGTH),
+    }));
 }
 
 function extractProviderText(value: unknown): string {
@@ -400,16 +416,20 @@ function parseProviderAnswer(payload: unknown): string {
   const choice = parsed.data.choices[0];
   const messageContent = extractProviderText(choice?.message?.content);
   if (messageContent) return messageContent;
-  return extractProviderText(choice?.text);
+
+  const textContent = extractProviderText(choice?.text);
+  if (textContent) return textContent;
+
+  const reasoningContent = extractProviderText(choice?.message?.reasoning);
+  if (reasoningContent) return reasoningContent;
+
+  return "";
 }
 
-async function callOpenRouter(
-  input: AssistantRequest,
-  context: BusinessContext,
-): Promise<string> {
+async function callOpenRouter(input: AssistantRequest, context: BusinessContext): Promise<string> {
   const { apiKey, model } = getModelConfig();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 20_000);
+  const timeout = setTimeout(() => controller.abort(), 35_000);
 
   try {
     const response = await fetch(OPENROUTER_ENDPOINT, {
@@ -426,11 +446,11 @@ async function callOpenRouter(
         model,
         temperature: 0.2,
         max_tokens: 700,
-        // Some OpenRouter reasoning models can spend the whole output budget
-        // on hidden reasoning and return a null `content`. The assistant is
-        // intentionally concise, so disable exposed reasoning when supported
-        // and leave the response budget for the user-facing answer.
-        reasoning: { effort: "low", exclude: true },
+        // OpenRouter reasoning models (e.g. Nemotron, DeepSeek R1) can spend their
+        // entire output budget on hidden/extended reasoning and return null content
+        // or exceed HTTP timeouts. Setting max_tokens: 0 disables reasoning tokens
+        // and guarantees immediate, fast user-facing answers.
+        reasoning: { effort: "none", max_tokens: 0, exclude: true },
         messages: [
           { role: "system", content: `${systemPrompt}\n${JSON.stringify(context)}` },
           ...toSafeHistory(input.history),

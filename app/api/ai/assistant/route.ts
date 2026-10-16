@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
 
-import {
-  askBusinessAssistant,
-  AssistantError,
-  getAssistantReadiness,
-} from "@/lib/ai/assistant";
-import {
-  ASSISTANT_MAX_MESSAGE_LENGTH,
-  assistantRequestSchema,
-} from "@/lib/ai/assistant-contract";
+import { askBusinessAssistant, AssistantError, getAssistantReadiness } from "@/lib/ai/assistant";
+import { ASSISTANT_MAX_MESSAGE_LENGTH, assistantRequestSchema } from "@/lib/ai/assistant-contract";
 import { AuthError } from "@/lib/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 const MAX_REQUEST_BODY_LENGTH = 64 * 1024;
 
 function errorResponse(status: number, code: string, message: string) {
@@ -31,10 +25,7 @@ function errorResponse(status: number, code: string, message: string) {
 export async function GET() {
   try {
     const readiness = await getAssistantReadiness();
-    return NextResponse.json(
-      { data: readiness },
-      { headers: { "Cache-Control": "no-store" } },
-    );
+    return NextResponse.json({ data: readiness }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (error instanceof AuthError) {
       return errorResponse(401, "UNAUTHORIZED", "Sign in to check copilot readiness.");
@@ -73,10 +64,7 @@ export async function POST(request: Request) {
 
   try {
     const result = await askBusinessAssistant(parsed.data);
-    return NextResponse.json(
-      { data: result },
-      { headers: { "Cache-Control": "no-store" } },
-    );
+    return NextResponse.json({ data: result }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (error instanceof AuthError) {
       return errorResponse(401, "UNAUTHORIZED", "Sign in to use the business copilot.");

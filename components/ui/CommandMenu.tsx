@@ -24,7 +24,8 @@ interface Action {
 
 export function CommandMenu() {
   const locale = useLocale();
-  const dashboardT = useTranslations("Dashboard");
+  const navT = useTranslations("Navigation");
+  const layoutT = useTranslations("Layout");
   const shellT = useTranslations("Shell");
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -58,7 +59,7 @@ export function CommandMenu() {
   const actions = useMemo<Action[]>(
     () => [
       ...SHELL_NAVIGATION.map((item) => {
-        const name = dashboardT(item.labelKey);
+        const name = navT(item.labelKey);
         return {
           id: item.id,
           name,
@@ -70,38 +71,38 @@ export function CommandMenu() {
       }),
       {
         id: "new-invoice",
-        name: dashboardT("newInvoice"),
+        name: layoutT("newInvoice"),
         icon: Plus,
-        keywords: [dashboardT("newInvoice").toLocaleLowerCase(), "invoice", "create", "sell"],
+        keywords: [layoutT("newInvoice").toLocaleLowerCase(), "invoice", "create", "sell"],
         perform: () => router.push("/dashboard/invoices?new=true"),
         bgColor: "bg-[var(--success-surface)] border border-[var(--success-border)]",
       },
       {
         id: "new-customer",
-        name: dashboardT("newCustomer"),
+        name: layoutT("newCustomer"),
         icon: Plus,
-        keywords: [dashboardT("newCustomer").toLocaleLowerCase(), "customer", "client", "create"],
+        keywords: [layoutT("newCustomer").toLocaleLowerCase(), "customer", "client", "create"],
         perform: () => router.push("/dashboard/customers?new=true"),
         bgColor: "bg-[var(--success-surface)] border border-[var(--success-border)]",
       },
       {
         id: "new-product",
-        name: dashboardT("newProduct"),
+        name: layoutT("newProduct"),
         icon: Plus,
-        keywords: [dashboardT("newProduct").toLocaleLowerCase(), "product", "stock", "create"],
+        keywords: [layoutT("newProduct").toLocaleLowerCase(), "product", "stock", "create"],
         perform: () => router.push("/dashboard/products?new=true"),
         bgColor: "bg-[var(--success-surface)] border border-[var(--success-border)]",
       },
       {
         id: "logout",
-        name: dashboardT("signOut"),
+        name: navT("signOut"),
         icon: LogOut,
-        keywords: [dashboardT("signOut").toLocaleLowerCase(), "logout"],
+        keywords: [navT("signOut").toLocaleLowerCase(), "logout"],
         perform: () => signOut({ callbackUrl: `/${locale}/login` }),
         bgColor: "bg-[var(--info-surface)] border border-[var(--info-border)]",
       },
     ],
-    [dashboardT, locale, router]
+    [navT, layoutT, locale, router],
   );
 
   const filteredActions = useMemo(() => {
@@ -111,7 +112,7 @@ export function CommandMenu() {
     return actions.filter(
       (action) =>
         action.name.toLocaleLowerCase().includes(search) ||
-        action.keywords.some((keyword) => keyword.includes(search))
+        action.keywords.some((keyword) => keyword.includes(search)),
     );
   }, [actions, query]);
 
@@ -131,7 +132,7 @@ export function CommandMenu() {
         if (filteredActions.length === 0) return;
         event.preventDefault();
         setSelectedIndex(
-          (previousIndex) => (previousIndex - 1 + filteredActions.length) % filteredActions.length
+          (previousIndex) => (previousIndex - 1 + filteredActions.length) % filteredActions.length,
         );
       } else if (event.key === "Enter" && filteredActions.length > 0) {
         event.preventDefault();
@@ -145,7 +146,9 @@ export function CommandMenu() {
   }, [filteredActions, open, selectedIndex]);
 
   useEffect(() => {
-    setSelectedIndex((previousIndex) => Math.min(previousIndex, Math.max(0, filteredActions.length - 1)));
+    setSelectedIndex((previousIndex) =>
+      Math.min(previousIndex, Math.max(0, filteredActions.length - 1)),
+    );
   }, [filteredActions.length]);
 
   useEffect(() => {
@@ -155,7 +158,10 @@ export function CommandMenu() {
   useEffect(() => {
     if (listRef.current && filteredActions.length > 0) {
       const activeElement = listRef.current.children[selectedIndex] as HTMLElement | undefined;
-      activeElement?.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" });
+      activeElement?.scrollIntoView({
+        block: "nearest",
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
     }
   }, [filteredActions.length, reduceMotion, selectedIndex]);
 
@@ -180,30 +186,46 @@ export function CommandMenu() {
             initial={reduceMotion ? false : { opacity: 0, scale: 0.95, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, scale: 0.95, y: -20 }}
-            transition={reduceMotion ? { duration: 0 } : { duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={
+              reduceMotion ? { duration: 0 } : { duration: 0.25, ease: [0.16, 1, 0.3, 1] }
+            }
             className="w-full max-w-xl max-h-[70vh] flex flex-col glass-heavy rounded-2xl border border-[var(--glass-border)] shadow-[var(--shadow-hover)] overflow-hidden relative z-10"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center gap-3 px-4 sm:px-5 py-4 border-b border-[var(--border)] bg-[var(--background)]/20">
-              <Search className="text-[var(--foreground)]/40 shrink-0" size={20} aria-hidden="true" />
+              <Search
+                className="text-[var(--foreground)]/40 shrink-0"
+                size={20}
+                aria-hidden="true"
+              />
               <input
-                 ref={inputRef}
-                 type="text"
-                 placeholder={shellT("commandMenuPlaceholder")}
-                 value={query}
-                 onChange={(event) => setQuery(event.target.value)}
-                 aria-label={shellT("commandMenuPlaceholder")}
-                 aria-controls="command-menu-options"
-                 aria-expanded="true"
-                 aria-activedescendant={filteredActions.length > 0 ? `command-option-${filteredActions[selectedIndex]?.id}` : undefined}
-                 className="flex-1 bg-transparent border-none outline-none text-base sm:text-lg text-[var(--foreground)] placeholder:text-[var(--foreground)]/40"
-               />
+                ref={inputRef}
+                type="text"
+                placeholder={shellT("commandMenuPlaceholder")}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                aria-label={shellT("commandMenuPlaceholder")}
+                aria-controls="command-menu-options"
+                aria-expanded="true"
+                aria-activedescendant={
+                  filteredActions.length > 0
+                    ? `command-option-${filteredActions[selectedIndex]?.id}`
+                    : undefined
+                }
+                className="flex-1 bg-transparent border-none outline-none text-base sm:text-lg text-[var(--foreground)] placeholder:text-[var(--foreground)]/40"
+              />
               <div className="text-[10px] sm:text-xs font-medium text-[var(--foreground)]/40 bg-[var(--foreground)]/5 px-2 py-1 rounded-md hidden sm:block">
                 {shellT("escape")} {shellT("close").toLocaleLowerCase()}
               </div>
             </div>
 
-            <div id="command-menu-options" ref={listRef} role="listbox" aria-label={shellT("commandMenu")} className="overflow-y-auto p-2 sm:p-3 scroll-smooth max-h-[40vh] min-h-[150px]">
+            <div
+              id="command-menu-options"
+              ref={listRef}
+              role="listbox"
+              aria-label={shellT("commandMenu")}
+              className="overflow-y-auto p-2 sm:p-3 scroll-smooth max-h-[40vh] min-h-[150px]"
+            >
               {filteredActions.length === 0 ? (
                 <div className="py-12 text-center text-sm text-[var(--foreground)]/50">
                   {shellT("noResults")}
@@ -230,14 +252,18 @@ export function CommandMenu() {
                       onMouseEnter={() => setSelectedIndex(index)}
                     >
                       <span className="flex items-center gap-3">
-                        <span className={`p-2 shrink-0 rounded-lg ${isActive ? action.bgColor : "bg-transparent border border-transparent"} transition-colors duration-200`}>
-                           <action.icon
-                             size={18}
-                             className={`text-[var(--foreground)] ${!isActive ? "opacity-60" : ""}`}
-                             aria-hidden="true"
-                           />
+                        <span
+                          className={`p-2 shrink-0 rounded-lg ${isActive ? action.bgColor : "bg-transparent border border-transparent"} transition-colors duration-200`}
+                        >
+                          <action.icon
+                            size={18}
+                            className={`text-[var(--foreground)] ${!isActive ? "opacity-60" : ""}`}
+                            aria-hidden="true"
+                          />
                         </span>
-                        <span className={`text-sm sm:text-base font-medium ${isActive ? "text-[var(--foreground)]" : "text-[var(--foreground)]/80"}`}>
+                        <span
+                          className={`text-sm sm:text-base font-medium ${isActive ? "text-[var(--foreground)]" : "text-[var(--foreground)]/80"}`}
+                        >
                           {action.name}
                         </span>
                       </span>
@@ -259,7 +285,9 @@ export function CommandMenu() {
                   {shellT("selectHint")}
                 </span>
               </div>
-              <div className="hidden sm:block font-medium tracking-wide uppercase">{shellT("commandMenu")}</div>
+              <div className="hidden sm:block font-medium tracking-wide uppercase">
+                {shellT("commandMenu")}
+              </div>
             </div>
           </motion.div>
         </div>
