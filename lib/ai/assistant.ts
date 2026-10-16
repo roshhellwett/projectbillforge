@@ -446,11 +446,9 @@ async function callOpenRouter(input: AssistantRequest, context: BusinessContext)
         model,
         temperature: 0.2,
         max_tokens: 700,
-        // OpenRouter reasoning models (e.g. Nemotron, DeepSeek R1) can spend their
-        // entire output budget on hidden/extended reasoning and return null content
-        // or exceed HTTP timeouts. Setting max_tokens: 0 disables reasoning tokens
-        // and guarantees immediate, fast user-facing answers.
-        reasoning: { effort: "none", max_tokens: 0, exclude: true },
+        // OpenRouter requires specifying EITHER reasoning.effort OR reasoning.max_tokens.
+        // Specifying max_tokens: 0 disables reasoning tokens and forces the model to respond directly.
+        reasoning: { max_tokens: 0 },
         messages: [
           { role: "system", content: `${systemPrompt}\n${JSON.stringify(context)}` },
           ...toSafeHistory(input.history),
@@ -462,6 +460,11 @@ async function callOpenRouter(input: AssistantRequest, context: BusinessContext)
     });
 
     if (!response.ok) {
+      const errorText = await response.text().catch(() => "");
+      console.error("OpenRouter API error response", {
+        status: response.status,
+        body: errorText,
+      });
       if (response.status === 401 || response.status === 403) {
         throw new AssistantError(
           "AI_PROVIDER_AUTH",

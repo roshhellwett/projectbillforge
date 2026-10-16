@@ -24,8 +24,7 @@ interface Action {
 
 export function CommandMenu() {
   const locale = useLocale();
-  const navT = useTranslations("Navigation");
-  const layoutT = useTranslations("Layout");
+  const dashboardT = useTranslations("Dashboard");
   const shellT = useTranslations("Shell");
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -59,7 +58,7 @@ export function CommandMenu() {
   const actions = useMemo<Action[]>(
     () => [
       ...SHELL_NAVIGATION.map((item) => {
-        const name = navT(item.labelKey);
+        const name = dashboardT(item.labelKey);
         return {
           id: item.id,
           name,
@@ -71,38 +70,38 @@ export function CommandMenu() {
       }),
       {
         id: "new-invoice",
-        name: layoutT("newInvoice"),
+        name: shellT("newInvoice"),
         icon: Plus,
-        keywords: [layoutT("newInvoice").toLocaleLowerCase(), "invoice", "create", "sell"],
+        keywords: [shellT("newInvoice").toLocaleLowerCase(), "invoice", "create", "sell"],
         perform: () => router.push("/dashboard/invoices?new=true"),
         bgColor: "bg-[var(--success-surface)] border border-[var(--success-border)]",
       },
       {
         id: "new-customer",
-        name: layoutT("newCustomer"),
+        name: shellT("newCustomer"),
         icon: Plus,
-        keywords: [layoutT("newCustomer").toLocaleLowerCase(), "customer", "client", "create"],
+        keywords: [shellT("newCustomer").toLocaleLowerCase(), "customer", "client", "create"],
         perform: () => router.push("/dashboard/customers?new=true"),
         bgColor: "bg-[var(--success-surface)] border border-[var(--success-border)]",
       },
       {
         id: "new-product",
-        name: layoutT("newProduct"),
+        name: shellT("newProduct"),
         icon: Plus,
-        keywords: [layoutT("newProduct").toLocaleLowerCase(), "product", "stock", "create"],
+        keywords: [shellT("newProduct").toLocaleLowerCase(), "product", "stock", "create"],
         perform: () => router.push("/dashboard/products?new=true"),
         bgColor: "bg-[var(--success-surface)] border border-[var(--success-border)]",
       },
       {
         id: "logout",
-        name: navT("signOut"),
+        name: dashboardT("signOut"),
         icon: LogOut,
-        keywords: [navT("signOut").toLocaleLowerCase(), "logout"],
+        keywords: [dashboardT("signOut").toLocaleLowerCase(), "logout"],
         perform: () => signOut({ callbackUrl: `/${locale}/login` }),
         bgColor: "bg-[var(--info-surface)] border border-[var(--info-border)]",
       },
     ],
-    [navT, layoutT, locale, router],
+    [dashboardT, shellT, locale, router],
   );
 
   const filteredActions = useMemo(() => {
