@@ -621,9 +621,9 @@ export function NewInvoiceModal({ customers, products, onCustomerSearch, onProdu
                             <span className="block font-semibold text-[var(--foreground)]">{customer.name}</span>
                             {customer.phone && <span className="block text-xs text-[var(--foreground)]/55 mt-0.5">{customer.phone}</span>}
                           </button>
-                         )) : !remoteCustomerSearching ? (
-                          <div className="p-3 text-sm text-[var(--foreground)]/55" role="status">{t("customerNoMatch")}</div>
-                        )}
+                          )) : !remoteCustomerSearching ? (
+                           <div className="p-3 text-sm text-[var(--foreground)]/55" role="status">{t("customerNoMatch")}</div>
+                         ) : null}
                       </div>
                       <button type="button" onClick={openCustomers} className="w-full flex items-center gap-2 px-3 py-3 text-sm font-semibold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10">
                         <Plus size={15} aria-hidden="true" />{t("newCustomer")}
