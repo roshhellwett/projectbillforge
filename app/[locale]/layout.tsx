@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "../globals.css";
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, setRequestLocale } from 'next-intl/server';
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 
@@ -12,21 +12,28 @@ export function generateStaticParams() {
 const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ||
   process.env.NEXTAUTH_URL ||
-  "https://billforge.vercel.app"
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : null) ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+  "https://projectbillforge.vercel.app"
 ).replace(/\/$/, "");
 
 const LOCALE_META: Record<string, { title: string; description: string }> = {
   en: {
     title: "BillForge — GST Billing & Khata for Indian Businesses",
-    description: "Fast, offline-friendly GST invoicing, Khata (udhaar) tracking, and inventory for Indian shops, wholesalers, and pharmacies. Made in India.",
+    description:
+      "Fast, offline-friendly GST invoicing, Khata (udhaar) tracking, and inventory for Indian shops, wholesalers, and pharmacies. Made in India.",
   },
   hi: {
     title: "BillForge — भारतीय व्यवसायों के लिए GST बिलिंग और खाता",
-    description: "भारतीय दुकानों, थोक विक्रेताओं और फार्मेसियों के लिए तेज़ GST बिलिंग, खाता (उधार) प्रबंधन और इन्वेंट्री। भारत में निर्मित।",
+    description:
+      "भारतीय दुकानों, थोक विक्रेताओं और फार्मेसियों के लिए तेज़ GST बिलिंग, खाता (उधार) प्रबंधन और इन्वेंट्री। भारत में निर्मित।",
   },
   "hi-en": {
     title: "BillForge — Indian dukaan ke liye GST Billing aur Khata",
-    description: "Indian dukaan, wholesaler aur pharmacy ke liye fast GST invoicing, Khata (udhaar) tracking, aur inventory. Made in India.",
+    description:
+      "Indian dukaan, wholesaler aur pharmacy ke liye fast GST invoicing, Khata (udhaar) tracking, aur inventory. Made in India.",
   },
 };
 
@@ -55,9 +62,16 @@ export async function generateMetadata({
     description: meta.description,
     applicationName: "BillForge",
     keywords: [
-      "GST billing India", "invoice software", "khata app", "udhaar book",
-      "bahi khata", "small business billing", "kirana billing",
-      "pharmacy billing", "wholesale invoice", "Indian invoice generator",
+      "GST billing India",
+      "invoice software",
+      "khata app",
+      "udhaar book",
+      "bahi khata",
+      "small business billing",
+      "kirana billing",
+      "pharmacy billing",
+      "wholesale invoice",
+      "Indian invoice generator",
     ],
     authors: [{ name: "BillForge" }],
     creator: "BillForge",
@@ -76,14 +90,24 @@ export async function generateMetadata({
       title: meta.title,
       description: meta.description,
       url: `${SITE_URL}/${locale}`,
-      locale: locale === "hi" ? "hi_IN" : "en_IN",
-      images: [{ url: "/og.png", width: 1200, height: 630, alt: "BillForge" }],
+      locale: locale === "hi" ? "hi_IN" : locale === "hi-en" ? "hi_IN" : "en_IN",
+      images: [
+        {
+          url: `${SITE_URL}/og.png`,
+          secureUrl: `${SITE_URL}/og.png`,
+          width: 1200,
+          height: 630,
+          alt: "BillForge — GST Billing & Khata for Indian Businesses",
+          type: "image/png",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: meta.title,
       description: meta.description,
-      images: ["/og.png"],
+      images: [`${SITE_URL}/og.png`],
+      creator: "@BillForge",
     },
     robots: {
       index: true,
@@ -109,7 +133,7 @@ import { SessionProvider } from "@/components/providers/session-provider";
 
 export default async function RootLayout({
   children,
-  params
+  params,
 }: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
@@ -131,9 +155,7 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <SessionProvider>
-              <ToastProvider>
-                {children}
-              </ToastProvider>
+              <ToastProvider>{children}</ToastProvider>
             </SessionProvider>
           </ThemeProvider>
         </NextIntlClientProvider>

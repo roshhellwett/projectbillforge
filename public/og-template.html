@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1200, height=630">
+  <title>BillForge OG Banner</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+      background: #090e17;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #f8fafc;
+      display: flex;
+      position: relative;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient Background Glows */
+    .glow-blue {
+      position: absolute;
+      top: -100px;
+      left: -100px;
+      width: 650px;
+      height: 650px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.28) 0%, rgba(37, 99, 235, 0) 70%);
+      pointer-events: none;
+    }
+    .glow-emerald {
+      position: absolute;
+      bottom: -120px;
+      right: 0px;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.24) 0%, rgba(16, 185, 129, 0) 70%);
+      pointer-events: none;
+    }
+    .glow-indigo {
+      position: absolute;
+      top: 40%;
+      left: 45%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.16) 0%, rgba(99, 102, 241, 0) 65%);
+      pointer-events: none;
+    }
+
+    /* Architectural Grid Overlay */
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: radial-gradient(ellipse at 50% 50%, black 50%, transparent 90%);
+      pointer-events: none;
+    }
+
+    /* Frame Border */
+    .outer-border {
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+    }
+
+    /* Top Accent Line */
+    .top-accent-line {
+      position: absolute;
+      top: 0;
+      left: 100px;
+      right: 100px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, #3b82f6 30%, #10b981 70%, transparent 100%);
+      box-shadow: 0 0 16px #3b82f6;
+    }
+
+    /* Main Layout */
+    .container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      padding: 48px 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 36px;
+    }
+
+    /* Left Branding Column */
+    .left-col {
+      width: 540px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      border-radius: 9999px;
+      padding: 6px 16px;
+      width: fit-content;
+      margin-bottom: 22px;
+      backdrop-filter: blur(8px);
+    }
+    .brand-pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+    .brand-pill-text {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #93c5fd;
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .brand-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 17px;
+      background: linear-gradient(145deg, #2563eb 0%, #1d4ed8 50%, #0f172a 100%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 12px 28px -6px rgba(37, 99, 235, 0.65), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+    .brand-title {
+      font-size: 54px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      color: #ffffff;
+    }
+
+    .tagline {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.32;
+      color: #ffffff;
+      margin-bottom: 14px;
+      letter-spacing: -0.025em;
+    }
+    .tagline .highlight {
+      background: linear-gradient(90deg, #38bdf8 0%, #4ade80 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .description {
+      font-size: 15px;
+      line-height: 1.55;
+      color: #94a3b8;
+      margin-bottom: 26px;
+      font-weight: 450;
+    }
+
+    .pills-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 11px;
+      margin-bottom: 28px;
+    }
+    .feature-pill {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      background: rgba(22, 30, 44, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+    .feature-pill-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .icon-emerald { background: rgba(16, 185, 129, 0.18); color: #34d399; }
+    .icon-blue { background: rgba(59, 130, 246, 0.18); color: #60a5fa; }
+    .icon-purple { background: rgba(168, 85, 247, 0.18); color: #c084fc; }
+    .icon-amber { background: rgba(245, 158, 11, 0.18); color: #fbbf24; }
+    .feature-pill-icon svg {
+      width: 14px;
+      height: 14px;
+    }
+    .feature-pill-text {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e2e8f0;
+      letter-spacing: -0.01em;
+    }
+
+    .trust-footer {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 18px;
+    }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+    .trust-item svg {
+      width: 14px;
+      height: 14px;
+      color: #34d399;
+    }
+
+    /* Right Column - SaaS UI Card Mockup */
+    .right-col {
+      flex: 1;
+      max-width: 520px;
+    }
+
+    .invoice-card {
+      background: linear-gradient(165deg, #141c28 0%, #0d131d 100%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 20px;
+      padding: 24px 26px;
+      box-shadow: 
+        0 24px 48px -12px rgba(0, 0, 0, 0.8),
+        0 4px 16px rgba(0, 0, 0, 0.4),
+        inset 0 1px 1px rgba(255, 255, 255, 0.15);
+      position: relative;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+    }
+    .card-business {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-business-name {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+    .card-business-badge {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 5px;
+      background: rgba(37, 99, 235, 0.2);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      letter-spacing: 0.04em;
+    }
+    .card-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.16);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 9999px;
+      padding: 4px 11px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #4ade80;
+      letter-spacing: 0.04em;
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 6px #4ade80;
+    }
+
+    .card-meta-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      background: rgba(255, 255, 255, 0.025);
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .meta-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .meta-label {
+      color: #64748b;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .meta-value {
+      color: #e2e8f0;
+      font-weight: 700;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    /* Items table */
+    .card-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 14px;
+    }
+    .card-table th {
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      padding-bottom: 7px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .card-table th.right { text-align: right; }
+    .card-table td {
+      padding: 9px 0;
+      font-size: 12.5px;
+      color: #f1f5f9;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .card-table td.right { 
+      text-align: right; 
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 700;
+    }
+    .card-table .sub {
+      color: #64748b;
+      font-size: 10.5px;
+      margin-top: 1px;
+    }
+
+    /* Totals Box */
+    .totals-box {
+      background: rgba(11, 17, 26, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 13px;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: #94a3b8;
+      margin-bottom: 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .total-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 8px 0;
+    }
+    .grand-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .grand-total-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .grand-total-value {
+      font-size: 24px;
+      font-weight: 900;
+      color: #4ade80;
+      letter-spacing: -0.02em;
+      text-shadow: 0 0 18px rgba(74, 222, 128, 0.4);
+    }
+
+    /* Mini Copilot floating bar */
+    .copilot-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 10px;
+      padding: 9px 13px;
+    }
+    .copilot-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: white;
+      flex-shrink: 0;
+    }
+    .copilot-text {
+      font-size: 11.5px;
+      color: #cbd5e1;
+      line-height: 1.35;
+    }
+    .copilot-text strong {
+      color: #a5b4fc;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-accent-line"></div>
+  <div class="glow-blue"></div>
+  <div class="glow-emerald"></div>
+  <div class="glow-indigo"></div>
+  <div class="grid-overlay"></div>
+  <div class="outer-border"></div>
+
+  <div class="container">
+    <!-- Left Column: Branding and Value Proposition -->
+    <div class="left-col">
+      <div class="brand-pill">
+        <div class="brand-pill-dot"></div>
+        <span class="brand-pill-text">GST & INVENTORY PLATFORM FOR BHARAT</span>
+      </div>
+
+      <div class="brand-header">
+        <div class="brand-icon">B</div>
+        <div class="brand-title">BillForge</div>
+      </div>
+
+      <h1 class="tagline">
+        Modern <span class="highlight">GST Billing & Khata</span><br>for Indian Businesses
+      </h1>
+
+      <p class="description">
+        Lightning-fast GST invoices, customer udhaar khata ledger, real-time inventory alerts, and built-in AI business copilot.
+      </p>
+
+      <div class="pills-grid">
+        <div class="feature-pill">
+          <div class="feature-pill-icon icon-emerald">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+          </div>
+          <span class="feature-pill-text">GST Invoices & E-Way</span>
+        </div>
+
+        <div class="feature-pill">
+          <div class="feature-pill-icon icon-blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+          </div>
+          <span class="feature-pill-text">Khata (Udhaar) Ledger</span>
+        </div>
+
+        <div class="feature-pill">
+          <div class="feature-pill-icon icon-amber">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+          </div>
+          <span class="feature-pill-text">Stock & Low-Alerts</span>
+        </div>
+
+        <div class="feature-pill">
+          <div class="feature-pill-icon icon-purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <span class="feature-pill-text">AI Business Copilot</span>
+        </div>
+      </div>
+
+      <div class="trust-footer">
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>100% Offline Ready</span>
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Multi-lingual (EN / हिन्दी)</span>
+        </div>
+        <div class="trust-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Zero Data Leaks</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Realistic SaaS UI Card Preview -->
+    <div class="right-col">
+      <div class="invoice-card">
+        <div class="card-top">
+          <div class="card-business">
+            <span class="card-business-name">Rajesh Kirana & General Store</span>
+            <span class="card-business-badge">GSTIN ACTIVE</span>
+          </div>
+          <div class="card-status-badge">
+            <div class="status-dot"></div>
+            <span>PAID IN FULL</span>
+          </div>
+        </div>
+
+        <div class="card-meta-row">
+          <div class="meta-group">
+            <span class="meta-label">Invoice No</span>
+            <span class="meta-value">#BF-2026-0841</span>
+          </div>
+          <div class="meta-group">
+            <span class="meta-label">Customer</span>
+            <span class="meta-value">Sharma Traders</span>
+          </div>
+          <div class="meta-group">
+            <span class="meta-label">Date & Time</span>
+            <span class="meta-value">16 Oct 2026</span>
+          </div>
+        </div>
+
+        <table class="card-table">
+          <thead>
+            <tr>
+              <th>Item Description</th>
+              <th class="right">Qty</th>
+              <th class="right">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                Premium Basmati Rice 25kg
+                <div class="sub">HSN 1006 · 5% GST</div>
+              </td>
+              <td class="right">2</td>
+              <td class="right">₹4,200.00</td>
+            </tr>
+            <tr>
+              <td>
+                Mustard Oil Tin (15L)
+                <div class="sub">HSN 1514 · 5% GST</div>
+              </td>
+              <td class="right">3</td>
+              <td class="right">₹6,450.00</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="totals-box">
+          <div class="total-row">
+            <span>Taxable Value</span>
+            <span>₹10,650.00</span>
+          </div>
+          <div class="total-row">
+            <span>CGST (2.5%) + SGST (2.5%)</span>
+            <span>₹532.50</span>
+          </div>
+          <div class="total-divider"></div>
+          <div class="grand-total">
+            <span class="grand-total-label">Total Amount</span>
+            <span class="grand-total-value">₹11,182.50</span>
+          </div>
+        </div>
+
+        <div class="copilot-chip">
+          <div class="copilot-avatar">✨</div>
+          <div class="copilot-text">
+            <strong>Copilot Insight:</strong> Customer's Khata balance is clear. Stock updated.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

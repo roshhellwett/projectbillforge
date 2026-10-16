@@ -1,4 +1,4 @@
-# BillForge — https://billforge.vercel.app
+# BillForge — https://projectbillforge.vercel.app
 # Public marketing + auth entry points are crawlable; everything user-scoped is not.
 
 User-agent: *
@@ -24,4 +24,4 @@ Disallow: /
 User-agent: anthropic-ai
 Disallow: /
 
-Sitemap: https://billforge.vercel.app/sitemap.xml
+Sitemap: https://projectbillforge.vercel.app/sitemap.xml
