@@ -159,12 +159,18 @@ function CopilotIllustration() {
   );
 }
 
+import { TypewriterContent } from "@/components/assistant/TypewriterContent";
+
 function MessageBubble({
   message,
+  isLatest,
   onCopy,
+  onScrollRequest,
 }: {
   message: ChatMessage;
+  isLatest: boolean;
   onCopy: (content: string) => void;
+  onScrollRequest?: () => void;
 }) {
   const t = useTranslations("Assistant");
   const isUser = message.role === "user";
@@ -178,29 +184,22 @@ function MessageBubble({
       aria-label={t(isUser ? "userMessageLabel" : "assistantMessageLabel")}
     >
       {!isUser && (
-        <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-300">
+        <div className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-blue-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 shadow-sm">
           <WandSparkles size={16} />
         </div>
       )}
-      <div className={`group max-w-[min(88%,680px)] ${isUser ? "items-end" : "items-start"}`}>
-        <div
-          className={
-            isUser
-              ? "rounded-2xl rounded-tr-md bg-[var(--foreground)] px-4 py-3 text-sm leading-6 text-[var(--background)] shadow-sm"
-              : "rounded-2xl rounded-tl-md border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-3 text-sm leading-6 text-[var(--foreground)]"
-          }
-        >
-          <p className="whitespace-pre-wrap break-words">{message.content}</p>
-        </div>
-        {!isUser && (
-          <button
-            type="button"
-            onClick={() => onCopy(message.content)}
-            className="mt-1 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium text-[var(--foreground)]/40 opacity-0 transition-opacity hover:text-[var(--foreground)] group-hover:opacity-100 focus-visible:opacity-100"
-            aria-label={t("copyAnswer")}
-          >
-            <Copy size={11} /> {t("copy")}
-          </button>
+      <div className={`max-w-[min(92%,720px)] ${isUser ? "items-end" : "items-start w-full"}`}>
+        {isUser ? (
+          <div className="rounded-2xl rounded-tr-md bg-[var(--foreground)] px-4 py-3 text-sm leading-6 text-[var(--background)] shadow-sm">
+            <p className="whitespace-pre-wrap break-words">{message.content}</p>
+          </div>
+        ) : (
+          <TypewriterContent
+            content={message.content}
+            isLatest={isLatest}
+            onCopy={onCopy}
+            onScrollRequest={onScrollRequest}
+          />
         )}
       </div>
     </motion.article>
@@ -620,8 +619,18 @@ export default function AssistantPage() {
                 </p>
               </div>
             )}
-            {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} onCopy={handleCopy} />
+            {messages.map((message, index) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                isLatest={message.role === "assistant" && index === messages.length - 1}
+                onCopy={handleCopy}
+                onScrollRequest={() => {
+                  const transcript = transcriptRef.current;
+                  if (!transcript) return;
+                  transcript.scrollTop = transcript.scrollHeight;
+                }}
+              />
             ))}
             <AnimatePresence>
               {status === "sending" && (
